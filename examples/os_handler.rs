@@ -1,5 +1,7 @@
 
 use std::fs;
+
+#[cfg(target_os = "windows")]
 use std::process::Command;
 
 #[derive(Debug)]
@@ -9,7 +11,7 @@ pub struct Battery {
 }
 
 #[derive(Debug)]
-pub struct OsHandler {
+pub struct Machine {
     pub architecture: String,
     pub os_name: String,
     pub producer: String,
@@ -18,7 +20,7 @@ pub struct OsHandler {
     pub machine_type: String,
 }
 
-impl OsHandler {
+impl Machine {
     pub fn new() -> Self {
         let (producer, system_model, motherboard, machine_type) = Self::fetch_hardware_data();
 
@@ -186,7 +188,7 @@ use super::*;
 
     #[test]
     fn test_full_hardware_read() {
-        let handler = OsHandler::new();
+        let handler = Machine::new();
         println!("Hardware scan complete:");
         println!("{:#?}", handler);
 
@@ -196,7 +198,7 @@ use super::*;
 
     #[test]
     fn test_battery_read() {
-        let handler = OsHandler::new();
+        let handler = Machine::new();
         if let Some(batt) = handler.get_battery() {
             println!("Battery: {}%, plugged In: {}", batt.percentage, batt.is_plugged_in);
             assert!(batt.percentage <= 100);
@@ -204,4 +206,8 @@ use super::*;
             println!("No battery detected");
         }
     }
+}
+
+fn main() {
+    
 }

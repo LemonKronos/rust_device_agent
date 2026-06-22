@@ -5,12 +5,17 @@ use all_smi::AllSmi;
 // use std::net::{TcpStream, SocketAddr};
 // use std::time::{Duration, Instant};
 
+use crate::os_specific::{Battery, Machine};
+use crate::os_specific::interface::{BatteryInterface, MachineInterface};
+
 pub struct Info {
     uuid: String,
+    machine: Machine,
     sys: System,
     smi: AllSmi,
     disks: sysinfo::Disks,
-    networks: sysinfo::Networks
+    networks: sysinfo::Networks,
+    battery: Option<Battery>,
 }
 
 pub struct Gpu {
@@ -31,6 +36,7 @@ pub struct Network<'a> {
     data: &'a sysinfo::NetworkData
 }
 
+//TODO Option everything in here?
 impl Info {
     pub fn new() -> Self {
         Self {
@@ -50,10 +56,12 @@ impl Info {
                 }
             },
 
+            machine: Machine::new(),
             sys: System::new_all(),
             smi: AllSmi::new().expect("Error init AllSmi: "),
             disks: sysinfo::Disks::new_with_refreshed_list(),
-            networks: sysinfo::Networks::new_with_refreshed_list()
+            networks: sysinfo::Networks::new_with_refreshed_list(),
+            battery: Battery::new(),
         }
     }
 
@@ -64,8 +72,34 @@ impl Info {
         self.networks.refresh(true);
     }
 
-    pub fn get_uuid(&self) -> String {
-        self.uuid.clone()
+    //: Unique machine ID
+    pub fn get_uuid(&self) -> &str {
+        &self.uuid
+    }
+
+    //: Machine info
+    pub fn get_architecture(&self) -> &str {
+        self.machine.get_architecture()
+    }
+
+    pub fn get_os_name(&self) -> &str {
+        self.machine.get_os_name()
+    }
+
+    pub fn get_producer(&self) -> &str {
+        self.machine.get_producer()
+    }
+
+    pub fn get_system_model(&self) -> &str {
+        self.machine.get_system_model()
+    }
+
+    pub fn get_motherboard(&self) -> &str {
+        self.machine.get_motherboard()
+    }
+
+    pub fn get_machine_type(&self) -> &str {
+        self.machine.get_machine_type()
     }
 
     //: System info
@@ -157,6 +191,15 @@ impl Info {
         let mut procs: Vec<_> = self.sys.processes().values().collect();
         procs.sort_by(|a, b| b.cpu_usage().total_cmp(&a.cpu_usage()));
         procs.into_iter().take(10).map(|p| Process::new(p, self.get_cpu_core())).collect()
+    }
+
+    //: Battery info
+    pub fn get_battery_percentage(&self) -> Option<u32> {
+        self.battery.as_ref().map(|b| b.get_percentage())
+    }
+
+    pub fn get_battery_is_plugged_in(&self) -> Option<bool> {
+        self.battery.as_ref().map(|b| b.get_is_plugged_in())
     }
 }
 

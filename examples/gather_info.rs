@@ -92,7 +92,7 @@ fn main() -> Result<()> {
     let components = Components::new_with_refreshed_list();
     println!("=> components:");
     for component in &components {
-        println!("{component:?}");
+        println!("{component:#?}");
     }
 
     
