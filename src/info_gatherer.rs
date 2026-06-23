@@ -1,9 +1,8 @@
 
+use std::time::{SystemTime, UNIX_EPOCH};
 use machineid_rs::{Encryption, HWIDComponent, IdBuilder};
 use sysinfo::System;
 use all_smi::AllSmi;
-// use std::net::{TcpStream, SocketAddr};
-// use std::time::{Duration, Instant};
 
 use crate::os_specific::{Temperature, Battery, Machine};
 use crate::os_specific::interface::{TemperatureInterface, BatteryInterface, MachineInterface};
@@ -68,15 +67,23 @@ impl Info {
     }
 
     //: call this before each check
-    pub fn get_ready(&mut self) {
+    pub fn prepare(&mut self) {
         self.sys.refresh_all();
         self.disks.refresh(true);
         self.networks.refresh(true);
     }
 
     //: Unique machine ID
-    pub fn get_uuid(&self) -> &str {
-        &self.uuid
+    pub fn get_uuid(&self) -> String {
+        self.uuid.to_string()
+    }
+
+    //: Timestamp
+    pub fn get_timestamp(&self) -> u64 {
+        SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("System time broken!")
+        .as_secs()
     }
 
     //: Machine info
@@ -147,8 +154,7 @@ impl Info {
     }
 
     pub fn get_cpu_temp(&self) -> f32 {
-        // todo!("let os_handler do this computer temperature!")
-        67 as f32
+        self.temp.get_temp_cpu()
     }
 
     //: RAM info
@@ -197,7 +203,7 @@ impl Info {
 
     //: Battery info
     //TODO more than 1 battery?
-    pub fn get_battery_percentage(&self) -> Option<u32> {
+    pub fn get_battery_percentage(&self) -> Option<f32> {
         self.battery.as_ref().map(|b| b.get_percentage())
     }
 
@@ -206,11 +212,7 @@ impl Info {
     }
 
     //: Temperature
-    pub fn get_temp_cpu(&self) -> u32 {
-        self.temp.get_temp_cpu()
-    }
-
-    pub fn get_temp_mobo(&self) -> u32 {
+    pub fn get_temp_mobo(&self) -> f32 {
         self.temp.get_temp_mobo()
     }
 }
@@ -275,28 +277,6 @@ impl<'a> Disk<'a> {
     }
 }
 
-impl<'a> Process<'a> {
-    pub fn new(process: &'a sysinfo::Process, cpu_core: u32) -> Self {
-        Self { process, cpu_core: cpu_core as f32}
-    }
-
-    pub fn get_name(&self) -> String {
-        self.process.name().to_string_lossy().into_owned()
-    }
-
-    pub fn get_cpu_usage(&self) -> f32 {
-        self.process.cpu_usage() / self.cpu_core
-    }
-
-    pub fn get_memory(&self) -> u64 {
-        self.process.memory()
-    }
-
-    pub fn get_runtime(&self) -> u64 {
-        self.process.run_time()
-    }
-}
-
 impl<'a> Network<'a> {
     pub fn new(name: &'a String, data: &'a sysinfo::NetworkData) -> Self {
         Self { name, data}
@@ -348,6 +328,28 @@ impl<'a> Network<'a> {
 
     pub fn get_download(&self) -> u64 {
         self.data.total_received()
+    }
+}
+
+impl<'a> Process<'a> {
+    pub fn new(process: &'a sysinfo::Process, cpu_core: u32) -> Self {
+        Self { process, cpu_core: cpu_core as f32}
+    }
+
+    pub fn get_name(&self) -> String {
+        self.process.name().to_string_lossy().into_owned()
+    }
+
+    pub fn get_cpu_usage(&self) -> f32 {
+        self.process.cpu_usage() / self.cpu_core
+    }
+
+    pub fn get_memory(&self) -> u64 {
+        self.process.memory()
+    }
+
+    pub fn get_runtime(&self) -> u64 {
+        self.process.run_time()
     }
 }
 

@@ -22,26 +22,26 @@ impl TemperatureInterface for Temperature {
         self.components.refresh(true);
     }
 
-    fn get_temp_cpu(&self) -> u32 {
+    fn get_temp_cpu(&self) -> f32 {
         self.components.iter()
             .filter(|c| {
                 let name = c.label().to_lowercase();
                 name.contains("cpu") || name.contains("package") || name.contains("core")
             })
-            .map(|c| c.temperature().unwrap() as u32)
-            .max()
-            .unwrap_or(0)
+            .map(|c| c.temperature().unwrap() as f32)
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(0.0)
     }
 
-    fn get_temp_mobo(&self) -> u32 {
+    fn get_temp_mobo(&self) -> f32 {
         self.components.iter()
             .filter(|c| {
                 let name = c.label().to_lowercase();
                 name.contains("motherboard") || name.contains("system") || name.contains("thermal zone")
             })
-            .map(|c| c.temperature().unwrap() as u32)
-            .max()
-            .unwrap_or(0) //! Will likely return 0 if not run as Admin!
+            .map(|c| c.temperature().unwrap() as f32)
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(0.0) //! Will likely return 0 if not run as Admin!
     }
 }
 
@@ -64,7 +64,7 @@ impl Battery {
 }
 
 impl BatteryInterface for Battery {
-    fn get_percentage(&self) -> u32 {
+    fn get_percentage(&self) -> f32 {
         if let Some(output) = Self::run_wmic() {
             let raw = String::from_utf8_lossy(&output.stdout);
             let lines: Vec<&str> = raw.lines().filter(|l| !l.trim().is_empty()).collect();
@@ -72,11 +72,11 @@ impl BatteryInterface for Battery {
             if lines.len() > 1 {
                 let parts: Vec<&str> = lines[1].split_whitespace().collect();
                 if parts.len() >= 2 {
-                    return parts[1].parse::<u32>().unwrap_or(0);
+                    return parts[1].parse::<f32>().unwrap_or(0.0);
                 }
             }
         }
-        0
+        0.0
     }
 
     fn get_is_plugged_in(&self) -> bool {

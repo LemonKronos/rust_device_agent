@@ -51,11 +51,11 @@ impl TemperatureInterface for Temperature {
         self.backend.ready_temp()
     }
 
-    fn get_temp_cpu(&self) -> u32 {
+    fn get_temp_cpu(&self) -> f32 {
         self.backend.get_temp_cpu()
     }
 
-    fn get_temp_mobo(&self) -> u32 {
+    fn get_temp_mobo(&self) -> f32 {
         self.backend.get_temp_mobo()
     }
 }
@@ -72,7 +72,7 @@ impl Battery {
 }
 
 impl BatteryInterface for Battery {
-    fn get_percentage(&self) -> u32 {
+    fn get_percentage(&self) -> f32 {
         self.backend.get_percentage()
     }
 

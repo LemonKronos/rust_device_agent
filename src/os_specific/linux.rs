@@ -22,22 +22,22 @@ impl TemperatureInterface for Temperature {
         self.components.refresh(true);
     }
 
-    fn get_temp_cpu(&self) -> u32 {
+    fn get_temp_cpu(&self) -> f32 {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("k10temp"))
-            .map(|c| c.temperature().unwrap() as u32)
-            .max()
-            .unwrap_or(0)
+            .map(|c| c.temperature().unwrap() as f32)
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(0.0)
     }
 
-    fn get_temp_mobo(&self) -> u32 {
+    fn get_temp_mobo(&self) -> f32 {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("acpitz"))
-            .map(|c| c.temperature().unwrap() as u32)
-            .max()
-            .unwrap_or(0)
+            .map(|c| c.temperature().unwrap() as f32)
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(0.0)
     }
 }
 
@@ -62,12 +62,12 @@ impl Battery {
 }
 
 impl BatteryInterface for Battery {
-    fn get_percentage(&self) -> u32 {
+    fn get_percentage(&self) -> f32 {
         fs::read_to_string(format!("{}/capacity", self.base_path))
             .unwrap_or_default()
             .trim()
             .parse()
-            .unwrap_or(0)
+            .unwrap_or(0.0)
     }
 
     fn get_is_plugged_in(&self) -> bool {

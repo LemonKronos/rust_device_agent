@@ -167,7 +167,7 @@ impl Machine {
     }
 }
 
-//#TAG: Helper
+//_ Helper
 fn parse_chassis_type(code: &str) -> String {
     match code {
         "3" | "4" | "6" | "7"   => "Desktop".to_string(),
@@ -180,34 +180,26 @@ fn parse_chassis_type(code: &str) -> String {
     }
 }
 
+fn test_full_hardware_read() {
+    let handler = Machine::new();
+    println!("Hardware scan complete:");
+    println!("{:#?}", handler);
 
-//#TAG: Test
-#[cfg(test)]
-mod tests {
-use super::*;
+    assert!(!handler.producer.is_empty());
+    assert!(!handler.system_model.is_empty());
+}
 
-    #[test]
-    fn test_full_hardware_read() {
-        let handler = Machine::new();
-        println!("Hardware scan complete:");
-        println!("{:#?}", handler);
-
-        assert!(!handler.producer.is_empty());
-        assert!(!handler.system_model.is_empty());
-    }
-
-    #[test]
-    fn test_battery_read() {
-        let handler = Machine::new();
-        if let Some(batt) = handler.get_battery() {
-            println!("Battery: {}%, plugged In: {}", batt.percentage, batt.is_plugged_in);
-            assert!(batt.percentage <= 100);
-        } else {
-            println!("No battery detected");
-        }
+fn test_battery_read() {
+    let handler = Machine::new();
+    if let Some(batt) = handler.get_battery() {
+        println!("Battery: {}%, plugged In: {}", batt.percentage, batt.is_plugged_in);
+        assert!(batt.percentage <= 100);
+    } else {
+        println!("No battery detected");
     }
 }
 
 fn main() {
-    
+    test_full_hardware_read();
+    test_battery_read();
 }

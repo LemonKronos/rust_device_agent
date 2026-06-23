@@ -1,11 +1,11 @@
 
 pub trait TemperatureInterface {
     fn ready_temp(&mut self);
-    fn get_temp_mobo(&self) -> u32;
-    fn get_temp_cpu(&self) -> u32;
+    fn get_temp_mobo(&self) -> f32;
+    fn get_temp_cpu(&self) -> f32;
 }
 pub trait BatteryInterface: Sized {
-    fn get_percentage(&self) -> u32;
+    fn get_percentage(&self) -> f32;
     fn get_is_plugged_in(&self) -> bool;
 }
 
