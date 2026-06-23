@@ -1,9 +1,45 @@
 
 use std::fs;
+use sysinfo::Components;
 
+use super::interface::TemperatureInterface;
 use super::interface::BatteryInterface;
 use super::interface::MachineInterface;
 use super::parse_chassis_type;
+
+pub struct Temperature {
+    components: Components,
+}
+
+impl Temperature {
+    pub fn new() -> Self {
+        Self { components: Components::new_with_refreshed_list() }
+    }
+}
+
+impl TemperatureInterface for Temperature {
+    fn ready_temp(&mut self) {
+        self.components.refresh(true);
+    }
+
+    fn get_temp_cpu(&self) -> u32 {
+        self.components
+            .iter()
+            .filter(|c| c.label().to_lowercase().contains("k10temp"))
+            .map(|c| c.temperature().unwrap() as u32)
+            .max()
+            .unwrap_or(0)
+    }
+
+    fn get_temp_mobo(&self) -> u32 {
+        self.components
+            .iter()
+            .filter(|c| c.label().to_lowercase().contains("acpitz"))
+            .map(|c| c.temperature().unwrap() as u32)
+            .max()
+            .unwrap_or(0)
+    }
+}
 
 pub struct Battery {
     base_path: String,
@@ -53,15 +89,24 @@ pub struct Machine {
 
 impl Machine {
     pub fn new() -> Self {
-        let (producer, system_model, motherboard, machine_type) = Self::fetch_hardware_data();
+        let read_dmi = |file: &str| -> String {
+            fs::read_to_string(format!("/sys/class/dmi/id/{}", file))
+                .map(|s| s.trim().to_string())
+                .unwrap_or_else(|_| "Unknow".to_string())
+        };
+
+        let producer = read_dmi("sys_vendor");
+        let model = read_dmi("product_name");
+        let mobo = read_dmi("board_name");
+        let chassis_code = read_dmi("chassis_type");
 
         Self {
             architecture: std::env::consts::ARCH.to_string(),
             os_name: std::env::consts::OS.to_string(),
-            producer,
-            system_model,
-            motherboard,
-            machine_type
+            producer: producer,
+            system_model: model,
+            motherboard: mobo,
+            machine_type: parse_chassis_type(&chassis_code)
         }
     }
 }
@@ -89,23 +134,6 @@ impl MachineInterface for Machine {
 
     fn get_machine_type(&self) -> &str {
         &self.machine_type
-    }
-}
-
-impl Machine {
-    fn fetch_hardware_data() -> (String, String, String, String) {
-        let read_dmi = |file: &str| -> String {
-            fs::read_to_string(format!("/sys/class/dmi/id/{}", file))
-                .map(|s| s.trim().to_string())
-                .unwrap_or_else(|_| "Unknow".to_string())
-        };
-
-        let producer = read_dmi("sys_vendor");
-        let model = read_dmi("product_name");
-        let mobo = read_dmi("board_name");
-        let chassis_code = read_dmi("chassis_type");
-
-        (producer, model, mobo, parse_chassis_type(&chassis_code))
     }
 }
 

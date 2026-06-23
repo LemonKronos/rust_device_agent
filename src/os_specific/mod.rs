@@ -1,14 +1,64 @@
 
 pub mod interface;
 
+use interface::TemperatureInterface;
 use interface::BatteryInterface;
 use interface::MachineInterface;
 
+//_ Linux
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "linux")]
-pub use linux::{Battery as BatteryBackend, Machine as MachineBackend};
+pub use linux::{
+    Temperature as TemperatureBackend,
+    Battery as BatteryBackend,
+    Machine as MachineBackend
+};
 
+//_ Windows
+#[cfg(target_os = "windows")]
+mod windows;
+#[cfg(target_os = "windows")]
+pub use windows::{
+    Temperature as TemperatureBackend,
+    Battery as BatteryBackend,
+    Machine as MachineBackend
+};
+
+//_ MacOS
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg(target_os = "macos")]
+pub use macos::{
+    Temperature as TemperatureBackend,
+    Battery as BatteryBackend,
+    Machine as MachineBackend
+};
+
+//_ OS plexers
+pub struct Temperature {
+    backend: TemperatureBackend,
+}
+
+impl Temperature {
+    pub fn new() -> Self {
+        Self { backend: TemperatureBackend::new() }
+    }
+}
+
+impl TemperatureInterface for Temperature {
+    fn ready_temp(&mut self) {
+        self.backend.ready_temp()
+    }
+
+    fn get_temp_cpu(&self) -> u32 {
+        self.backend.get_temp_cpu()
+    }
+
+    fn get_temp_mobo(&self) -> u32 {
+        self.backend.get_temp_mobo()
+    }
+}
 
 pub struct Battery {
     backend: BatteryBackend,
@@ -67,7 +117,7 @@ impl MachineInterface for Machine {
     }
 }
 
-//#TAG: Helper
+//_ Helpers
 fn parse_chassis_type(code: &str) -> String {
     match code {
         "3" | "4" | "6" | "7"   => "Desktop".to_string(),

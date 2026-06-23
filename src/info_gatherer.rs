@@ -5,8 +5,8 @@ use all_smi::AllSmi;
 // use std::net::{TcpStream, SocketAddr};
 // use std::time::{Duration, Instant};
 
-use crate::os_specific::{Battery, Machine};
-use crate::os_specific::interface::{BatteryInterface, MachineInterface};
+use crate::os_specific::{Temperature, Battery, Machine};
+use crate::os_specific::interface::{TemperatureInterface, BatteryInterface, MachineInterface};
 
 pub struct Info {
     uuid: String,
@@ -16,6 +16,7 @@ pub struct Info {
     disks: sysinfo::Disks,
     networks: sysinfo::Networks,
     battery: Option<Battery>,
+    temp: Temperature,
 }
 
 pub struct Gpu {
@@ -62,6 +63,7 @@ impl Info {
             disks: sysinfo::Disks::new_with_refreshed_list(),
             networks: sysinfo::Networks::new_with_refreshed_list(),
             battery: Battery::new(),
+            temp: Temperature::new(),
         }
     }
 
@@ -103,23 +105,23 @@ impl Info {
     }
 
     //: System info
-    pub fn get_os() -> String {
+    pub fn get_os(&self) -> String {
         System::name().unwrap_or_default()
     }
 
-    pub fn get_os_version() -> String {
+    pub fn get_os_version(&self) -> String {
         System::os_version().unwrap_or_default()
     }
 
-    pub fn get_kernel() -> String {
+    pub fn get_kernel(&self) -> String {
         System::kernel_version().unwrap_or_default()
     }
 
-    pub fn get_boot_time() -> u64 {
+    pub fn get_boot_time(&self) -> u64 {
         System::boot_time()
     }
 
-    pub fn get_run_time() -> u64 {
+    pub fn get_run_time(&self) -> u64 {
         System::uptime()
     }
 
@@ -144,9 +146,9 @@ impl Info {
         total / (self.sys.cpus().len() as u64).max(1)
     }
 
-    ///! HERERERENAKDNAKJNDKAN
     pub fn get_cpu_temp(&self) -> f32 {
-        todo!("let os_handler do this computer temperature!")
+        // todo!("let os_handler do this computer temperature!")
+        67 as f32
     }
 
     //: RAM info
@@ -194,12 +196,22 @@ impl Info {
     }
 
     //: Battery info
+    //TODO more than 1 battery?
     pub fn get_battery_percentage(&self) -> Option<u32> {
         self.battery.as_ref().map(|b| b.get_percentage())
     }
 
     pub fn get_battery_is_plugged_in(&self) -> Option<bool> {
         self.battery.as_ref().map(|b| b.get_is_plugged_in())
+    }
+
+    //: Temperature
+    pub fn get_temp_cpu(&self) -> u32 {
+        self.temp.get_temp_cpu()
+    }
+
+    pub fn get_temp_mobo(&self) -> u32 {
+        self.temp.get_temp_mobo()
     }
 }
 
