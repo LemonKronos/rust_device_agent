@@ -1,6 +1,7 @@
 
 use std::process::Output;
 use sysinfo::Components;
+use std::process::Command;
 
 use super::interface::TemperatureInterface;
 use super::interface::BatteryInterface;
@@ -41,7 +42,7 @@ impl TemperatureInterface for Temperature {
             })
             .map(|c| c.temperature().unwrap() as f32)
             .max_by(|a, b| a.total_cmp(b))
-            .unwrap_or(0.0) //! Will likely return 0 if not run as Admin!
+            .unwrap_or(0.0) // ! Will likely return 0 if not run as Admin!
     }
 }
 

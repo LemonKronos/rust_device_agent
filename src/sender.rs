@@ -2,7 +2,7 @@
 use std::time::Duration;
 use serde_json::Value;
 
-const SERVER_ENDPOINT: &str = "http://172.20.0.98:8000/api/v1/scans";
+const SERVER_ENDPOINT: &str = "http://172.20.2.154:8000/api/v1/scans";
 
 pub struct Sender {
     server_endpoint: String,

@@ -242,6 +242,6 @@ mod tests {
         println!("==================================\n");
 
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::write("json_sample.md", md_content).expect("Failed to write file");
+        fs::write("examples/others/json_example.md", md_content).expect("Failed to write file");
     }
 }
