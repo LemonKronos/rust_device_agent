@@ -28,7 +28,6 @@ pub struct Disk<'a> {
 
 pub struct Process<'a> {
     process: &'a sysinfo::Process,
-    cpu_core: f32
 }
 
 pub struct Network<'a> {
@@ -198,7 +197,7 @@ impl Info {
     pub fn get_running(&self) -> Vec<Process<'_>> {
         let mut procs: Vec<_> = self.sys.processes().values().collect();
         procs.sort_by(|a, b| b.cpu_usage().total_cmp(&a.cpu_usage()));
-        procs.into_iter().take(10).map(|p| Process::new(p, self.get_cpu_core())).collect()
+        procs.into_iter().take(10).map(|p| Process::new(p)).collect()
     }
 
     //: Battery info
@@ -273,7 +272,7 @@ impl<'a> Disk<'a> {
     }
 
     pub fn get_used(&self) -> u64 {
-        self.disk.total_space() - self.disk.total_space()
+        self.disk.total_space() - self.disk.available_space()
     }
 }
 
@@ -332,8 +331,8 @@ impl<'a> Network<'a> {
 }
 
 impl<'a> Process<'a> {
-    pub fn new(process: &'a sysinfo::Process, cpu_core: u32) -> Self {
-        Self { process, cpu_core: cpu_core as f32}
+    pub fn new(process: &'a sysinfo::Process) -> Self {
+        Self { process }
     }
 
     pub fn get_name(&self) -> String {
@@ -341,7 +340,7 @@ impl<'a> Process<'a> {
     }
 
     pub fn get_cpu_usage(&self) -> f32 {
-        self.process.cpu_usage() / self.cpu_core
+        self.process.cpu_usage()
     }
 
     pub fn get_memory(&self) -> u64 {
