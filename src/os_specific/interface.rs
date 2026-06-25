@@ -10,6 +10,7 @@ pub trait BatteryInterface: Sized {
 }
 
 pub trait MachineInterface {
+    fn get_serial(&self) -> &str;
     fn get_architecture(&self) -> &str;
     fn get_os_name(&self) -> &str;
     fn get_producer(&self) -> &str;

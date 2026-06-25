@@ -72,6 +72,7 @@ impl DeviceAgent {
             "uuid": self.info.get_uuid().to_string(),
             "time_stamp": self.info.get_timestamp(), // second
             "machine": {   
+                "serial": self.info.get_serial(),
                 "architecture": self.info.get_architecture(),
                 "os_name": self.info.get_os_name(),
                 "producer": self.info.get_producer(),

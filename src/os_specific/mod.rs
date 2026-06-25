@@ -92,6 +92,9 @@ impl Machine {
 }
 
 impl MachineInterface for Machine {
+    fn get_serial(&self) -> &str {
+        self.backend.get_serial()
+    }
     fn get_architecture(&self) -> &str {
         self.backend.get_architecture()
     }

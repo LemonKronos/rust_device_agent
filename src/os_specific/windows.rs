@@ -97,6 +97,7 @@ impl BatteryInterface for Battery {
 }
 
 pub struct Machine {
+    serial: String,
     architecture: String,
     os_name: String,
     producer: String,
@@ -118,6 +119,7 @@ impl Machine {
             "Unknown".to_string()
         };
 
+        let serial = run_wmic(&["csproduct", "get", "identifyingnumber"]);
         let producer = run_wmic(&["csproduct", "get", "vendor"]);
         let model = run_wmic(&["csproduct", "get", "name"]);
         let mobo = run_wmic(&["baseboard", "get", "product"]);
@@ -126,6 +128,7 @@ impl Machine {
         let chassis_code: String = raw_chassis.chars().filter(|c| c.is_ascii_digit()).collect();
 
         Self {
+            serial: serial,
             architecture: std::env::consts::ARCH.to_string(),
             os_name: std::env::consts::OS.to_string(),
             producer: producer,
@@ -137,6 +140,10 @@ impl Machine {
 }
 
 impl MachineInterface for Machine {
+    fn get_serial(&self) -> &str {
+        &self.serial
+    }
+    
     fn get_architecture(&self) -> &str {
         &self.architecture
     }

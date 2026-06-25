@@ -86,6 +86,10 @@ impl Info {
     }
 
     //: Machine info
+    pub fn get_serial(&self) -> &str {
+        self.machine.get_serial()
+    }
+
     pub fn get_architecture(&self) -> &str {
         self.machine.get_architecture()
     }

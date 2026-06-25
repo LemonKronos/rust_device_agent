@@ -79,6 +79,7 @@ impl BatteryInterface for Battery {
 }
 
 pub struct Machine {
+    serial: String,
     architecture: String,
     os_name: String,
     producer: String,
@@ -89,18 +90,20 @@ pub struct Machine {
 
 impl Machine {
     pub fn new() -> Self {
-        let read_dmi = |file: &str| -> String {
-            fs::read_to_string(format!("/sys/class/dmi/id/{}", file))
-                .map(|s| s.trim().to_string())
-                .unwrap_or_else(|_| "Unknow".to_string())
+        let read_dmi = |file: &str| match std::fs::read_to_string(format!("/sys/class/dmi/id/{}", file)) {
+            Ok(s) => s.trim().to_string(),
+            Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => "Required Admin".to_string(),
+            Err(_) => "Unknown".to_string(),
         };
 
+        let serial = read_dmi("product_serial");
         let producer = read_dmi("sys_vendor");
         let model = read_dmi("product_name");
         let mobo = read_dmi("board_name");
         let chassis_code = read_dmi("chassis_type");
 
         Self {
+            serial: serial,
             architecture: std::env::consts::ARCH.to_string(),
             os_name: std::env::consts::OS.to_string(),
             producer: producer,
@@ -112,6 +115,10 @@ impl Machine {
 }
 
 impl MachineInterface for Machine {
+    fn get_serial(&self) -> &str {
+        &self.serial
+    }
+
     fn get_architecture(&self) -> &str {
         &self.architecture
     }
