@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 all-smi = "0.22.0"
-machineid-rs = "1.2.4"
 serde_json = "1.0.150"
+smbios-lib = "0.9.2"
 sysinfo = "0.38.4"
 ureq = { version = "3.3.0", features = ["json"] }

@@ -1,3 +1,4 @@
 - To compile for Win or Mac, consider using cloud compilation, as in push to git, then compile on their server with real Win and Mac dictionary
 - [ ] The running processes show the agent itself, don't let it show
 - Create ctrlc to check for normal shutdown
+- Use direct buff file read instead of calling command: Speed

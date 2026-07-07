@@ -1,77 +1,95 @@
 
 pub mod interface;
 
-use interface::TemperatureInterface;
-use interface::BatteryInterface;
-use interface::MachineInterface;
+use interface::OsSpecificInterface;
 
 //_ Linux
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "linux")]
-pub use linux::{
-    Temperature as TemperatureBackend,
-    Battery as BatteryBackend,
-    Machine as MachineBackend
-};
+pub use linux::OsSpecificBackend;
 
 //_ Windows
 #[cfg(target_os = "windows")]
 mod windows;
 #[cfg(target_os = "windows")]
-pub use windows::{
-    Temperature as TemperatureBackend,
-    Battery as BatteryBackend,
-    Machine as MachineBackend
-};
+pub use windows::{OsSpecificBackend};
 
 //_ MacOS
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
-pub use macos::{
-    Temperature as TemperatureBackend,
-    Battery as BatteryBackend,
-    Machine as MachineBackend
-};
+pub use macos::{OsSpecificBackend};
 
 //_ OS plexers
-pub struct Temperature {
-    backend: TemperatureBackend,
+#[derive(Debug)]
+pub struct OsSpecific {
+    backend: OsSpecificBackend,
 }
 
-impl Temperature {
+impl OsSpecific {
     pub fn new() -> Self {
-        Self { backend: TemperatureBackend::new() }
+        Self { backend: OsSpecificBackend::new() }
     }
 }
 
-impl TemperatureInterface for Temperature {
-    fn ready_temp(&mut self) {
-        self.backend.ready_temp()
+impl OsSpecificInterface for OsSpecific {
+    fn refresh(&mut self) {
+        self.backend.refresh();
     }
 
-    fn get_temp_cpu(&self) -> f32 {
-        self.backend.get_temp_cpu()
+    fn get_product_serial(&self) -> String {
+        self.backend.get_product_serial()
     }
 
-    fn get_temp_mobo(&self) -> f32 {
-        self.backend.get_temp_mobo()
+    fn get_architecture(&self) -> String {
+        self.backend.get_architecture()
     }
-}
 
-pub struct Battery {
-    backend: BatteryBackend,
-}
-
-impl Battery {   
-    pub fn new() -> Option<Self> {
-        let backend = BatteryBackend::new()?;
-        Some(Self { backend })
+    fn get_producer(&self) -> String {
+        self.backend.get_producer()
     }
-}
 
-impl BatteryInterface for Battery {
+    fn get_system_model(&self) -> String {
+        self.backend.get_system_model()
+    }
+
+    fn get_machine_type(&self) -> String {
+        self.backend.get_machine_type()
+    }
+
+    fn get_os_name(&self) -> String {
+        self.backend.get_os_name()
+    }
+
+    fn get_motherboard(&self) -> String {
+        self.backend.get_motherboard()
+    }
+
+    fn get_motherboard_serial(&self) -> String {
+        self.backend.get_motherboard_serial()
+    }
+
+    fn get_cpu_slot(&self) -> u32 {
+        self.backend.get_cpu_slot()
+    }
+
+    fn get_ram_slot(&self) -> u32 {
+        self.backend.get_ram_slot()
+    }
+
+    fn get_gpu_slot(&self) -> u32 {
+        self.backend.get_gpu_slot()
+    }
+
+    fn get_tempe_mobo(&self) -> f32 {
+        self.backend.get_tempe_mobo()
+    }
+
+    fn get_tempe_cpu(&self) -> f32 {
+        self.backend.get_tempe_cpu()
+    }
+
     fn get_percentage(&self) -> f32 {
         self.backend.get_percentage()
     }
@@ -81,54 +99,47 @@ impl BatteryInterface for Battery {
     }
 }
 
-pub struct Machine {
-    backend: MachineBackend,
-}
 
-impl Machine {
-    pub fn new() -> Self {
-        Self { backend: MachineBackend::new() }
-    }
-}
-
-impl MachineInterface for Machine {
-    fn get_serial(&self) -> &str {
-        self.backend.get_serial()
-    }
-    fn get_architecture(&self) -> &str {
-        self.backend.get_architecture()
-    }
-
-    fn get_os_name(&self) -> &str {
-        self.backend.get_os_name()
-    }
-
-    fn get_producer(&self) -> &str {
-        self.backend.get_producer()
-    }
-
-    fn get_system_model(&self) -> &str {
-        self.backend.get_system_model()
-    }
-
-    fn get_motherboard(&self) -> &str {
-        self.backend.get_motherboard()
-    }
-
-    fn get_machine_type(&self) -> &str {
-        self.backend.get_machine_type()
-    }
-}
 
 //_ Helpers
 fn parse_chassis_type(code: &str) -> String {
     match code {
-        "3" | "4" | "6" | "7"   => "Desktop".to_string(),
-        "8" | "9" | "10" | "14" => "Laptop / Notebook".to_string(),
-        "11"                    => "Hand Held".to_string(),
-        "17" | "23"             => "Server".to_string(),
-        "30"                    => "Tablet".to_string(),
-        "31" | "32"             => "Convertible".to_string(),
-        _                       => format!("Unknow (Code {})", code)
+        "1" => "Special: Other".to_string(),
+        "2" => "Special: Unknown".to_string(),
+        "3" => "Desktop: Desktop".to_string(),
+        "4" => "Desktop: Low Profile Desktop".to_string(),
+        "5" => "Desktop: Pizza Box".to_string(),
+        "6" => "Desktop: Mini Tower".to_string(),
+        "7" => "Desktop: Tower".to_string(),
+        "8" => "Laptop: Portable".to_string(),
+        "9" => "Laptop: Laptop".to_string(),
+        "10" => "Laptop: Notebook".to_string(),
+        "11" => "Mobile: Hand Held".to_string(),
+        "12" => "Accessory: Docking Station".to_string(),
+        "13" => "Desktop: All in One".to_string(),
+        "14" => "Laptop: Sub Notebook".to_string(),
+        "15" => "Desktop: Space-Saving".to_string(),
+        "16" => "Portable: Lunch Box".to_string(),
+        "17" => "Server: Main System Chassis".to_string(),
+        "18" => "Accessory: Expansion Chassis".to_string(),
+        "19" => "Component: SubChassis".to_string(),
+        "20" => "Component: Bus Expansion Chassis".to_string(),
+        "21" => "Accessory: Peripheral Chassis".to_string(),
+        "22" => "Storage: RAID Chassis".to_string(),
+        "23" => "Server: Rack Mount Chassis".to_string(),
+        "24" => "Embedded: Sealed-Case PC".to_string(),
+        "25" => "Server: Multi-system chassis".to_string(),
+        "26" => "Embedded: Compact PCI".to_string(),
+        "27" => "Embedded: Advanced TCA".to_string(),
+        "28" => "Server: Blade".to_string(),
+        "29" => "Server: Blade Enclosure".to_string(),
+        "30" => "Mobile: Tablet".to_string(),
+        "31" => "Mobile: Convertible".to_string(),
+        "32" => "Mobile: Detachable".to_string(),
+        "33" => "Embedded: IoT Gateway".to_string(),
+        "34" => "Embedded: Embedded PC".to_string(),
+        "35" => "Desktop: Mini PC".to_string(),
+        "36" => "Desktop: Stick PC".to_string(),
+        _ => format!("Unregistered (code {})", code),
     }
 }
