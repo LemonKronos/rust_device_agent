@@ -86,33 +86,30 @@ impl Info {
         self.os_specific.get_tempe_mobo()
     }
 
-    pub fn get_cpu_socket(&self) -> u32 {
-        todo!()
+    pub fn get_cpu_socket(&self) -> Option<u32> {
+        self.os_specific.get_cpu_socket()
     }
 
-    pub fn get_ram_socket(&self) -> u32 {
-        todo!()
+    pub fn get_ram_socket(&self) -> Option<u32> {
+        self.os_specific.get_ram_socket()
     }
 
-    pub fn get_gpu_socket(&self) -> u32 {
-        todo!()
+    pub fn get_gpu_socket(&self) -> Option<u32> {
+        self.os_specific.get_gpu_socket()
     }
 
     //: Bios info
-    pub fn get_bios_version(&self) -> &str {
-        todo!()
+    pub fn get_bios_version(&self) -> String {
+        self.os_specific.get_bios_version()
     }
     
-    pub fn get_bios_vendor(&self) -> &str {
-        todo!()
+    pub fn get_bios_vendor(&self) -> String {
+        self.os_specific.get_bios_vendor()
     }
 
-    pub fn get_is_secure_boot(&self) -> bool {
-        todo!()
+    pub fn get_is_secure_boot(&self) -> Option<bool> {
+        self.os_specific.get_is_secure_boot()
     }
-
-    //: Peripheral info
-    //TODO
 
     //: OS info
     pub fn get_os_name(&self) -> String {
@@ -164,9 +161,8 @@ impl Info {
         self.sys.used_memory()
     }
 
-    // read via dmicode -t 17
-    pub fn get_ram_list(&self) -> Vec<Ram> {
-        todo!("need Admin fetcher")
+    pub fn get_ram_list(&self) -> Option<Vec<Ram>> {
+        self.os_specific.get_ram_list()
     }
 
     //: SWAP info
@@ -186,15 +182,23 @@ impl Info {
     }
 
     //: Disk list
-    pub fn get_disk_list(&self) -> Vec<Disk<'_>> {
+    pub fn get_logical_disk_list(&self) -> Vec<LogicalDisk<'_>> {
         self.disks.iter()
-            .map(|d| Disk::new(d))
+            .map(|d| LogicalDisk::new(d))
             .collect()
+    }
+
+    pub fn get_hardware_disk_list(&self) -> Option<Vec<HardwareDisk>> {
+        self.os_specific.get_hardware_disk_list()
     }
 
     //: Network info
     pub fn get_network_list(&self) -> Vec<Network<'_>> {
-        self.networks.iter().map(|(name, data)| Network::new(name, data)).collect()
+        // Handle by sysinfo
+        let mut list = self.networks.iter().map(|(name, data)| Network::new(name, data)).collect();
+        // Populate hardware info for each OS
+        self.os_specific.fill_network_hardware(&mut list);
+        return list;
     }
 
     //: Processes info
@@ -220,8 +224,8 @@ impl Info {
     }
 
     //: Software info
-    pub fn get_software_list(&self) -> Vec<Software> {
-        todo!()
+    pub fn get_software_list(&self) -> Option<Vec<Software>> {
+        self.os_specific.get_software_list()
     }
 }
 

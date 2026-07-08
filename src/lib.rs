@@ -26,28 +26,52 @@ impl DeviceAgent {
     }
 
     fn get_json(&self) -> serde_json::Value {
+
+        let rams_json = self.info.get_ram_list().map(|ram| {
+            ram.iter().map(|ram| json!({
+                "name": ram.get_name(),
+                "serial": ram.get_serial(),
+                "type": ram.get_type(),
+                "speed": ram.get_speed(), // MT/s
+                "size": ram.get_size(),
+            })).collect::<Vec<_>>()
+        });
+
         let gpus_json: Vec<_> = self.info.get_gpu_list().iter().map(|gpu| {
             json!({
                 "name": gpu.get_name(),
                 "driver": gpu.get_driver(),
                 "utilization": gpu.get_util(), // %
                 "temperature": gpu.get_temp(), // ℃
+                "frequency": gpu.get_freq(), // MHz
                 "vram_total": gpu.get_vram_total(), // byte
                 "vram_usage": gpu.get_vram_usage(), // byte
-                //TODO
+                "max_clock": gpu.get_max_clock(), // MHz
+                "serial": gpu.get_serial(),
+                //TODO screen resolution + serial
             })
         }).collect();
 
-        let disks_json: Vec<_> = self.info.get_disk_list().iter().map(|disk| {
+        let logical_disks_json: Vec<_> = self.info.get_logical_disk_list().iter().map(|disk| {
             json!({
                 "name": disk.get_name(),
-                "type": disk.get_type(),
+                "type": disk.get_file_system(),
+                "mount_point": disk.get_mount_point(),
                 "removable": disk.get_removable(), // bool
                 "total": disk.get_total(), // byte
                 "used": disk.get_used(), // byte
-                //TODO
             })
         }).collect();
+
+        let hardware_disks_json = self.info.get_hardware_disk_list().map(|hd| {
+            hd.iter().map(|hd| json!({
+                "drive": hd.get_drive(),
+                "model": hd.get_model(),
+                "serial": hd.get_serial(),
+                "firmware": hd.get_firmware(),
+                "size": hd.get_size(), // GB
+            })).collect::<Vec<_>>()
+        });
 
         let networks_json: Vec<_> = self.info.get_network_list().iter().map(|network| {
             json!({
@@ -58,7 +82,9 @@ impl DeviceAgent {
                 "mtu": network.get_mtu(), // byte
                 "upload": network.get_upload(), // byte
                 "download": network.get_download(), // byte
-                //TODO
+                "card": network.get_card(),
+                "config_speed": network.get_config_speed(), // Mbps
+                "ssid": network.get_ssid(),
             })
         }).collect();
 
@@ -71,17 +97,28 @@ impl DeviceAgent {
             })
         }).collect();
 
-        let all_processes_json: Vec<_> = self.info.get_full_process_list().iter().map(|process| {
-            json!({
-                "name": process.get_name(),
-                "cpu": process.get_cpu_usage(),
-                "memory": process.get_memory(),
-                "runtime": process.get_runtime(),
-            })
-        }).collect();
+        // let all_processes_json: Vec<_> = self.info.get_full_process_list().iter().map(|process| {
+        //     json!({
+        //         "name": process.get_name(),
+        //         "cpu": process.get_cpu_usage(),
+        //         "memory": process.get_memory(),
+        //         "runtime": process.get_runtime(),
+        //     })
+        // }).collect();
+
+        //_ this have take(5) for debug
+        let softwares_json = self.info.get_software_list().map(|app| {
+            app.iter().take(5).map(|app| json!({
+                "name": app.get_name(),
+                "version": app.get_version(),
+                "source": app.get_source(),
+                "license": "todo",
+                "expiration": "todo",
+            })).collect::<Vec<_>>()
+        });
 
         //TODO
-        // let softwares_json: Vec<_> = self.
+        // let peripheral_json: Vec<_> = 
 
         let payload = json!({
             "time_stamp": self.info.get_timestamp(), // second
@@ -100,15 +137,15 @@ impl DeviceAgent {
                 "name": self.info.get_motherboard(),
                 "serial": self.info.get_motherboard_serial(),
                 "tempe": self.info.get_temp_mobo(),
-                //TODO more on hardware
+                "cpu_socket": self.info.get_cpu_socket(),
+                "ram_socket": self.info.get_ram_socket(),
+                "gpu_socket": self.info.get_gpu_socket(),
             },
             "bios": {
-                //TODO
+                "version": self.info.get_os_version(),
+                "vendor": self.info.get_bios_vendor(),
+                "secure_boot": self.info.get_is_secure_boot(),
             },
-            "peripheral": {
-                //TODO
-            },
-
             "os": {
                 "os": self.info.get_os(),
                 "os_name": self.info.get_os_name(),
@@ -125,14 +162,17 @@ impl DeviceAgent {
             "RAM": {
                 "total": self.info.get_ram_total(), // byte
                 "usage": self.info.get_ram_usage(), // byte
-                //TODO more on hardware
+                "hardware": rams_json, // list
             },
             "SWAP": {
                 "total": self.info.get_swap_total(), // byte
                 "usage": &self.info.get_swap_usage(), // byte
             },
             "GPUs": gpus_json, // list
-            "disks": disks_json, // list
+            "disks": {
+                "logical": logical_disks_json, // list
+                "hardware": hardware_disks_json, // list
+            },
             "networks": networks_json, // list
             "top_processes": top_processes_json, // list
             // "all_process": all_processes_json, // list
@@ -140,9 +180,7 @@ impl DeviceAgent {
                 "percentage": self.info.get_battery_percentage(),
                 "is_plugged_in": self.info.get_battery_is_plugged_in(), // bool, note that "plugged in" is different from "charging"
             },
-            "softwares": {
-                //TODO
-            }
+            "softwares": softwares_json,
         });
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();

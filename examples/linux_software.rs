@@ -6,8 +6,8 @@ pub struct Software {
     name: String,
     version: String,
     source: String, // Mapped to the dpkg Maintainer
-    license: String,
-    expiration_date: String,
+    // license: String,
+    // expiration_date: String,
 }
 
 fn get_linux_software() -> Vec<Software> {
@@ -23,8 +23,8 @@ fn get_linux_software() -> Vec<Software> {
 
     // Initialize our first struct with the defaults we know
     let mut current = Software {
-        license: "Unknown (Debian Policy)".to_string(),
-        expiration_date: "N/A".to_string(),
+        // license: "Unknown (Debian Policy)".to_string(),
+        // expiration_date: "N/A".to_string(),
         ..Default::default()
     };
 
@@ -35,8 +35,8 @@ fn get_linux_software() -> Vec<Software> {
             if !current.name.is_empty() {
                 software_list.push(current);
                 current = Software {
-                    license: "Unknown (Debian Policy)".to_string(),
-                    expiration_date: "N/A".to_string(),
+                    // license: "Unknown (Debian Policy)".to_string(),
+                    // expiration_date: "N/A".to_string(),
                     ..Default::default()
                 };
             }

@@ -2,3 +2,9 @@
 - [ ] The running processes show the agent itself, don't let it show
 - Create ctrlc to check for normal shutdown
 - Use direct buff file read instead of calling command: Speed
+- Check for the "Unknown" return, may need to differentiate it with valid "Unknown" thing!
+- For Linux have to be care full with cmd to avoid bare bone server
+- Don't send info that is "Unknown" or invalid
+- <mark style="background: #CFB461;">maybe wrap all in Option</mark> 
+- There is the Serialize/Deserialize macro from serde_json, maybe use it?
+- Maybe not read and sending network `lo`?

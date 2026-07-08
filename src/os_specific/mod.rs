@@ -2,6 +2,7 @@
 pub mod interface;
 
 use interface::OsSpecificInterface;
+use crate::types::*;
 
 //_ Linux
 #[cfg(target_os = "linux")]
@@ -58,6 +59,18 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_machine_type()
     }
 
+    fn get_bios_version(&self) -> String {
+        self.backend.get_bios_version()    
+    }
+
+    fn get_bios_vendor(&self) -> String {
+        self.backend.get_bios_vendor()
+    }
+
+    fn get_is_secure_boot(&self) -> Option<bool> {
+        self.backend.get_is_secure_boot()
+    }
+
     fn get_os_name(&self) -> String {
         self.backend.get_os_name()
     }
@@ -70,16 +83,24 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_motherboard_serial()
     }
 
-    fn get_cpu_slot(&self) -> u32 {
-        self.backend.get_cpu_slot()
+    fn get_cpu_socket(&self) -> Option<u32> {
+        self.backend.get_cpu_socket()
     }
 
-    fn get_ram_slot(&self) -> u32 {
-        self.backend.get_ram_slot()
+    fn get_ram_socket(&self) -> Option<u32> {
+        self.backend.get_ram_socket()
     }
 
-    fn get_gpu_slot(&self) -> u32 {
-        self.backend.get_gpu_slot()
+    fn get_gpu_socket(&self) -> Option<u32> {
+        self.backend.get_gpu_socket()
+    }
+
+    fn get_ram_list(&self) -> Option<Vec<Ram>> {
+        self.backend.get_ram_list()
+    }
+
+    fn get_hardware_disk_list(&self) -> Option<Vec<HardwareDisk>> {
+        self.backend.get_hardware_disk_list()    
     }
 
     fn get_tempe_mobo(&self) -> f32 {
@@ -96,6 +117,14 @@ impl OsSpecificInterface for OsSpecific {
 
     fn get_is_plugged_in(&self) -> bool {
         self.backend.get_is_plugged_in()
+    }
+
+    fn fill_network_hardware(&self, network_list: &mut Vec<crate::types::Network<'_>>) {
+        self.backend.fill_network_hardware(network_list);
+    }
+
+    fn get_software_list(&self) -> Option<Vec<Software>> {
+        self.backend.get_software_list()
     }
 }
 
