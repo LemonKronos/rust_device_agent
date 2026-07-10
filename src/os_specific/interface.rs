@@ -23,7 +23,7 @@ pub trait OsSpecificInterface {
 
     fn get_ram_list(&self) -> Option<Vec<Ram>>;
 
-    fn get_hardware_disk_list(&self) -> Option<Vec<HardwareDisk>>;
+    fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>>;
 
     fn get_tempe_mobo(&self) -> f32;
     fn get_tempe_cpu(&self) -> f32;

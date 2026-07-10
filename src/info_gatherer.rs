@@ -27,7 +27,7 @@ impl Info {
         }
     }
 
-    //: call this before each check
+    /// Call this before each check
     pub fn prepare(&mut self) {
         self.sys.refresh_all();
         self.disks.refresh(true);
@@ -36,6 +36,7 @@ impl Info {
     }
 
     //: Timestamp
+    /// Return current time since UNIX_EPOCH in second
     pub fn get_timestamp(&self) -> u64 {
         SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -44,11 +45,18 @@ impl Info {
     }
 
     //: General info
+    /// Get host - username
+    pub fn get_host(&self) -> String {
+        System::host_name().unwrap_or_default()
+    }
+
+    /// Return timestamp of machine boot since UNIX_EPOCH in second
     pub fn get_boot_time(&self) -> u64 {
         System::boot_time()
     }
 
-    pub fn get_run_time(&self) -> u64 {
+    /// Return amount of time machine have run since boot in second
+    pub fn get_up_time(&self) -> u64 {
         System::uptime()
     }
 
@@ -116,7 +124,7 @@ impl Info {
         self.os_specific.get_os_name()
     }
 
-    pub fn get_os(&self) -> String {
+    pub fn get_os_distro(&self) -> String {
         System::name().unwrap_or_default()
     }
 
@@ -139,24 +147,29 @@ impl Info {
         self.sys.cpus().len() as u32
     }
 
+    /// Return CPU usage in %, will not grow pass 100%
     pub fn get_cpu_usage(&self) -> f32 {
         self.sys.global_cpu_usage()
     }
 
+    /// Return CPU clock in MHz
     pub fn get_cpu_freq(&self) -> u64 {
         let total: u64 = self.sys.cpus().iter().map(|core| core.frequency()).sum();
         total / (self.sys.cpus().len() as u64).max(1)
     }
 
+    /// Return CPU internal sensor temperature in ℃
     pub fn get_cpu_temp(&self) -> f32 {
         self.os_specific.get_tempe_cpu()
     }
 
     //: RAM info
+    /// Return total RAM memory in Byte
     pub fn get_ram_total(&self) -> u64 {
         self.sys.total_memory()
     }
 
+    /// Return in used RAM memory in Byte
     pub fn get_ram_usage(&self) -> u64 {
         self.sys.used_memory()
     }
@@ -166,10 +179,12 @@ impl Info {
     }
 
     //: SWAP info
+    /// Return total SWAP memory in Byte
     pub fn get_swap_total(&self) -> u64 {
         self.sys.total_swap()
     }
 
+    /// Return in used SWAP memory in Byte
     pub fn get_swap_usage(&self) -> u64 {
         self.sys.used_swap()
     }
@@ -188,8 +203,8 @@ impl Info {
             .collect()
     }
 
-    pub fn get_hardware_disk_list(&self) -> Option<Vec<HardwareDisk>> {
-        self.os_specific.get_hardware_disk_list()
+    pub fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>> {
+        self.os_specific.get_physical_disk_list()
     }
 
     //: Network info
@@ -202,6 +217,10 @@ impl Info {
     }
 
     //: Processes info
+    pub fn get_process_count(&self) -> u32 {
+        self.sys.processes().iter().count() as u32
+    }
+
     pub fn get_top_process_list(&self) -> Vec<Process<'_>> {
         let mut procs: Vec<_> = self.sys.processes().values().collect();
         procs.sort_by(|a, b| b.cpu_usage().total_cmp(&a.cpu_usage()));
@@ -219,6 +238,7 @@ impl Info {
         self.os_specific.get_percentage()
     }
 
+    /// Check if machine is having a external power connection, note that this is different from "battery is being charged"
     pub fn get_battery_is_plugged_in(&self) -> bool {
         self.os_specific.get_is_plugged_in()
     }

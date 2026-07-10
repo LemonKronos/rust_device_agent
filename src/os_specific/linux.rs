@@ -19,7 +19,7 @@ const BATTERY_1_PATH: &str = "/sys/class/power_supply/BAT1";
 const SECURE_BOOT_PATH: &str = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c";
 const NETWORK_PATH: &str = "/sys/class/net";
 const PCI_DEVICE_PATH: &str = "/sys/bus/pci/devices";
-const DPKG_PATH: &str = "/var/lib/dpkg/status";
+const DPKG_PATH: &str = "/var/lib/dpkg";
 
 #[derive(Debug)]
 pub struct OsSpecificBackend {
@@ -212,15 +212,22 @@ impl OsSpecificInterface for OsSpecificBackend {
                 None => "Unknown".to_string(),
             };
 
+            let bank = mem_device.bank_locator().to_string();
+
+            let form_factor = match mem_device.form_factor() {
+                Some(ff) => format!("{:?}", ff.value).to_uppercase(),
+                None => "Unknown".to_string(),
+            };
+
             let size =  if raw_size.contains("Gigabytes") {
-                raw_size.replace("Some(Gigabytes(", "").replace("))", " GB")
+                raw_size.replace("Some(Gigabytes(", "").replace("))", "")
             } else if raw_size.contains("Megabytes") {
-                raw_size.replace("Some(Megabytes(", "").replace("))", " MB")
+                raw_size.replace("Some(Megabytes(", "").replace("))", "")
             } else if raw_size.contains("Some(") {
                 raw_size.replace("Some(", "").replace(")", "")
             } else {
                 raw_size
-            };
+            }.trim().parse::<u64>().unwrap_or_default();
 
             let speed_debug = format!("{:?}", mem_device.configured_memory_speed().or_else(|| mem_device.speed()));
             let speed = speed_debug
@@ -228,16 +235,18 @@ impl OsSpecificInterface for OsSpecificBackend {
                 .replace("MTs(", "").replace(")", "")
                 .replace("Some(Unknown)", "Unknown");
 
-            ram_list.push(Ram::new(name, serial, type_, speed, size));
+            ram_list.push(Ram::new(name, serial, type_, speed, size, bank, form_factor));
         }
         Some(ram_list)
     }
 
-    fn get_hardware_disk_list(&self) -> Option<Vec<HardwareDisk>> {
+    fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>> {
         let mut list = Vec::new();
         let block_dir = Path::new(HARD_DISK_PATH);
         match fs::read_dir(block_dir) {
             Ok(entries) => {
+                let mut index: u32 = 0;
+
                 for entry in entries.flatten() {
                     let drive = entry.file_name().to_string_lossy().into_owned();
 
@@ -262,14 +271,68 @@ impl OsSpecificInterface for OsSpecificBackend {
                         .map(|s| s.trim().to_string())
                         .unwrap_or_else(|_| "Unknown".to_string());
 
-                    let size_path = entry.path().join("size");
-                    let sector: u64 = fs::read_to_string(size_path)
+                    let sector: u64 = fs::read_to_string(entry.path().join("size"))
                         .unwrap_or_else(|_| "0".to_string())
                         .trim().parse().unwrap_or(0);
+                    let size = ((sector * 512) as f64 / 1_000_000_000.0) as u32;
 
-                    let size = (sector * 512) as f64 / 1_000_000_000.0;
+                    let media = match fs::read_to_string(entry.path().join("queue/rotational")) {
+                        Ok(val) if val.trim() == "0" => "SSD".to_string(),
+                        Ok(val) if val.trim() == "1" => "HDD".to_string(),
+                        _ => "Unknown".to_string(),
+                    };
 
-                    list.push(HardwareDisk::new(drive, model, serial, firmware, size as u32));
+                    let interface = if drive.starts_with("nvme") {
+                        "NVMe".to_string()
+                    } else if drive.starts_with("sd") {
+                        if let Ok(link) = fs::read_link(&device_path) {
+                            if link.to_string_lossy().contains("usb") {
+                                "USB".to_string()
+                            } else {
+                                "SATA/SCSI".to_string()
+                            }
+                        } else {
+                            "SATA".to_string()
+                        }
+                    } else if drive.starts_with("mmcblk") {
+                        "eMMC/SD".to_string()
+                    } else {
+                        "Unknown".to_string()
+                    };
+
+                    let status = match fs::read_to_string(device_path.join("state")) {
+                        Ok(state) => state.trim().to_string(),
+                        _ => "Unknown".to_string(),
+                    };
+
+                    let mut part_list = Vec::new();
+                    let mut part_index = 0;
+                    if let Ok(sub_entries) = fs::read_dir(entry.path()) {
+                        for sub_entry in sub_entries.flatten() {
+                            let sub_name = sub_entry.file_name().to_string_lossy().into_owned();
+                            
+                            if sub_name.starts_with(&drive) {
+                                let p_size_path = sub_entry.path().join("size");
+                                let p_sector: u64 = fs::read_to_string(p_size_path)
+                                    .unwrap_or_else(|_| "0".to_string())
+                                    .trim()
+                                    .parse()
+                                    .unwrap_or(0);
+                                
+                                let p_size_gb = (p_sector * 512) as f64 / 1_000_000_000.0;
+                                let rounded_size = (p_size_gb * 100.0).round() / 100.0;
+
+                                part_list.push(Partition {
+                                    name: part_index.to_string(), // ! Should change this to real partition name
+                                    size: rounded_size,
+                                });
+                                part_index += 1;
+                            }
+                        }
+                    }
+                    list.push(PhysicalDisk { drive, index, model, serial, firmware, size, media, interface, status, partition: Some(part_list) });
+
+                    index += 1;
                 }
                 Some(list)
             }
@@ -358,7 +421,8 @@ impl OsSpecificInterface for OsSpecificBackend {
     fn get_software_list(&self) -> Option<Vec<Software>> {
         let mut list = Vec::new();
 
-        let file = match File::open(DPKG_PATH) {
+        let status_path = Path::new(DPKG_PATH).join("status");
+        let file = match File::open(status_path) {
             Ok(f) => f,
             Err(e) if e.kind() == PermissionDenied => {
                 println!("Required Admin to read software list");
@@ -371,25 +435,32 @@ impl OsSpecificInterface for OsSpecificBackend {
         };
 
         let reader = BufReader::new(file);
-        let mut current = Software{..Default::default()};
+        let mut current = Software::new();
 
         for line in reader.lines().flatten() {
             if line.trim().is_empty() {
                 // End of a pkg block
                 if !current.name.is_empty() {
+                    let info_path = format!("{}/info/{}.list", DPKG_PATH, current.name);
+                    current.install_date = fs::metadata(&info_path).and_then(|meta| meta.modified()).ok();
+
                     list.push(current);
-                    current = Software{..Default::default()};
+                    current = Software::new();
                 }
                 continue;
             }
 
-            if let Some(name) = line.strip_prefix("Package: ") {
-                current.name = name.to_string();
-            } else if let Some(version) = line.strip_prefix("Version: ") {
-                current.version = version.to_string();
-            } else if let Some(maintainer) = line.strip_prefix("Maintainer: ") {
-                current.source = maintainer.to_string();
+            if let Some((key, value)) = line.split_once(": ") {
+                match key {
+                    "Package" => current.name = value.to_string(),
+                    "Version" => current.version = value.to_string(),
+                    "Maintainer" => current.source = value.split('<').next().unwrap_or(value).trim().to_string(),
+                    "Installed-Size" => current.size = value.parse::<u64>().unwrap_or_default(),
+                    _ => {},
+                }
             }
+
+
         }
         Some(list)
     }

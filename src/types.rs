@@ -1,4 +1,6 @@
 
+use std::time::SystemTime;
+
 //_ RAM
 #[derive(Debug, Default)]
 pub struct Ram {
@@ -6,12 +8,22 @@ pub struct Ram {
     serial: String,
     type_: String,
     speed: String,
-    size: String,
+    size: u64,
+    bank: String,
+    form_factor: String,
 }
 
 impl Ram {
-    pub fn new(name: String, serial: String, type_: String, speed: String, size: String) -> Self {
-        Self { name, serial, type_, speed, size }
+    pub fn new(
+        name: String,
+        serial: String,
+        type_: String,
+        speed: String,
+        size: u64, 
+        bank: String,
+        form_factor: String,
+    ) -> Self {
+        Self { name, serial, type_, speed, size, bank, form_factor }
     }
 
     pub fn get_name(&self) -> &str {
@@ -26,12 +38,22 @@ impl Ram {
         &self.type_
     }
 
+    /// return RAM configured speed in MT/s
     pub fn get_speed(&self) -> &str {
         &self.speed
     }
 
-    pub fn get_size(&self) -> &str {
-        &self.size
+    /// Return RAM sale size in Gigabyte
+    pub fn get_size(&self) -> u64 {
+        self.size
+    }
+
+    pub fn get_bank(&self) -> &str {
+        &self.bank
+    }
+
+    pub fn get_form_factor(&self) -> &str {
+        &self.form_factor
     }
 }
 
@@ -52,20 +74,23 @@ impl Gpu {
         self.gpu.name.to_string()
     }
 
-    pub fn get_driver(&self) -> String {
+    pub fn get_driver_version(&self) -> String {
         self.gpu.detail.get("Driver Version")
             .cloned()
             .unwrap_or_else(|| "Unknown".to_string())
     }
 
+    /// Return GPU usage in %
     pub fn get_util(&self) -> f64 {
         self.gpu.utilization
     }
 
-    pub fn get_temp(&self) -> u32 {
+    /// Return GPU temperature in ℃
+    pub fn get_tempe(&self) -> u32 {
         self.gpu.temperature
     }
 
+    /// Return GPU total VRAM in Byte
     pub fn get_vram_total(&self) -> u64 {
         self.gpu.total_memory
     }
@@ -74,15 +99,18 @@ impl Gpu {
         self.gpu.used_memory
     }
 
+    /// Return GPU current frequency in MHz
     pub fn get_freq(&self) -> u32 {
         self.gpu.frequency
     }
 
+    /// Return GPU maximum frequency in MHz
     pub fn get_max_clock(&self) -> Option<u32> {
         self.gpu.detail.get("clock_graphics_max")
             .and_then(|s| s.trim().parse().ok())
     }
 
+    /// Try to return GPU serial number, however that info usually is hidden behind proprietary firmware
     pub fn get_serial(&self) -> String {
         self.gpu.detail.get("Serial Number")
         .or_else(|| self.gpu.detail.get("Serial"))
@@ -110,6 +138,7 @@ impl<'a> LogicalDisk<'a> {
         self.disk.file_system().to_string_lossy().into_owned()
     }
 
+    /// Return in bool, true if the disk is removable
     pub fn get_removable(&self) -> bool {
         self.disk.is_removable()
     }
@@ -118,47 +147,53 @@ impl<'a> LogicalDisk<'a> {
         self.disk.mount_point().to_string_lossy().to_string()
     }
 
+    /// Return total disk space in Byte
     pub fn get_total(&self) -> u64 {
         self.disk.total_space()
     }
 
+    /// Return in used disk space in Byte
     pub fn get_used(&self) -> u64 {
         self.disk.total_space() - self.disk.available_space()
-    }
-
-    pub fn get_model(&self) -> &str {
-        todo!()
-    }
-
-    pub fn get_serial(&self) -> &str {
-        todo!()
-    }
-
-    pub fn get_firmware(&self) -> &str {
-        todo!()
-    }
-
-    pub fn get_size(&self) -> u64 {
-        todo!()
     }
 }
 
 #[derive(Debug)]
-pub struct HardwareDisk {
+pub struct PhysicalDisk {
     pub drive: String,
+    pub index: u32,
     pub model: String,
     pub serial: String,
     pub firmware: String,
     pub size: u32,
+    pub media: String,
+    pub interface: String,
+    pub status: String,
+    pub partition: Option<Vec<Partition>>,
+
 }
 
-impl HardwareDisk {
-    pub fn new(drive: String, model: String, serial: String, firmware: String, size: u32) -> Self {
-        Self { drive, model, serial, firmware, size }
+impl PhysicalDisk {
+    pub fn new(
+        drive: String,
+        index: u32,
+        model: String,
+        serial: String,
+        firmware: String,
+        size: u32,
+        media: String,
+        interface: String,
+        status: String
+    ) -> Self {
+        Self { drive, index, model, serial, firmware, size, media, interface, status, partition: None }
     }
 
     pub fn get_drive(&self) -> &str {
         &self.drive
+    }
+
+    pub fn get_index(&self) -> u32 {
+        self.index
     }
 
     pub fn get_model(&self) -> &str {
@@ -173,7 +208,46 @@ impl HardwareDisk {
         &self.firmware
     }
 
+    /// Return physical disk sale size in Gigabyte
     pub fn get_size(&self) -> u32 {
+        self.size
+    }
+
+    pub fn get_status(&self) -> &str {
+        &self.status
+    }
+
+    pub fn get_media(&self) -> &str {
+        &self.media
+    }
+
+    pub fn get_interface(&self) -> &str {
+        &self.interface
+    }
+
+    pub fn get_partition_number(&self) -> u32 {
+        self.partition.iter().count() as u32
+    }
+
+    pub fn get_partition(&self) -> Option<&Vec<Partition>> {
+        self.partition.as_ref()
+    }
+}
+
+#[derive(Debug)]
+pub struct Partition {
+    pub name: String,
+    pub size: f64,
+}
+
+impl Partition {
+    //TODO return name instead of just a number
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    /// Return physical disk partition size in Gigabyte
+    pub fn get_size(&self) -> f64 {
         self.size
     }
 }
@@ -232,15 +306,18 @@ impl<'a> Network<'a> {
     pub fn get_mac(&self) -> String {
         self.data.mac_address().to_string()
     }
-
+    
+    /// Returns the Maximum Transfer Unit (MTU) of the interface in Byte
     pub fn get_mtu(&self) -> u64 {
         self.data.mtu()
     }
 
+    /// Return total upload since boot in Byte
     pub fn get_upload(&self) -> u64 {
         self.data.total_transmitted()
     }
 
+    /// Return total download since boot in Byte
     pub fn get_download(&self) -> u64 {
         self.data.total_received()
     }
@@ -257,14 +334,17 @@ impl<'a> Network<'a> {
         self.ssid = ssid
     }
     
+    /// Return internet card info
     pub fn get_card(&self) -> String {
         self.card.clone()
     }
 
+    /// Return Ethernet config speed in Mbps, will be 0 for Wifi
     pub fn get_config_speed(&self) -> u32 {
         self.speed
     }
 
+    /// Return Wifi network name - Service Set Identifier (SSID), will be "Unknown" for Ethernet
     pub fn get_ssid(&self) -> String {
         self.ssid.clone()
     }
@@ -299,11 +379,14 @@ impl<'a> Process<'a> {
 }
 
 //_ Software
-#[derive(Debug, Default)]
+//TODO deal with the jungle of Linux software
+#[derive(Debug)]
 pub struct Software {
     pub name: String,
     pub version: String,
     pub source: String,
+    pub size: u64,
+    pub install_date: Option<SystemTime>,
 
     //TODO
     pub license: String,
@@ -311,8 +394,16 @@ pub struct Software {
 }
 
 impl Software {
-    pub fn new(name: String, version: String, source: String, license: String, expiration: String) -> Self {
-        Self { name, version, source, license, expiration }
+    pub fn new() -> Self {
+        Self {
+            name: "Unknown".to_string(),
+            version: "Unknown".to_string(),
+            source: "Unknown".to_string(),
+            size: 0,
+            install_date: None,
+            license: "Unknown".to_string(),
+            expiration: "Unknown".to_string(),
+        }
     }
 
     pub fn get_name(&self) -> &str {
@@ -325,6 +416,16 @@ impl Software {
 
     pub fn get_source(&self) -> &str {
         &self.source
+    }
+
+    /// Return package size in Megabyte
+    pub fn get_size(&self) -> u64 {
+        self.size
+    }
+
+    /// Return install date in SystemTime
+    pub fn get_install_date(&self) -> Option<SystemTime> {
+        self.install_date
     }
 
     pub fn get_license(&self) -> &str {

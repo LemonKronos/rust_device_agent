@@ -99,8 +99,8 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_ram_list()
     }
 
-    fn get_hardware_disk_list(&self) -> Option<Vec<HardwareDisk>> {
-        self.backend.get_hardware_disk_list()    
+    fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>> {
+        self.backend.get_physical_disk_list()    
     }
 
     fn get_tempe_mobo(&self) -> f32 {

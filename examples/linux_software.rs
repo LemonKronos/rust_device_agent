@@ -1,19 +1,21 @@
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
+use std::time::UNIX_EPOCH;
 
 #[derive(Debug, Default)]
 pub struct Software {
     name: String,
     version: String,
-    source: String, // Mapped to the dpkg Maintainer
-    // license: String,
-    // expiration_date: String,
+    source: String,
+    size: u64,
+    license: String,
+    install_date: String, // Added this field
+    expiration_date: String,
 }
 
 fn get_linux_software() -> Vec<Software> {
     let mut software_list = Vec::new();
     
-    // Open the dpkg status file natively
     let file = match File::open("/var/lib/dpkg/status") {
         Ok(f) => f,
         Err(_) => return software_list,
@@ -21,35 +23,46 @@ fn get_linux_software() -> Vec<Software> {
     
     let reader = BufReader::new(file);
 
-    // Initialize our first struct with the defaults we know
     let mut current = Software {
-        // license: "Unknown (Debian Policy)".to_string(),
-        // expiration_date: "N/A".to_string(),
+        license: "Unknown".to_string(),
+        expiration_date: "N/A".to_string(),
+        install_date: "Unknown".to_string(),
         ..Default::default()
     };
 
-    // The status file separates packages by a blank line
     for line in reader.lines().flatten() {
         if line.trim().is_empty() {
-            // End of a package block: push the struct and reset
             if !current.name.is_empty() {
+                let info_path = format!("/var/lib/dpkg/info/{}.list", current.name);
+                if let Ok(meta) = fs::metadata(&info_path) {
+                    if let Ok(time) = meta.modified() {
+                        if let Ok(duration) = time.duration_since(UNIX_EPOCH) {
+                            current.install_date = duration.as_secs().to_string();
+                        }
+                    }
+                }
+                
                 software_list.push(current);
+                
+                // Reset for the next package
                 current = Software {
-                    // license: "Unknown (Debian Policy)".to_string(),
-                    // expiration_date: "N/A".to_string(),
+                    license: "Unknown".to_string(),
+                    expiration_date: "N/A".to_string(),
+                    install_date: "Unknown".to_string(),
                     ..Default::default()
                 };
             }
             continue;
         }
 
-        // Parse the exact fields for the updated struct
         if let Some(name) = line.strip_prefix("Package: ") {
             current.name = name.to_string();
         } else if let Some(version) = line.strip_prefix("Version: ") {
             current.version = version.to_string();
         } else if let Some(maintainer) = line.strip_prefix("Maintainer: ") {
             current.source = maintainer.to_string();
+        } else if let Some(size) = line.strip_prefix("Installed-Size: ") {
+            current.size = size.parse::<u64>().unwrap_or(0);
         }
     }
     
@@ -57,12 +70,7 @@ fn get_linux_software() -> Vec<Software> {
 }
 
 fn main() {
-    println!("--- Scanning Installed Linux Software ---\n");
-    
     let apps = get_linux_software();
-    println!("Total Installed Packages (dpkg): {}\n", apps.len());
-    
-    // Dump the first 3 just to verify the parse worked with the new struct
     for app in apps.iter().take(3) {
         println!("{:#?}", app);
     }
