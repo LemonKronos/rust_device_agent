@@ -1,0 +1,17 @@
+```json
+{
+  "AGENT_VERSION": "2.0.0",
+  "SCAN_DATA": {
+    "BOOT_TIME_EPOCH": 1783904292,
+    "COMPUTER_NAME": "AcerLinux",
+    "CPU": {
+      "CPU_USAGE_RATE": 21.011672973632812,
+      "PROCESSES": 1905,
+      "SPEED": 3589,
+      "TEMPERATURE": "70.625",
+      "UPTIME": "000:03:31:04"
+    },
+    "SERIAL_NUMBER": "NHQBMSV0062131BB0D3400"
+  }
+}
+```

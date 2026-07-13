@@ -27,8 +27,7 @@ impl DeviceAgent {
         }
     }
 
-    #[cfg_attr(debug_assertions, allow(dead_code))]
-    fn get_json(&self) -> serde_json::Value {
+    fn get_json_v3_fullscan(&self) -> serde_json::Value {
 
         let rams_json = self.info.get_ram_list().map(|ram| {
             ram.iter().map(|ram| json!({
@@ -140,6 +139,7 @@ impl DeviceAgent {
         // let peripheral_json: Vec<_> = 
 
         let payload = json!({
+            "agent_version": "3.0.0",
             "time_stamp": self.info.get_timestamp(), // second
             "general": {
                 "host": self.info.get_host(),
@@ -206,12 +206,12 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::write("examples/others/json_sample_v3.md", md_content).expect("Failed to write file");
+        fs::write("doc/sample/json_v3_fullscan.md", md_content).expect("Failed to write file");
 
         return payload;
     }
 
-    fn get_json_v2(&self) -> serde_json::Value {
+    fn get_json_v2_fullscan(&self) -> serde_json::Value {
         
         let rams_json = self.info.get_ram_list().map(|ram| {
             ram.iter().map(|ram| json!({
@@ -346,7 +346,31 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::write("examples/others/json_sample_v2.md", md_content).expect("Failed to write file");
+        fs::write("doc/sample/json_v2_fullscan.md", md_content).expect("Failed to write file");
+
+        return payload;
+    }
+
+    fn get_json_v2_telemetry(&self) -> serde_json::Value {
+        let payload = json!({
+            "SCAN_DATA": {
+                "COMPUTER_NAME": self.info.get_host(), 
+                "BOOT_TIME_EPOCH": self.info.get_boot_time(), 
+                "SERIAL_NUMBER": self.info.get_product_serial(),
+                "CPU": {
+                    "CPU_USAGE_RATE": self.info.get_cpu_usage(),
+                    "SPEED": self.info.get_cpu_freq(),
+                    "PROCESSES": self.info.get_process_count(),
+                    "UPTIME": self.info.get_up_time().to_uptime_string(), 
+                    "TEMPERATURE": self.info.get_cpu_temp().to_string(),
+                },
+            },
+            "AGENT_VERSION": "2.0.0",
+            });
+
+        let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
+        let md_content = format!("```json\n{}\n```", pretty_json);
+        fs::write("doc/sample/json_v2_telemetry.md", md_content).expect("Failed to write file");
 
         return payload;
     }
@@ -357,7 +381,7 @@ impl DeviceAgent {
         loop {
             self.info.prepare();
 
-            if let Err(e) = self.sender.transmit(self.get_json_v2()) {
+            if let Err(e) = self.sender.transmit(self.get_json_v2_telemetry()) {
                 eprintln!("Sender warning: {}", e);
             } else {
                 println!("Sended info at timestamp {}", self.info.get_timestamp());
@@ -382,7 +406,7 @@ mod tests {
 
         agent.info.prepare();
 
-        let payload = agent.get_json();
+        let payload = agent.get_json_v3_fullscan();
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         

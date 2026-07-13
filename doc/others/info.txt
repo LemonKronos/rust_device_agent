@@ -1,0 +1,235 @@
+=== Device Agent: System Info ===
+Host name:       "AcerLinux"
+System name:     "Ubuntu"
+OS version:      "24.04"
+Kernel version:  "6.17.0-35-generic"
+CPU Cores:       12
+CPU Brand:       AMD Ryzen 5 5600H with Radeon Graphics
+CPU usage:    9.587021
+Core 0: 3310 Mhz | Usage: 15.58%
+Core 1: 3875 Mhz | Usage: 8.86%
+Core 2: 3360 Mhz | Usage: 18.18%
+Core 3: 1108 Mhz | Usage: 8.75%
+Core 4: 3384 Mhz | Usage: 18.99%
+Core 5: 3356 Mhz | Usage: 8.75%
+Core 6: 4175 Mhz | Usage: 23.08%
+Core 7: 1108 Mhz | Usage: 14.10%
+Core 8: 4125 Mhz | Usage: 34.62%
+Core 9: 3277 Mhz | Usage: 15.38%
+Core 10: 3719 Mhz | Usage: 37.18%
+Core 11: 3669 Mhz | Usage: 16.46%
+Memory Total:    15336 MB
+Memory Used:     10510 MB
+=================================
+=> system:
+total memory: 16081772544 bytes
+used memory : 11021094912 bytes
+total swap  : 4294963200 bytes
+used swap   : 12288 bytes
+Name: "code" | CPU: 19.469027 | RAM: 512913408
+Name: "chrome" | CPU: 17.699116 | RAM: 465752064
+Name: "chrome" | CPU: 17.699116 | RAM: 763691008
+Name: "code" | CPU: 15.929204 | RAM: 197713920
+Name: "gather_info" | CPU: 10.619469 | RAM: 11616256
+Name: "Compositor" | CPU: 10.619469 | RAM: 512913408
+Name: "Hyprland" | CPU: 7.079646 | RAM: 209227776
+Name: "waybar" | CPU: 5.3097343 | RAM: 115355648
+Name: "Compositor" | CPU: 5.3097343 | RAM: 763691008
+Name: "preload" | CPU: 3.539823 | RAM: 31522816
+=> disks:
+Disk("/dev/nvme1n1p2")[FS: "ext4"][Type: SSD][removable: no][I/O: DiskUsage { total_written_bytes: 1347964928, written_bytes: 1347964928, total_read_bytes: 6387999744, read_bytes: 6387999744 }] mounted on "/": 212514570240/489999179776 B
+Disk("/dev/nvme1n1p1")[FS: "vfat"][Type: SSD][removable: no][I/O: DiskUsage { total_written_bytes: 1024, written_bytes: 1024, total_read_bytes: 6296576, read_bytes: 6296576 }] mounted on "/boot/efi": 1118457856/1124999168 B
+=> networks:
+wlp5s0: 43852351 B (down) / 8982899 B (up) / IP: [
+    IpNetwork {
+        addr: fe80::7d79:4d55:fe01:574a,
+        prefix: 64,
+    },
+    IpNetwork {
+        addr: 172.20.1.20,
+        prefix: 22,
+    },
+] / MAC: e0:0a:f6:be:44:9f / MTU: 1500
+==============================
+Network: NetworkData {
+    income: 0,
+    total income: 43852351,
+    outcome: 0,
+    total outcome: 8982899,
+    packets income: 0,
+    total packets income: 88261,
+    packets outcome: 0,
+    total packets outcome: 22703,
+    errors income: 0,
+    total errors income: 0,
+    errors outcome: 0,
+    total errors outcome: 0,
+    maximum transfer unit: 1500,
+}
+lo: 180197 B (down) / 180197 B (up) / IP: [
+    IpNetwork {
+        addr: ::1,
+        prefix: 128,
+    },
+    IpNetwork {
+        addr: 127.0.0.1,
+        prefix: 8,
+    },
+] / MAC: 00:00:00:00:00:00 / MTU: 65536
+==============================
+Network: NetworkData {
+    income: 0,
+    total income: 180197,
+    outcome: 0,
+    total outcome: 180197,
+    packets income: 0,
+    total packets income: 1494,
+    packets outcome: 0,
+    total packets outcome: 1494,
+    errors income: 0,
+    total errors income: 0,
+    errors outcome: 0,
+    total errors outcome: 0,
+    maximum transfer unit: 65536,
+}
+enp4s0: 0 B (down) / 0 B (up) / IP: [] / MAC: 08:8f:c3:56:4e:01 / MTU: 1500
+==============================
+Network: NetworkData {
+    income: 0,
+    total income: 0,
+    outcome: 0,
+    total outcome: 0,
+    packets income: 0,
+    total packets income: 0,
+    packets outcome: 0,
+    total packets outcome: 0,
+    errors income: 0,
+    total errors income: 0,
+    errors outcome: 0,
+    total errors outcome: 0,
+    maximum transfer unit: 1500,
+}
+=> components:
+mt7921_phy0 temp1 temperature: 40°C (max: 40°C / critical: unknown)
+nvme Composite KINGSTON OM8PDP3512B-AA1 temperature: 43.85°C (max: 43.85°C / critical: 94.85°C)
+amdgpu edge temperature: 55°C (max: 55°C / critical: unknown)
+k10temp Tctl temperature: 70.125°C (max: 70.125°C / critical: unknown)
+nvme Composite CT500P3SSD8 temperature: 36.85°C (max: 36.85°C / critical: 84.85°C)
+nvme Sensor 1 CT500P3SSD8 temperature: 36.85°C (max: 36.85°C / critical: unknown)
+acpitz temp1 temperature: 48°C (max: 48°C / critical: unknown)
+=== Testing all-smi ===
+Found 2 GPU(s) via all-smi
+GPU [0]: GpuInfo {
+    uuid: "GPU-e0f24ac6-e820-6e79-7e86-205beb322b7b",
+    time: "2026-06-22 08:16:49",
+    name: "NVIDIA GeForce GTX 1650",
+    device_type: "GPU",
+    host_id: "AcerLinux",
+    hostname: "AcerLinux",
+    instance: "AcerLinux",
+    utilization: 0.0,
+    ane_utilization: 0.0,
+    dla_utilization: None,
+    tensorcore_utilization: None,
+    temperature: 49,
+    used_memory: 3211264,
+    total_memory: 4294967296,
+    frequency: 300,
+    power_consumption: 4.017,
+    gpu_core_count: None,
+    temperature_threshold_slowdown: Some(
+        94,
+    ),
+    temperature_threshold_shutdown: Some(
+        99,
+    ),
+    temperature_threshold_max_operating: Some(
+        102,
+    ),
+    temperature_threshold_acoustic: None,
+    performance_state: Some(
+        8,
+    ),
+    numa_node_id: None,
+    gsp_firmware_mode: Some(
+        2,
+    ),
+    gsp_firmware_version: Some(
+        "580.159.03",
+    ),
+    nvlink_remote_devices: [],
+    gpm_metrics: None,
+    detail: {
+        "lib_name": "CUDA",
+        "Brand": "GeForce",
+        "lib_version": "13.0",
+        "pcie_gen_max": "3",
+        "clock_graphics_max": "1785",
+        "architecture": "Turing",
+        "power_limit_min": "1.00",
+        "CUDA Version": "13.0",
+        "power_limit_default": "50.00",
+        "PCIe Generation": "1",
+        "vbios_version": "\"90.17.73.00.8B\"",
+        "performance_state": "Eight",
+        "PCIe Width": "x8",
+        "Driver Version": "580.159.03",
+        "compute_mode": "Default",
+        "pcie_width_max": "16",
+        "power_limit_max": "65.00",
+    },
+}
+GPU [1]: GpuInfo {
+    uuid: "GPU-0000:06:00.0",
+    time: "2026-06-22 08:16:49",
+    name: "AMD Radeon Graphics",
+    device_type: "GPU",
+    host_id: "AcerLinux",
+    hostname: "AcerLinux",
+    instance: "AcerLinux",
+    utilization: 100.0,
+    ane_utilization: 0.0,
+    dla_utilization: None,
+    tensorcore_utilization: None,
+    temperature: 55,
+    used_memory: 499593216,
+    total_memory: 536870912,
+    frequency: 1800,
+    power_consumption: 0.028,
+    gpu_core_count: None,
+    temperature_threshold_slowdown: None,
+    temperature_threshold_shutdown: None,
+    temperature_threshold_max_operating: None,
+    temperature_threshold_acoustic: None,
+    performance_state: None,
+    numa_node_id: None,
+    gsp_firmware_mode: None,
+    gsp_firmware_version: None,
+    nvlink_remote_devices: [],
+    gpm_metrics: None,
+    detail: {
+        "PCI Bus": "0000:06:00.0",
+        "Memory Clock": "1600 MHz",
+        "Device ID": "0x1638",
+        "Driver Version": "3.64.0",
+        "Revision ID": "0xc6",
+        "VBIOS Version": "017.010.000.029.000000",
+        "ASIC Name": "Renoir",
+        "Device Name": "AMD Radeon Graphics",
+        "VBIOS Date": "2021/02/28 08:58",
+    },
+}
+=== Zero-Privilege Network Agent ===
+TCP Pinging 1.1.1.1:53...
+Reply 1: time=64ms
+Reply 2: time=30ms
+Reply 3: time=49ms
+Reply 4: time=72ms
+Reply 5: time=42ms
+====================================
+Packets: Sent = 5, Received = 5, Lost = 0 (0% loss)
+Average Latency: 51ms
+=== ITAM Agent: Network Sync ===
+Sending data to http://192.168.1.100:8080/api/telemetry...
+Network Error: Could not reach the server.
+Details: io: No route to host (os error 113)

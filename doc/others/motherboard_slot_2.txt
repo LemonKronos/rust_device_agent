@@ -1,0 +1,178 @@
+--- Initializing SMBIOS Dump ---
+
+>>> DUMPING CPU SOCKETS (Type 4) <<<
+smbioslib::structs::types::processor_information::SMBiosProcessorInformation<'_> {
+    header: smbioslib::core::header::Header {
+        struct_type: 4,
+        length: 48,
+        handle: 4,
+    },
+    socket_designation: FP6,
+    processor_type: Some(
+        smbioslib::structs::types::processor_information::ProcessorTypeData {
+            raw: 3,
+            value: CentralProcessor,
+        },
+    ),
+    processor_family: Some(
+        smbioslib::structs::types::processor_information::ProcessorFamilyData {
+            raw: 107,
+            value: AMDZenProcessorFamily,
+        },
+    ),
+    processor_manufacturer: Advanced Micro Devices, Inc.,
+    processor_id: Some(
+        [
+            0,
+            15,
+            165,
+            0,
+            255,
+            251,
+            139,
+            23,
+        ],
+    ),
+    processor_version: AMD Ryzen 5 5600H with Radeon Graphics         ,
+    voltage: Some(
+        CurrentVolts(
+            1.2,
+        ),
+    ),
+    external_clock: Some(
+        100 MHz,
+    ),
+    max_speed: Some(
+        4250 MHz,
+    ),
+    current_speed: Some(
+        3300 MHz,
+    ),
+    status: Some(
+        smbioslib::structs::types::processor_information::ProcessorStatus {
+            raw: 65,
+            socket_populated: true,
+            cpu_status: Enabled,
+        },
+    ),
+    processor_upgrade: Some(
+        smbioslib::structs::types::processor_information::ProcessorUpgradeData {
+            raw: 6,
+            value: NoUpgrade,
+        },
+    ),
+    l1cache_handle: Some(
+        5,
+    ),
+    l2cache_handle: Some(
+        6,
+    ),
+    l3cache_handle: Some(
+        7,
+    ),
+    serial_number: Unknown,
+    asset_tag: Unknown,
+    part_number: Unknown,
+    core_count: Some(
+        Count(
+            6,
+        ),
+    ),
+    cores_enabled: Some(
+        Count(
+            6,
+        ),
+    ),
+    thread_count: Some(
+        Count(
+            12,
+        ),
+    ),
+    processor_characteristics: Some(
+        smbioslib::structs::types::processor_information::ProcessorCharacteristics {
+            raw: 252,
+            unknown: false,
+            bit_64capable: true,
+            multi_core: true,
+            hardware_thread: true,
+            execute_protection: true,
+            enhanced_virtualization: true,
+            power_performance_control: true,
+            bit_128capable: false,
+            arm_64soc_id: false,
+        },
+    ),
+    processor_family_2: Some(
+        smbioslib::structs::types::processor_information::ProcessorFamilyData2 {
+            raw: 107,
+            value: AMDZenProcessorFamily,
+        },
+    ),
+    core_count_2: Some(
+        Count(
+            6,
+        ),
+    ),
+    cores_enabled_2: Some(
+        Count(
+            6,
+        ),
+    ),
+    thread_count_2: Some(
+        Count(
+            12,
+        ),
+    ),
+    thread_enabled: None,
+}
+
+>>> DUMPING RAM ARRAYS (Type 16) <<<
+smbioslib::structs::types::physical_memory_array::SMBiosPhysicalMemoryArray<'_> {
+    header: smbioslib::core::header::Header {
+        struct_type: 16,
+        length: 23,
+        handle: 11,
+    },
+    location: Some(
+        smbioslib::structs::types::physical_memory_array::MemoryArrayLocationData {
+            raw: 3,
+            value: SystemBoardOrMotherboard,
+        },
+    ),
+    usage: Some(
+        smbioslib::structs::types::physical_memory_array::MemoryArrayUseData {
+            raw: 3,
+            value: SystemMemory,
+        },
+    ),
+    memory_error_correction: Some(
+        smbioslib::structs::types::physical_memory_array::MemoryArrayErrorCorrectionData {
+            raw: 3,
+            value: NoCorrection,
+        },
+    ),
+    maximum_capacity: Some(
+        Kilobytes(
+            67108864,
+        ),
+    ),
+    memory_error_information_handle: Some(
+        14,
+    ),
+    number_of_memory_devices: Some(
+        2,
+    ),
+    extended_maximum_capacity: Some(
+        0,
+    ),
+}
+
+>>> DUMPING SYSTEM SLOTS (Type 9) <<<
+
+======================================
+       MOTHERBOARD SLOT SUMMARY       
+======================================
+ CPU Sockets (Total): 1
+ RAM Slots (Total):   2
+ dGPU Slots (x16):    0
+======================================
