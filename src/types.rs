@@ -257,17 +257,13 @@ impl Partition {
 pub struct Network<'a> {
     name : &'a String,
     data: &'a sysinfo::NetworkData,
-    card: String,
-    speed: u32,
-    ssid: String,
+    pub hardware: NetworkHardware,
 }
 
 impl<'a> Network<'a> {
     pub fn new(name: &'a String, data: &'a sysinfo::NetworkData) -> Self {
         Self { name, data, 
-            card: "Unknown".to_string(),
-            speed: 0,
-            ssid: "Unknown".to_string(),
+            hardware: NetworkHardware::default(),
         }
     }
 
@@ -321,33 +317,28 @@ impl<'a> Network<'a> {
     pub fn get_download(&self) -> u64 {
         self.data.total_received()
     }
-
-    pub fn set_card(&mut self, card: String) {
-        self.card = card
-    }
-
-    pub fn set_config_speed(&mut self, speed: u32) {
-        self.speed = speed
-    }
-
-    pub fn set_ssid(&mut self, ssid: String) {
-        self.ssid = ssid
-    }
-    
+   
     /// Return internet card info
     pub fn get_card(&self) -> String {
-        self.card.clone()
+        self.hardware.card.clone()
     }
 
     /// Return Ethernet config speed in Mbps, will be 0 for Wifi
     pub fn get_config_speed(&self) -> u32 {
-        self.speed
+        self.hardware.speed
     }
 
     /// Return Wifi network name - Service Set Identifier (SSID), will be "Unknown" for Ethernet
     pub fn get_ssid(&self) -> String {
-        self.ssid.clone()
+        self.hardware.ssid.clone()
     }
+}
+
+#[derive(Debug, Default)]
+pub struct NetworkHardware {
+    pub card: String,
+    pub speed: u32,
+    pub ssid: String,
 }
 
 //_ Process
