@@ -46,7 +46,10 @@ impl OsSpecificBackend {
     fn parse_file(path: &str, file: &str) -> String {
         match std::fs::read_to_string(format!("{}/{}", path, file)) {
             Ok(s) => s.trim().to_string(),
-            Err(e) if e.kind() == PermissionDenied => "Required Admin".to_string(),
+            Err(e) if e.kind() == PermissionDenied => {
+                println!("Required Admin to read {}", file);
+                "Required Admin".to_string()
+            },
             Err(e) if e.kind() != PermissionDenied => format!("Error {}", e.kind()), // for debug
             Err(_) => "Unknown".to_string(),
         }

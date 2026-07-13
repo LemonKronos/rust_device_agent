@@ -140,7 +140,7 @@ impl Info {
     pub fn get_cpu_name(&self) -> String {
         self.sys.cpus().first()
             .map(|cpu| cpu.brand().to_string())
-            .unwrap_or_else(|| "Unknow CPU".to_string())
+            .unwrap_or_else(|| "Unknown".to_string())
     }
 
     pub fn get_cpu_core(&self) -> u32 {

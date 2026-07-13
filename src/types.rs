@@ -365,14 +365,18 @@ impl<'a> Process<'a> {
         self.process.name().to_string_lossy().into_owned()
     }
 
+    /// Return process cpu usage
+    ///> [!WARNING] could grow pass 100% if process run multi-core
     pub fn get_cpu_usage(&self) -> f32 {
         self.process.cpu_usage()
     }
 
+    /// Return memory usage of the process in Byte
     pub fn get_memory(&self) -> u64 {
         self.process.memory()
     }
 
+    /// Return the runtime of the process in second
     pub fn get_runtime(&self) -> u64 {
         self.process.run_time()
     }

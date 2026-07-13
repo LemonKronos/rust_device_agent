@@ -27,7 +27,7 @@ impl DeviceAgent {
         }
     }
 
-    #[cfg_attr(debug_assertions, allow(dead_code))]
+    // #[cfg_attr(debug_assertions, allow(dead_code))]
     fn get_json(&self) -> serde_json::Value {
 
         let rams_json = self.info.get_ram_list().map(|ram| {
@@ -206,7 +206,7 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::write("examples/others/json_sample.md", md_content).expect("Failed to write file");
+        fs::write("examples/others/json_sample_v3.md", md_content).expect("Failed to write file");
 
         return payload;
     }
