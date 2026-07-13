@@ -9,3 +9,4 @@
 - Maybe not read and sending network `lo`?
 - Should use Path type for all
 - Please note on Window 10, Window 8 and Window XP
+- For Linux, change struct to keep string on for "static" OS info? Use `Option<String>`

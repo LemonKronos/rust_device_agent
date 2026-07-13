@@ -368,7 +368,7 @@ impl OsSpecificInterface for OsSpecificBackend {
             .unwrap_or(0.0)
     }
 
-    fn get_percentage(&self) -> f32 {
+    fn get_battery_percentage(&self) -> f32 {
         if let Some(path) = &self.battery_path {
             Self::parse_file(path, "capacity")
                 .trim().parse().unwrap_or(0.0)

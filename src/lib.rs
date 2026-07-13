@@ -27,7 +27,7 @@ impl DeviceAgent {
         }
     }
 
-    // #[cfg_attr(debug_assertions, allow(dead_code))]
+    #[cfg_attr(debug_assertions, allow(dead_code))]
     fn get_json(&self) -> serde_json::Value {
 
         let rams_json = self.info.get_ram_list().map(|ram| {
@@ -239,13 +239,13 @@ impl DeviceAgent {
         let gpus_json: Vec<_> = self.info.get_gpu_list().iter().map(|gpu| {
             json!({
                 "GPU_NAME": gpu.get_name(),
-                "GLOBAL_MEMORY": gpu.get_vram_total().b_to_gb(),
+                "GLOBAL_MEMORY": gpu.get_vram_total().b_to_gb().to_string(),
                 // "VERSION": "", // ! Agent can not get this info
                 "DRIVER_VERSION": gpu.get_driver_version(),
                 // "COMPUTE_UNITS": "",  // ! Agent can not get this info
-                "MAX_CLOCK_SPEED": gpu.get_max_clock(),
+                "MAX_CLOCK_SPEED": gpu.get_max_clock().unwrap_or(0).to_string(),
                 // "VENDOR": "NVIDIA", // ! Will NOT be able to parse correctly by Agent
-                "TEMPERATURE": gpu.get_tempe()
+                "TEMPERATURE": gpu.get_tempe().to_string(),
             })
         }).collect();
 
@@ -280,7 +280,7 @@ impl DeviceAgent {
                     "NUMBER_PARTITIONS": hd.get_partition_number(),
                     "PHYSICAL_DISK_STATUS": hd.get_status(),
                     "FIRMWARE": hd.get_firmware(),
-                    "PHYSICAL_DISK_INDEX": hd.get_index(),
+                    "PHYSICAL_DISK_INDEX": hd.get_index().to_string(),
                     "PARTITION_Lst": partition_list,
                 })
             }).collect::<Vec<_>>()
@@ -293,7 +293,7 @@ impl DeviceAgent {
                 "VERSION": app.get_version(),
                 "PUBLISHER": app.get_source(),
                 "INSTALL_DATE": app.get_install_date().map(|time| time.to_datetime_string()),
-                "SIZE": app.get_size(),
+                "SIZE": app.get_size().to_string(),
             })).collect::<Vec<_>>()
         });
 
@@ -313,7 +313,7 @@ impl DeviceAgent {
                 "Type": "COMPUTER", // Hardcoded for server
                 "ASSET_CODE": null, // Default
                 "BATTERY": {
-                    "PERCENT": self.info.get_battery_percentage(),
+                    "PERCENT": self.info.get_battery_percentage().to_string(),
                     "POWER_PLUGGED": self.info.get_battery_is_plugged_in(),
                 },
                 "CPU": {
@@ -324,10 +324,10 @@ impl DeviceAgent {
                     "CPU_USAGE_RATE": self.info.get_cpu_usage(),
                     "SPEED": self.info.get_cpu_freq(),
                     "PROCESSES": self.info.get_process_count(),
-                    "SOCKETS": self.info.get_cpu_socket(), // ? This supposed to be "in use", that doesn't make sense
+                    "SOCKETS": self.info.get_cpu_socket().unwrap_or(0), // ? This supposed to be "in use", that doesn't make sense
                     "UPTIME": self.info.get_up_time().to_uptime_string(), 
                     "MACHINE": self.info.get_architecture(), // ? Why this being the same as "SYSTEM TYPE"
-                    "TEMPERATURE": self.info.get_cpu_temp(),
+                    "TEMPERATURE": self.info.get_cpu_temp().to_string(),
                 },
                 "RAM": {
                 "TOTAL": self.info.get_ram_total().b_to_gb(),
@@ -357,7 +357,7 @@ impl DeviceAgent {
         loop {
             self.info.prepare();
 
-            if let Err(e) = self.sender.transmit(self.get_json()) {
+            if let Err(e) = self.sender.transmit(self.get_json_v2()) {
                 eprintln!("Sender warning: {}", e);
             } else {
                 println!("Sended info at timestamp {}", self.info.get_timestamp());

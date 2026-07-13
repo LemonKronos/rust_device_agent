@@ -1,5 +1,6 @@
 {
     // "rust-analyzer.cargo.target": "x86_64-unknown-linux-gnu", // Standard 64-bit Linux
     // "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc", // Standard 64-bit Windows
+    // "rust-analyzer.check.targets": "x86_64-pc-windows-msvc",
     // "rust-analyzer.cargo.target": "aarch64-apple-darwin", // For Apple Silicon (M1/M2/M3 chips)
 }

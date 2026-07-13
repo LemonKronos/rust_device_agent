@@ -2,6 +2,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::time::UNIX_EPOCH;
 
+#[cfg_attr(debug_assertions, allow(dead_code))]
 #[derive(Debug, Default)]
 pub struct Software {
     name: String,

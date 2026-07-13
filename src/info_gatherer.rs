@@ -235,7 +235,7 @@ impl Info {
 
     //: Battery info
     pub fn get_battery_percentage(&self) -> f32 {
-        self.os_specific.get_percentage()
+        self.os_specific.get_battery_percentage()
     }
 
     /// Check if machine is having a external power connection, note that this is different from "battery is being charged"

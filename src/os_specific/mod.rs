@@ -111,8 +111,8 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_tempe_cpu()
     }
 
-    fn get_percentage(&self) -> f32 {
-        self.backend.get_percentage()
+    fn get_battery_percentage(&self) -> f32 {
+        self.backend.get_battery_percentage()
     }
 
     fn get_is_plugged_in(&self) -> bool {
