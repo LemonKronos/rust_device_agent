@@ -61,36 +61,36 @@ impl Info {
     }
 
     //: Machine info
-    pub fn get_product_serial(&self) -> String {
+    pub fn get_product_serial(&self) -> &str {
         self.os_specific.get_product_serial()
     }
 
-    pub fn get_architecture(&self) -> String {
+    pub fn get_architecture(&self) -> &str {
         self.os_specific.get_architecture()
     }
 
-    pub fn get_producer(&self) -> String {
+    pub fn get_producer(&self) -> &str {
         self.os_specific.get_producer()
     }
 
-    pub fn get_system_model(&self) -> String {
+    pub fn get_system_model(&self) -> &str {
         self.os_specific.get_system_model()
     }
 
-    pub fn get_machine_type(&self) -> String {
+    pub fn get_machine_type(&self) -> &str {
         self.os_specific.get_machine_type()
     }
 
     //: Motherboard info
-    pub fn get_motherboard(&self) -> String {
+    pub fn get_motherboard(&self) -> &str {
         self.os_specific.get_motherboard()
     }
 
-    pub fn get_motherboard_serial(&self) -> String {
+    pub fn get_motherboard_serial(&self) -> &str {
         self.os_specific.get_motherboard_serial()
     }
 
-    pub fn get_temp_mobo(&self) -> f32 {
+    pub fn get_temp_mobo(&self) -> Option<f32> {
         self.os_specific.get_tempe_mobo()
     }
 
@@ -107,11 +107,11 @@ impl Info {
     }
 
     //: Bios info
-    pub fn get_bios_version(&self) -> String {
+    pub fn get_bios_version(&self) -> &str {
         self.os_specific.get_bios_version()
     }
     
-    pub fn get_bios_vendor(&self) -> String {
+    pub fn get_bios_vendor(&self) -> &str {
         self.os_specific.get_bios_vendor()
     }
 
@@ -120,20 +120,20 @@ impl Info {
     }
 
     //: OS info
-    pub fn get_os_name(&self) -> String {
+    pub fn get_os_name(&self) -> &str {
         self.os_specific.get_os_name()
     }
 
     pub fn get_os_distro(&self) -> String {
-        System::name().unwrap_or_default()
+        System::name().unwrap_or("Unknown".to_string())
     }
 
     pub fn get_os_version(&self) -> String {
-        System::os_version().unwrap_or_default()
+        System::os_version().unwrap_or("Unknown".to_string())
     }
 
     pub fn get_kernel(&self) -> String {
-        System::kernel_version().unwrap_or_default()
+        System::kernel_version().unwrap_or("Unknown".to_string())
     }
 
     //: CPU info
@@ -159,7 +159,7 @@ impl Info {
     }
 
     /// Return CPU internal sensor temperature in ℃
-    pub fn get_cpu_temp(&self) -> f32 {
+    pub fn get_cpu_temp(&self) -> Option<f32> {
         self.os_specific.get_tempe_cpu()
     }
 
@@ -174,7 +174,7 @@ impl Info {
         self.sys.used_memory()
     }
 
-    pub fn get_ram_list(&self) -> Option<Vec<Ram>> {
+    pub fn get_ram_list(&self) -> Option<&Vec<Ram>> {
         self.os_specific.get_ram_list()
     }
 
@@ -203,7 +203,7 @@ impl Info {
             .collect()
     }
 
-    pub fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>> {
+    pub fn get_physical_disk_list(&self) -> Option<&Vec<PhysicalDisk>> {
         self.os_specific.get_physical_disk_list()
     }
 
@@ -234,12 +234,12 @@ impl Info {
     }
 
     //: Battery info
-    pub fn get_battery_percentage(&self) -> f32 {
+    pub fn get_battery_percentage(&self) -> Option<f32> {
         self.os_specific.get_battery_percentage()
     }
 
     /// Check if machine is having a external power connection, note that this is different from "battery is being charged"
-    pub fn get_battery_is_plugged_in(&self) -> bool {
+    pub fn get_battery_is_plugged_in(&self) -> Option<bool> {
         self.os_specific.get_is_plugged_in()
     }
 

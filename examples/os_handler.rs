@@ -1,6 +1,4 @@
 
-use std::fs;
-
 #[cfg(target_os = "windows")]
 use std::process::Command;
 

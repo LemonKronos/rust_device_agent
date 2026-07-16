@@ -206,6 +206,7 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
+        fs::create_dir_all("doc/sample/").expect("Failed to create dir");
         fs::write("doc/sample/json_v3_fullscan.md", md_content).expect("Failed to write file");
 
         return payload;
@@ -313,7 +314,7 @@ impl DeviceAgent {
                 "Type": "COMPUTER", // Hardcoded for server
                 "ASSET_CODE": null, // Default
                 "BATTERY": {
-                    "PERCENT": self.info.get_battery_percentage().to_string(),
+                    "PERCENT": self.info.get_battery_percentage().unwrap_or_default().to_string(),
                     "POWER_PLUGGED": self.info.get_battery_is_plugged_in(),
                 },
                 "CPU": {
@@ -327,7 +328,7 @@ impl DeviceAgent {
                     "SOCKETS": self.info.get_cpu_socket().unwrap_or(0), // ? This supposed to be "in use", that doesn't make sense
                     "UPTIME": self.info.get_up_time().to_uptime_string(), 
                     "MACHINE": self.info.get_architecture(), // ? Why this being the same as "SYSTEM TYPE"
-                    "TEMPERATURE": self.info.get_cpu_temp().to_string(),
+                    "TEMPERATURE": self.info.get_cpu_temp().unwrap_or_default().to_string(),
                 },
                 "RAM": {
                 "TOTAL": self.info.get_ram_total().b_to_gb(),
@@ -346,6 +347,7 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
+        fs::create_dir_all("doc/sample/").expect("Failed to create dir");
         fs::write("doc/sample/json_v2_fullscan.md", md_content).expect("Failed to write file");
 
         return payload;
@@ -362,7 +364,7 @@ impl DeviceAgent {
                     "SPEED": self.info.get_cpu_freq(),
                     "PROCESSES": self.info.get_process_count(),
                     "UPTIME": self.info.get_up_time().to_uptime_string(), 
-                    "TEMPERATURE": self.info.get_cpu_temp().to_string(),
+                    "TEMPERATURE": self.info.get_cpu_temp().unwrap_or_default().to_string(),
                 },
             },
             "AGENT_VERSION": "2.0.0",
@@ -370,6 +372,7 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
+        fs::create_dir_all("doc/sample/").expect("Failed to create dir");
         fs::write("doc/sample/json_v2_telemetry.md", md_content).expect("Failed to write file");
 
         return payload;
@@ -378,6 +381,15 @@ impl DeviceAgent {
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("Agent running");
 
+        println!("Getting full scan v2...");
+        let _ = self.get_json_v2_fullscan();
+        println!("Complete");
+
+        println!("Getting full scan v3...");
+        let _ = self.get_json_v3_fullscan();
+        println!("Complete");
+
+        println!("Start loop sending telementry v2 demo ");
         loop {
             self.info.prepare();
 

@@ -4,13 +4,13 @@ use std::time::SystemTime;
 //_ RAM
 #[derive(Debug, Default)]
 pub struct Ram {
-    name: String,
-    serial: String,
-    type_: String,
-    speed: String,
-    size: u64,
-    bank: String,
-    form_factor: String,
+    pub name: String,
+    pub serial: String,
+    pub type_: String,
+    pub speed: String,
+    pub size: u64,
+    pub bank: String,
+    pub form_factor: String,
 }
 
 impl Ram {
@@ -165,7 +165,7 @@ pub struct PhysicalDisk {
     pub model: String,
     pub serial: String,
     pub firmware: String,
-    pub size: u32,
+    pub size: u64,
     pub media: String,
     pub interface: String,
     pub status: String,
@@ -180,7 +180,7 @@ impl PhysicalDisk {
         model: String,
         serial: String,
         firmware: String,
-        size: u32,
+        size: u64,
         media: String,
         interface: String,
         status: String
@@ -209,7 +209,7 @@ impl PhysicalDisk {
     }
 
     /// Return physical disk sale size in Gigabyte
-    pub fn get_size(&self) -> u32 {
+    pub fn get_size(&self) -> u64 {
         self.size
     }
 
@@ -257,12 +257,14 @@ impl Partition {
 pub struct Network<'a> {
     name : &'a String,
     data: &'a sysinfo::NetworkData,
+    pub ssid: String,
     pub hardware: NetworkHardware,
 }
 
 impl<'a> Network<'a> {
     pub fn new(name: &'a String, data: &'a sysinfo::NetworkData) -> Self {
-        Self { name, data, 
+        Self { name, data,
+            ssid: "Unknown".to_string(),
             hardware: NetworkHardware::default(),
         }
     }
@@ -330,15 +332,14 @@ impl<'a> Network<'a> {
 
     /// Return Wifi network name - Service Set Identifier (SSID), will be "Unknown" for Ethernet
     pub fn get_ssid(&self) -> String {
-        self.hardware.ssid.clone()
+        self.ssid.clone()
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct NetworkHardware {
     pub card: String,
     pub speed: u32,
-    pub ssid: String,
 }
 
 //_ Process
@@ -380,12 +381,8 @@ pub struct Software {
     pub name: String,
     pub version: String,
     pub source: String,
-    pub size: u64,
+    pub size: f64,
     pub install_date: Option<SystemTime>,
-
-    //TODO
-    pub license: String,
-    pub expiration: String,
 }
 
 impl Software {
@@ -394,10 +391,8 @@ impl Software {
             name: "Unknown".to_string(),
             version: "Unknown".to_string(),
             source: "Unknown".to_string(),
-            size: 0,
+            size: 0.0,
             install_date: None,
-            license: "Unknown".to_string(),
-            expiration: "Unknown".to_string(),
         }
     }
 
@@ -414,21 +409,13 @@ impl Software {
     }
 
     /// Return package size in Megabyte
-    pub fn get_size(&self) -> u64 {
+    pub fn get_size(&self) -> f64 {
         self.size
     }
 
     /// Return install date in SystemTime
     pub fn get_install_date(&self) -> Option<SystemTime> {
         self.install_date
-    }
-
-    pub fn get_license(&self) -> &str {
-        &self.license
-    }
-
-    pub fn get_expiration(&self) -> &str {
-        &self.expiration
     }
 }
 

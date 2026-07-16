@@ -39,31 +39,31 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.refresh();
     }
 
-    fn get_product_serial(&self) -> String {
+    fn get_product_serial(&self) -> &str {
         self.backend.get_product_serial()
     }
 
-    fn get_architecture(&self) -> String {
+    fn get_architecture(&self) -> &str {
         self.backend.get_architecture()
     }
 
-    fn get_producer(&self) -> String {
+    fn get_producer(&self) -> &str {
         self.backend.get_producer()
     }
 
-    fn get_system_model(&self) -> String {
+    fn get_system_model(&self) -> &str {
         self.backend.get_system_model()
     }
 
-    fn get_machine_type(&self) -> String {
+    fn get_machine_type(&self) -> &str {
         self.backend.get_machine_type()
     }
 
-    fn get_bios_version(&self) -> String {
+    fn get_bios_version(&self) -> &str {
         self.backend.get_bios_version()    
     }
 
-    fn get_bios_vendor(&self) -> String {
+    fn get_bios_vendor(&self) -> &str {
         self.backend.get_bios_vendor()
     }
 
@@ -71,15 +71,15 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_is_secure_boot()
     }
 
-    fn get_os_name(&self) -> String {
+    fn get_os_name(&self) -> &str {
         self.backend.get_os_name()
     }
 
-    fn get_motherboard(&self) -> String {
+    fn get_motherboard(&self) -> &str {
         self.backend.get_motherboard()
     }
 
-    fn get_motherboard_serial(&self) -> String {
+    fn get_motherboard_serial(&self) -> &str {
         self.backend.get_motherboard_serial()
     }
 
@@ -95,27 +95,27 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_gpu_socket()
     }
 
-    fn get_ram_list(&self) -> Option<Vec<Ram>> {
+    fn get_ram_list(&self) -> Option<&Vec<Ram>> {
         self.backend.get_ram_list()
     }
 
-    fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>> {
+    fn get_physical_disk_list(&self) -> Option<&Vec<PhysicalDisk>> {
         self.backend.get_physical_disk_list()    
     }
 
-    fn get_tempe_mobo(&self) -> f32 {
+    fn get_tempe_mobo(&self) -> Option<f32> {
         self.backend.get_tempe_mobo()
     }
 
-    fn get_tempe_cpu(&self) -> f32 {
+    fn get_tempe_cpu(&self) -> Option<f32> {
         self.backend.get_tempe_cpu()
     }
 
-    fn get_battery_percentage(&self) -> f32 {
+    fn get_battery_percentage(&self) -> Option<f32> {
         self.backend.get_battery_percentage()
     }
 
-    fn get_is_plugged_in(&self) -> bool {
+    fn get_is_plugged_in(&self) -> Option<bool> {
         self.backend.get_is_plugged_in()
     }
 

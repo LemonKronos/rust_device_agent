@@ -10,3 +10,5 @@
 - Should use Path type for all
 - Please note on Window 10, Window 8 and Window XP
 - For Linux, change struct to keep string on for "static" OS info? Use `Option<String>`
+- Should bring all the error output to a json return to server as debug
+- Use debug option for all the code print and the md store
