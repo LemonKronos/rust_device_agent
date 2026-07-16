@@ -21,14 +21,40 @@ const NETWORK_PATH: &str = "/sys/class/net";
 const PCI_DEVICE_PATH: &str = "/sys/bus/pci/devices";
 const DPKG_PATH: &str = "/var/lib/dpkg";
 
+#[derive(Debug, Default)]
+struct CachedInfo {
+    product_serial: Option<String>,
+    architecture: Option<String>,
+    producer: Option<String>,
+    system_model: Option<String>,
+    machine_type: Option<String>,
+    bios_vendor: Option<String>,
+    bios_version: Option<String>,
+    is_secure_boot: Option<bool>,
+
+    os_name: Option<String>,
+
+    mobo_name: Option<String>,
+    mobo_serial: Option<String>,
+    cpu_socket: Option<u32>,
+    ram_socket: Option<u32>,
+    gpu_socket: Option<u32>,
+
+    ram_list: Option<Vec<Ram>>,
+    physical_disk_list: Option<Vec<PhysicalDisk>>,
+}
+
 #[derive(Debug)]
 pub struct OsSpecificBackend {
     components: Components,
+    cached_info: CachedInfo,
     battery_path: Option<String>,
 }
 
 impl OsSpecificBackend {
     pub fn new() -> Self {
+        let cached_info = Self::set_cached_info();
+
         let battery_path = if fs::metadata(BATTERY_0_PATH).is_ok() {
             Some(BATTERY_0_PATH.to_string())
         } else if fs::metadata(BATTERY_1_PATH).is_ok() {
@@ -39,85 +65,69 @@ impl OsSpecificBackend {
 
         Self {
             components: Components::new_with_refreshed_list(),
+            cached_info: cached_info,
             battery_path: battery_path,
         }
     }
 
-    fn parse_file(path: &str, file: &str) -> String {
+    fn parse_file(path: &str, file: &str) -> Option<String> {
         match std::fs::read_to_string(format!("{}/{}", path, file)) {
-            Ok(s) => s.trim().to_string(),
+            Ok(s) => Some(s.trim().to_string()),
             Err(e) if e.kind() == PermissionDenied => {
                 println!("Required Admin to read {}", file);
-                "Required Admin".to_string()
+                None
             },
-            Err(e) if e.kind() != PermissionDenied => format!("Error {}", e.kind()), // for debug
-            Err(_) => "Unknown".to_string(),
+            Err(e) if e.kind() != PermissionDenied => {
+                println!("Linux file parser error for {}: {}", file, e.kind());
+                None
+            },
+            Err(_) => None,
         }
     }
-}
 
-impl OsSpecificInterface for OsSpecificBackend {
-    fn refresh(&mut self) {
-        self.components.refresh(true);
+    fn set_cached_info() -> CachedInfo {
+        let mut info = CachedInfo::default();
 
-        self.battery_path = if fs::metadata(BATTERY_0_PATH).is_ok() {
-            Some(BATTERY_0_PATH.to_string())
-        } else if fs::metadata(BATTERY_1_PATH).is_ok() {
-            Some(BATTERY_1_PATH.to_string())
-        } else {
-            None
-        };
-    }
+        info.product_serial = Self::parse_file(HARDWARE_INFO_PATH, "product_serial");
 
-    fn get_product_serial(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "product_serial")
-    }
+        info.architecture = Some(std::env::consts::ARCH.to_owned());
 
-    fn get_architecture(&self) -> String {
-        std::env::consts::ARCH.to_string()
-    }
+        info.producer = Self::parse_file(HARDWARE_INFO_PATH, "sys_vendor");
 
-    fn get_producer(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "sys_vendor")
-    }
+        info.system_model = Self::parse_file(HARDWARE_INFO_PATH, "product_name");
 
-    fn get_system_model(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "product_name")
-    }
+        info.machine_type = Self::parse_file(HARDWARE_INFO_PATH, "chassis_type")
+            .map(|code| parse_chassis_type(&code));
 
-    fn get_machine_type(&self) -> String {
-        let chassis_code = Self::parse_file(HARDWARE_INFO_PATH, "chassis_type");
-        parse_chassis_type(&chassis_code)
-    }
+        info.bios_version =  Self::parse_file(HARDWARE_INFO_PATH, "bios_version");
 
-    fn get_bios_version(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "bios_version")
-    }
+        info.bios_vendor = Self::parse_file(HARDWARE_INFO_PATH, "bios_vendor");
 
-    fn get_bios_vendor(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "bios_vendor")
-    }
-
-    fn get_is_secure_boot(&self) -> Option<bool> {
-        match fs::read(SECURE_BOOT_PATH) {
+        info.is_secure_boot = match fs::read(SECURE_BOOT_PATH) {
             Ok(bytes) if bytes.len() >= 5 => Some(bytes[4] == 1),
             _ => None,
-        }
+        };
+
+        info.os_name = Some(std::env::consts::OS.to_string());
+
+        info.mobo_name = Self::parse_file(HARDWARE_INFO_PATH, "board_name");
+
+        info.mobo_serial = Self::parse_file(HARDWARE_INFO_PATH, "board_serial");
+
+        info.cpu_socket = Self::cache_cpu_socket();
+
+        info.ram_socket = Self::cache_ram_socket();
+
+        info.gpu_socket = Self::cache_gpu_socket();
+
+        info.ram_list = Self::cache_ram_list();
+
+        info.physical_disk_list = Self::cache_physical_disk_list();
+
+        info
     }
 
-    fn get_os_name(&self) -> String {
-        std::env::consts::OS.to_string()
-    }
-
-    fn get_motherboard(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "board_name")
-    }
-
-    fn get_motherboard_serial(&self) -> String {
-        Self::parse_file(HARDWARE_INFO_PATH, "board_serial")
-    }
-
-    fn get_cpu_socket(&self) -> Option<u32> {
+    fn cache_cpu_socket() -> Option<u32> {
         match table_load_from_device() {
             Ok(data) => {
                 Some(data.defined_struct_iter::<SMBiosProcessorInformation>().count() as u32)
@@ -132,8 +142,8 @@ impl OsSpecificInterface for OsSpecificBackend {
             }
         }
     }
-    
-    fn get_ram_socket(&self) -> Option<u32> {
+
+    fn cache_ram_socket() -> Option<u32> {
         match table_load_from_device() {
             Ok(data) => {
                 let mut ram_socket = 0;
@@ -155,7 +165,7 @@ impl OsSpecificInterface for OsSpecificBackend {
         }
     }
 
-    fn get_gpu_socket(&self) -> Option<u32> {
+    fn cache_gpu_socket() -> Option<u32> {
         let mut gpu_socket = 0;
         match  fs::read_dir(PCI_DEVICE_PATH) {
             Ok(entries) =>  {
@@ -182,7 +192,7 @@ impl OsSpecificInterface for OsSpecificBackend {
         }
     }
 
-    fn get_ram_list(&self) -> Option<Vec<Ram>> {
+    fn cache_ram_list() -> Option<Vec<Ram>> {
         let data = match table_load_from_device() {
             Ok(d) => d,
             Err(e) if e.kind() == PermissionDenied => {
@@ -243,7 +253,7 @@ impl OsSpecificInterface for OsSpecificBackend {
         Some(ram_list)
     }
 
-    fn get_physical_disk_list(&self) -> Option<Vec<PhysicalDisk>> {
+    fn cache_physical_disk_list() -> Option<Vec<PhysicalDisk>> {
         let mut list = Vec::new();
         let block_dir = Path::new(HARD_DISK_PATH);
         match fs::read_dir(block_dir) {
@@ -277,7 +287,7 @@ impl OsSpecificInterface for OsSpecificBackend {
                     let sector: u64 = fs::read_to_string(entry.path().join("size"))
                         .unwrap_or_else(|_| "0".to_string())
                         .trim().parse().unwrap_or(0);
-                    let size = ((sector * 512) as f64 / 1_000_000_000.0) as u32;
+                    let size = ((sector * 512) as f64 / 1_000_000_000.0) as u64;
 
                     let media = match fs::read_to_string(entry.path().join("queue/rotational")) {
                         Ok(val) if val.trim() == "0" => "SSD".to_string(),
@@ -350,40 +360,141 @@ impl OsSpecificInterface for OsSpecificBackend {
         }
     }
 
-    fn get_tempe_mobo(&self) -> f32 {
+}
+
+impl OsSpecificInterface for OsSpecificBackend {
+    fn refresh(&mut self) {
+        self.components.refresh(true);
+
+        self.battery_path = if fs::metadata(BATTERY_0_PATH).is_ok() {
+            Some(BATTERY_0_PATH.to_string())
+        } else if fs::metadata(BATTERY_1_PATH).is_ok() {
+            Some(BATTERY_1_PATH.to_string())
+        } else {
+            None
+        };
+    }
+
+    fn get_product_serial(&self) -> &str {
+        match &self.cached_info.product_serial {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_architecture(&self) -> &str {
+        match &self.cached_info.architecture {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_producer(&self) -> &str {
+        match &self.cached_info.producer {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_system_model(&self) -> &str {
+        match &self.cached_info.system_model {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_machine_type(&self) -> &str {
+        match &self.cached_info.machine_type {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_bios_version(&self) -> &str {
+        match &self.cached_info.bios_version {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_bios_vendor(&self) -> &str {
+        match &self.cached_info.bios_vendor {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_is_secure_boot(&self) -> Option<bool> {
+        self.cached_info.is_secure_boot
+    }
+
+    fn get_os_name(&self) -> &str {
+        match &self.cached_info.os_name {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_motherboard(&self) -> &str {
+        match &self.cached_info.mobo_name {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_motherboard_serial(&self) -> &str {
+        match &self.cached_info.mobo_serial {
+            Some(info) => info.as_str(),
+            None => "Unknown",
+        }
+    }
+
+    fn get_cpu_socket(&self) -> Option<u32> {
+        self.cached_info.cpu_socket
+    }
+
+    fn get_gpu_socket(&self) -> Option<u32> {
+        self.cached_info.gpu_socket
+    }
+    
+    fn get_ram_socket(&self) -> Option<u32> {
+        self.cached_info.ram_socket
+    }
+
+    fn get_ram_list(&self) -> Option<&Vec<Ram>> {
+        self.cached_info.ram_list.as_ref()
+    }
+    
+    fn get_physical_disk_list(&self) -> Option<&Vec<PhysicalDisk>> {
+        self.cached_info.physical_disk_list.as_ref()
+    }
+
+    fn get_tempe_mobo(&self) -> Option<f32> {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("acpitz"))
             .map(|c| c.temperature().unwrap() as f32)
             .max_by(|a, b| a.total_cmp(b))
-            .unwrap_or(0.0)
     }
 
-    fn get_tempe_cpu(&self) -> f32 {
+    fn get_tempe_cpu(&self) -> Option<f32> {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("k10temp"))
             .map(|c| c.temperature().unwrap() as f32)
             .max_by(|a, b| a.total_cmp(b))
-            .unwrap_or(0.0)
     }
 
-    fn get_battery_percentage(&self) -> f32 {
-        if let Some(path) = &self.battery_path {
-            Self::parse_file(path, "capacity")
-                .trim().parse().unwrap_or(0.0)
-        } else {
-            0.0
-        }
+    fn get_battery_percentage(&self) -> Option<u32> {
+        self.battery_path.as_ref()
+            .and_then(|p| Self::parse_file(p, "capacity"))
+            .and_then(|i| i.trim().parse().ok())
     }
 
-    fn get_is_plugged_in(&self) -> bool {
-        if let Some(path) = &self.battery_path {
-            Self::parse_file(path, "status")
-                .trim().to_lowercase() != "discharging"
-        } else {
-            true
-        }
+    fn get_is_plugged_in(&self) -> Option<bool> {
+        self.battery_path.as_ref()
+            .and_then(|p| Self::parse_file(p, "status"))
+            .and_then(|i| Some(i.trim().to_lowercase() != "discharging"))
     }
 
     fn fill_network_hardware(&self, network_list: &mut Vec<crate::types::Network<'_>>) {
@@ -391,31 +502,36 @@ impl OsSpecificInterface for OsSpecificBackend {
             let interface_path = format!("{}/{}", NETWORK_PATH, &interface.get_name());
 
             // Read config speed via file
-            interface.set_config_speed(
-                Self::parse_file(&interface_path, "speed")
+            if interface.get_name() == "enp4s0" {
+                interface.hardware.speed = Self::parse_file(&interface_path, "speed")
+                    .unwrap_or("0".to_string())
                     .trim()
                     .parse::<u32>()
-                    .unwrap_or(0)
-            );
+                    .unwrap_or(0);
+            }
 
-            // Read card name by first found out it pci code via syslink, then read with lspci command
-            let device_link = Path::new(&interface_path).join("device");
-            if let Ok(target) = fs::read_link(&device_link) {
-                if let Some(pci_addr) = target.file_name().and_then(|n| n.to_str()) {
-                    if let Ok(output) = Command::new("lspci").arg("-s").arg(pci_addr).output() {
-                        let out_str = String::from_utf8_lossy(&output.stdout);
-                        if let Some(desc) = out_str.split(": ").nth(1) {
-                            interface.set_card(desc.trim().to_string());
+            if interface.get_name() == "enp4s0" || interface.get_name() == "wlp5s0" {
+                // Read card name by first found out it pci code via syslink, then read with lspci command
+                let device_link = Path::new(&interface_path).join("device");
+                if let Ok(target) = fs::read_link(&device_link) {
+                    if let Some(pci_addr) = target.file_name().and_then(|n| n.to_str()) {
+                        if let Ok(output) = Command::new("lspci").arg("-s").arg(pci_addr).output() {
+                            let out_str = String::from_utf8_lossy(&output.stdout);
+                            if let Some(desc) = out_str.split(": ").nth(1) {
+                                interface.hardware.card = desc.trim().to_string();
+                            }
                         }
                     }
                 }
             }
 
-            // Read with iwgetid command
-            if let Ok(output) = Command::new("iwgetid").arg("-r").arg(interface.get_name()).output() {
-                let out_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !out_str.is_empty() {
-                    interface.set_ssid(out_str);
+            if interface.get_name() == "wlp5s0" {
+                // Read with iwgetid command
+                if let Ok(output) = Command::new("iwgetid").arg("-r").arg(interface.get_name()).output() {
+                    let out_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if !out_str.is_empty() {
+                        interface.ssid = out_str;
+                    }
                 }
             }
         }
@@ -458,7 +574,7 @@ impl OsSpecificInterface for OsSpecificBackend {
                     "Package" => current.name = value.to_string(),
                     "Version" => current.version = value.to_string(),
                     "Maintainer" => current.source = value.split('<').next().unwrap_or(value).trim().to_string(),
-                    "Installed-Size" => current.size = value.parse::<u64>().unwrap_or_default(),
+                    "Installed-Size" => current.size = value.parse::<f64>().unwrap_or_default(),
                     _ => {},
                 }
             }

@@ -1,3 +1,5 @@
+#![cfg(target_os = "windows")]
+
 use serde::Deserialize;
 use wmi::WMIConnection;
 

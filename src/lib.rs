@@ -206,8 +206,8 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::create_dir_all("doc/sample/").expect("Failed to create dir");
-        fs::write("doc/sample/json_v3_fullscan.md", md_content).expect("Failed to write file");
+        fs::create_dir_all("doc/sample/").expect("v3 full scan: Failed to create dir");
+        fs::write("doc/sample/json_v3_fullscan.md", md_content).expect("v3 full scan: Failed to write file");
 
         return payload;
     }
@@ -347,8 +347,8 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::create_dir_all("doc/sample/").expect("Failed to create dir");
-        fs::write("doc/sample/json_v2_fullscan.md", md_content).expect("Failed to write file");
+        fs::create_dir_all("doc/sample/").expect("v2 full scan: Failed to create dir");
+        fs::write("doc/sample/json_v2_fullscan.md", md_content).expect("v2 full scan: Failed to write file");
 
         return payload;
     }
@@ -372,8 +372,8 @@ impl DeviceAgent {
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
         let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::create_dir_all("doc/sample/").expect("Failed to create dir");
-        fs::write("doc/sample/json_v2_telemetry.md", md_content).expect("Failed to write file");
+        fs::create_dir_all("doc/sample/").expect("v2 telemetry: Failed to create dir");
+        fs::write("doc/sample/json_v2_telemetry.md", md_content).expect("v2 telemetry: Failed to write file");
 
         return payload;
     }

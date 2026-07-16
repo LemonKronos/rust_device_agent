@@ -28,7 +28,7 @@ pub trait OsSpecificInterface {
     fn get_tempe_mobo(&self) -> Option<f32>;
     fn get_tempe_cpu(&self) -> Option<f32>;
 
-    fn get_battery_percentage(&self) -> Option<f32>;
+    fn get_battery_percentage(&self) -> Option<u32>;
     fn get_is_plugged_in(&self) -> Option<bool>;
 
     fn fill_network_hardware(&self, network_list: &mut Vec<Network<'_>>);

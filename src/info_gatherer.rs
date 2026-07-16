@@ -234,7 +234,7 @@ impl Info {
     }
 
     //: Battery info
-    pub fn get_battery_percentage(&self) -> Option<f32> {
+    pub fn get_battery_percentage(&self) -> Option<u32> {
         self.os_specific.get_battery_percentage()
     }
 

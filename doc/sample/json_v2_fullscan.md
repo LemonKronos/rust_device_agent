@@ -8,21 +8,21 @@
       "POWER_PLUGGED": true
     },
     "BIOS_VERSION": "Insyde Corp. V1.08",
-    "BOOT_TIME_EPOCH": 1783904292,
+    "BOOT_TIME_EPOCH": 1784163319,
     "COMPUTER_NAME": "AcerLinux",
     "COMPUTER_TYPE": "Laptop: Notebook",
     "CPU": {
       "CORES": 6,
       "CPU_DESCRIPTION": "Comming Soon",
       "CPU_NAME": "AMD Ryzen 5 5600H with Radeon Graphics",
-      "CPU_USAGE_RATE": 14.285715103149414,
+      "CPU_USAGE_RATE": 17.378047943115234,
       "LOGICAL_PROCESSORS": 12,
       "MACHINE": "x86_64",
-      "PROCESSES": 1897,
-      "SOCKETS": 1,
-      "SPEED": 3516,
-      "TEMPERATURE": "70.25",
-      "UPTIME": "000:03:30:46"
+      "PROCESSES": 1955,
+      "SOCKETS": 0,
+      "SPEED": 4114,
+      "TEMPERATURE": "61.625",
+      "UPTIME": "000:08:36:30"
     },
     "FULL_COMPUTER_NAME": "AcerLinux",
     "GPU_Lst": [
@@ -31,14 +31,14 @@
         "GLOBAL_MEMORY": "4",
         "GPU_NAME": "NVIDIA GeForce GTX 1650",
         "MAX_CLOCK_SPEED": "1785",
-        "TEMPERATURE": "47"
+        "TEMPERATURE": "45"
       },
       {
         "DRIVER_VERSION": "3.64.0",
         "GLOBAL_MEMORY": "0.5",
         "GPU_NAME": "AMD Radeon Graphics",
         "MAX_CLOCK_SPEED": "0",
-        "TEMPERATURE": "56"
+        "TEMPERATURE": "49"
       }
     ],
     "HARD_DISK_Lst": [
@@ -47,7 +47,7 @@
         "HARD_DISK_NAME": "/dev/nvme1n1p2",
         "MOUNT_POINT": "/",
         "TOTAL": 456.34729766845703,
-        "USAGE": 333.8199806213379
+        "USAGE": 328.35828018188477
       },
       {
         "FILE_SYSTEM_TYPE": "vfat",
@@ -60,11 +60,27 @@
     "MOTHER_BOARD": "Scala_CAS",
     "NETWORK_Lst": [
       {
-        "CONNECTION_TYPE": "enp4s0",
-        "INET_CARD": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
+        "CONNECTION_TYPE": "docker0",
+        "INET_CARD": "",
         "INET_CARD_SPEED": 0,
-        "IP": "None",
-        "MAC_ADDRESS": "08:8f:c3:56:4e:01",
+        "IP": "172.17.0.1/16",
+        "MAC_ADDRESS": "d6:e9:86:f7:02:f9",
+        "SSID": "Unknown"
+      },
+      {
+        "CONNECTION_TYPE": "br-9e4b968fd9d1",
+        "INET_CARD": "",
+        "INET_CARD_SPEED": 0,
+        "IP": "172.19.0.1/16",
+        "MAC_ADDRESS": "7e:84:a7:69:b5:96",
+        "SSID": "Unknown"
+      },
+      {
+        "CONNECTION_TYPE": "br-b68dd5d7c3e7",
+        "INET_CARD": "",
+        "INET_CARD_SPEED": 0,
+        "IP": "172.18.0.1/16",
+        "MAC_ADDRESS": "fa:ff:a5:e8:b0:ac",
         "SSID": "Unknown"
       },
       {
@@ -77,10 +93,18 @@
       },
       {
         "CONNECTION_TYPE": "lo",
-        "INET_CARD": "Unknown",
+        "INET_CARD": "",
         "INET_CARD_SPEED": 0,
         "IP": "127.0.0.1/8",
         "MAC_ADDRESS": "00:00:00:00:00:00",
+        "SSID": "Unknown"
+      },
+      {
+        "CONNECTION_TYPE": "enp4s0",
+        "INET_CARD": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
+        "INET_CARD_SPEED": 0,
+        "IP": "None",
+        "MAC_ADDRESS": "08:8f:c3:56:4e:01",
         "SSID": "Unknown"
       }
     ],
@@ -149,30 +173,11 @@
     ],
     "PRODUCER": "Acer",
     "RAM": {
-      "DETAILS": [
-        {
-          "BANK_LABEL": "P0 CHANNEL A",
-          "CAPACITY": 8192,
-          "FORM_FACTOR": "SODIMM",
-          "MANUFACTURER": "Kingston KVR32S22S6/8GB 3200",
-          "RAM_TYPE": "DDR4",
-          "SERIAL_NUMBER": "40D9D109",
-          "SPEED": "3200"
-        },
-        {
-          "BANK_LABEL": "P0 CHANNEL B",
-          "CAPACITY": 8192,
-          "FORM_FACTOR": "SODIMM",
-          "MANUFACTURER": "Kingston ACR32D4S2S1ME-8",
-          "RAM_TYPE": "DDR4",
-          "SERIAL_NUMBER": "25AB2457",
-          "SPEED": "3200"
-        }
-      ],
-      "TOTAL": 14.97732162475586,
-      "USAGE": 10.339862823486328
+      "DETAILS": null,
+      "TOTAL": 14.977317810058594,
+      "USAGE": 9.95809555053711
     },
-    "SERIAL_NUMBER": "NHQBMSV0062131BB0D3400",
+    "SERIAL_NUMBER": "Unknown",
     "SOFTWARE_Lst": [
       {
         "INSTALL_DATE": "07:28:36 18/11/2025",

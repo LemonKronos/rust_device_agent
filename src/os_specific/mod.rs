@@ -111,7 +111,7 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_tempe_cpu()
     }
 
-    fn get_battery_percentage(&self) -> Option<f32> {
+    fn get_battery_percentage(&self) -> Option<u32> {
         self.backend.get_battery_percentage()
     }
 

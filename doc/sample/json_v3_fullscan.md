@@ -2,10 +2,10 @@
 {
   "CPU": {
     "core": 12,
-    "frequency": 3502,
+    "frequency": 2529,
     "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 67.875,
-    "usage": 15.95441722869873
+    "temperature": 61.75,
+    "usage": 8.834259033203125
   },
   "GPUs": [
     {
@@ -14,21 +14,21 @@
       "max_clock": 1785,
       "name": "NVIDIA GeForce GTX 1650",
       "serial": "Unknown",
-      "temperature": 47,
+      "temperature": 45,
       "utilization": 0.0,
       "vram_total": 4294967296,
-      "vram_usage": 71434240
+      "vram_usage": 130416640
     },
     {
       "driver": "3.64.0",
-      "frequency": 1800,
+      "frequency": 400,
       "max_clock": null,
       "name": "AMD Radeon Graphics",
       "serial": "Unknown",
-      "temperature": 54,
+      "temperature": 49,
       "utilization": 100.0,
       "vram_total": 536870912,
-      "vram_usage": 460214272
+      "vram_usage": 458682368
     }
   ],
   "RAM": {
@@ -52,17 +52,17 @@
         "type": "DDR4"
       }
     ],
-    "total": 16081776640,
-    "usage": 11288678400
+    "total": 16081772544,
+    "usage": 10712608768
   },
   "SWAP": {
     "total": 4294963200,
-    "usage": 2395889664
+    "usage": 3608420352
   },
   "agent_version": "3.0.0",
   "battery": {
     "is_plugged_in": true,
-    "percentage": 80.0
+    "percentage": 80
   },
   "bios": {
     "secure_boot": false,
@@ -139,7 +139,7 @@
         "name": "/dev/nvme1n1p2",
         "removable": false,
         "total": 489999179776,
-        "used": 358436626432
+        "used": 352570200064
       },
       {
         "file_system": "vfat",
@@ -152,9 +152,9 @@
     ]
   },
   "general": {
-    "boot_time": 1783904292,
+    "boot_time": 1784163319,
     "host": "AcerLinux",
-    "run_time": 12628
+    "run_time": 31130
   },
   "machine": {
     "architecture": "x86_64",
@@ -169,44 +169,80 @@
     "name": "Scala_CAS",
     "ram_socket": 2,
     "serial": "NBQBM11001213B72373400",
-    "tempe": 46.0
+    "tempe": 45.0
   },
   "networks": [
     {
+      "card": "",
+      "config_speed": 0,
+      "download": 0,
+      "ipv4": "172.17.0.1/16",
+      "ipv6": "None",
+      "mac": "d6:e9:86:f7:02:f9",
+      "mtu": 1500,
+      "name": "docker0",
+      "ssid": "Unknown",
+      "upload": 0
+    },
+    {
       "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
       "config_speed": 0,
-      "download": 470655099,
+      "download": 2255336553,
       "ipv4": "172.20.1.20/22",
       "ipv6": "fe80::515a:3399:7f4f:c499/64",
       "mac": "e0:0a:f6:be:44:9f",
       "mtu": 1500,
       "name": "wlp5s0",
       "ssid": "GGROUP-LAU1",
-      "upload": 60116705
+      "upload": 625585381
+    },
+    {
+      "card": "",
+      "config_speed": 0,
+      "download": 84,
+      "ipv4": "172.18.0.1/16",
+      "ipv6": "fe80::f8ff:a5ff:fee8:b0ac/64",
+      "mac": "fa:ff:a5:e8:b0:ac",
+      "mtu": 1500,
+      "name": "br-b68dd5d7c3e7",
+      "ssid": "Unknown",
+      "upload": 18657677
     },
     {
       "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
       "config_speed": 0,
-      "download": 0,
+      "download": 342856275,
       "ipv4": "None",
       "ipv6": "None",
       "mac": "08:8f:c3:56:4e:01",
       "mtu": 1500,
       "name": "enp4s0",
       "ssid": "Unknown",
+      "upload": 9312677
+    },
+    {
+      "card": "",
+      "config_speed": 0,
+      "download": 0,
+      "ipv4": "172.19.0.1/16",
+      "ipv6": "None",
+      "mac": "7e:84:a7:69:b5:96",
+      "mtu": 1500,
+      "name": "br-9e4b968fd9d1",
+      "ssid": "Unknown",
       "upload": 0
     },
     {
-      "card": "Unknown",
+      "card": "",
       "config_speed": 0,
-      "download": 1184563,
+      "download": 238152260,
       "ipv4": "127.0.0.1/8",
       "ipv6": "::1/128",
       "mac": "00:00:00:00:00:00",
       "mtu": 65536,
       "name": "lo",
       "ssid": "Unknown",
-      "upload": 1184563
+      "upload": 238152260
     }
   ],
   "os": {
@@ -215,105 +251,105 @@
     "os_name": "linux",
     "os_version": "24.04"
   },
-  "process_count": 1942,
+  "process_count": 1966,
   "softwares": [
     {
       "install_date": 1763425716,
       "name": "2to3",
-      "size": 32,
+      "size": 32.0,
       "source": "Ubuntu Developers",
       "version": "3.12.3-0ubuntu2.1"
     },
     {
       "install_date": 1742312014,
       "name": "7zip",
-      "size": 6158,
+      "size": 6158.0,
       "source": "Ubuntu Developers",
       "version": "23.01+dfsg-11"
     },
     {
       "install_date": 1782108774,
       "name": "aardvark-dns",
-      "size": 2510,
+      "size": 2510.0,
       "source": "Ubuntu Developers",
       "version": "1.4.0-5"
     },
     {
       "install_date": 1739607037,
       "name": "accountsservice",
-      "size": 524,
+      "size": 524.0,
       "source": "Ubuntu Developers",
       "version": "23.13.9-2ubuntu6"
     },
     {
       "install_date": 1746454674,
       "name": "acl",
-      "size": 192,
+      "size": 192.0,
       "source": "Ubuntu Developers",
       "version": "2.3.2-1build1.1"
     }
   ],
-  "time_stamp": 1783916921,
+  "time_stamp": 1784194449,
   "top_processes": [
     {
-      "cpu": 47.86324691772461,
-      "memory": 38920192,
-      "name": "main_worker",
-      "runtime": 1
-    },
-    {
-      "cpu": 30.76923179626465,
-      "memory": 562536448,
-      "name": "brave",
-      "runtime": 12304
-    },
-    {
-      "cpu": 27.35042953491211,
-      "memory": 692523008,
+      "cpu": 23.21966552734375,
+      "memory": 458584064,
       "name": "code",
-      "runtime": 11466
+      "runtime": 17167
     },
     {
-      "cpu": 23.931623458862305,
-      "memory": 137986048,
-      "name": "code",
-      "runtime": 11466
-    },
-    {
-      "cpu": 23.931623458862305,
-      "memory": 404492288,
+      "cpu": 23.029340744018555,
+      "memory": 593170432,
       "name": "chrome",
-      "runtime": 12262
+      "runtime": 29479
     },
     {
-      "cpu": 13.675214767456055,
-      "memory": 107868160,
-      "name": "Hyprland",
-      "runtime": 12606
+      "cpu": 21.126089096069336,
+      "memory": 458584064,
+      "name": "DedicatedWorker",
+      "runtime": 2451
     },
     {
-      "cpu": 10.256410598754883,
-      "memory": 692523008,
+      "cpu": 17.509912490844727,
+      "memory": 523939840,
+      "name": "chrome",
+      "runtime": 27925
+    },
+    {
+      "cpu": 6.661379337310791,
+      "memory": 401989632,
+      "name": "brave",
+      "runtime": 30089
+    },
+    {
+      "cpu": 4.948453426361084,
+      "memory": 76247040,
+      "name": "chrome",
+      "runtime": 30929
+    },
+    {
+      "cpu": 4.187152862548828,
+      "memory": 523939840,
       "name": "Compositor",
-      "runtime": 11466
+      "runtime": 27925
     },
     {
-      "cpu": 6.837607383728027,
-      "memory": 562536448,
-      "name": "dav1d-worker",
-      "runtime": 803
-    },
-    {
-      "cpu": 6.837607383728027,
-      "memory": 6070272,
-      "name": "cava",
-      "runtime": 12604
-    },
-    {
-      "cpu": 6.837607383728027,
-      "memory": 146886656,
+      "cpu": 3.9968278408050537,
+      "memory": 76247040,
       "name": "VizCompositorTh",
-      "runtime": 12477
+      "runtime": 30929
+    },
+    {
+      "cpu": 3.8065028190612793,
+      "memory": 43732992,
+      "name": "main_worker",
+      "runtime": 38
+    },
+    {
+      "cpu": 3.616177558898926,
+      "memory": 3211100160,
+      "name": "rust-analyzer",
+      "runtime": 17163
     }
   ]
 }

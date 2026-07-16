@@ -1,6 +1,7 @@
 
-#[cfg(target_os = "windows")]
-use std::process::Command;
+// #![cfg(target_os = "windows")]
+// use std::process::Command;
+use std::fs;
 
 #[derive(Debug)]
 pub struct Battery {
