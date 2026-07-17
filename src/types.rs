@@ -1,5 +1,5 @@
 
-use std::time::SystemTime;
+use std::{time::SystemTime};
 
 //_ RAM
 #[derive(Debug, Default)]
@@ -257,15 +257,15 @@ impl Partition {
 pub struct Network<'a> {
     name : &'a String,
     data: &'a sysinfo::NetworkData,
-    pub ssid: String,
-    pub hardware: NetworkHardware,
+    pub ssid: Option<String>,
+    pub hardware: Option<NetworkHardware>,
 }
 
 impl<'a> Network<'a> {
     pub fn new(name: &'a String, data: &'a sysinfo::NetworkData) -> Self {
         Self { name, data,
-            ssid: "Unknown".to_string(),
-            hardware: NetworkHardware::default(),
+            ssid: None,
+            hardware: None,
         }
     }
 
@@ -321,17 +321,17 @@ impl<'a> Network<'a> {
     }
    
     /// Return internet card info
-    pub fn get_card(&self) -> String {
-        self.hardware.card.clone()
+    pub fn get_card(&self) -> Option<String> {
+        self.hardware.as_ref().map(|hw| hw.card.clone())
     }
 
     /// Return Ethernet config speed in Mbps, will be 0 for Wifi
-    pub fn get_config_speed(&self) -> u32 {
-        self.hardware.speed
+    pub fn get_config_speed(&self) -> Option<u32> {
+        self.hardware.as_ref().and_then(|hw| hw.speed)
     }
 
     /// Return Wifi network name - Service Set Identifier (SSID), will be "Unknown" for Ethernet
-    pub fn get_ssid(&self) -> String {
+    pub fn get_ssid(&self) -> Option<String> {
         self.ssid.clone()
     }
 }
@@ -339,7 +339,7 @@ impl<'a> Network<'a> {
 #[derive(Debug, Default, Clone)]
 pub struct NetworkHardware {
     pub card: String,
-    pub speed: u32,
+    pub speed: Option<u32>,
 }
 
 //_ Process

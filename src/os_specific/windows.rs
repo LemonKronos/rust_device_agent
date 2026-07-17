@@ -228,7 +228,7 @@ impl OsSpecificBackend {
                             interface_name,
                             NetworkHardware {
                                 card: adapter.name.unwrap_or_else(|| "Unknown".to_string()),
-                                speed: speed_mbps,
+                                speed: Some(speed_mbps),
                             },
                         );
                     }
@@ -408,14 +408,14 @@ impl OsSpecificInterface for OsSpecificBackend {
         for net in network_list.iter_mut() {
             if let Some(hardware_map) = &self.cached_info.as_ref().and_then(|i| i.network_hardware.as_ref()) {
                 if let Some(hw) = hardware_map.get(net.get_name().as_str()) {
-                    net.hardware = hw.clone();
+                    net.hardware = Some(hw.clone());
                 }
             }
 
             // Read SSID with netsh command decisively
             let name = &net.get_name();
             if name.contains("wlan") || name.contains("wi-fi") || name.contains("wireless") {
-                net.ssid = get_ssid_of(name);
+                net.ssid = Some(get_ssid_of(name));
             }
         }
     }
