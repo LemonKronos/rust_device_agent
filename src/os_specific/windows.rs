@@ -375,14 +375,14 @@ impl OsSpecificInterface for OsSpecificBackend {
         tempes.into_iter().max_by(|a, b| a.total_cmp(b))
     }
 
-    fn get_battery_percentage(&self) -> Option<f32> {
+    fn get_battery_percentage(&self) -> Option<u32> {
         unsafe {
             let mut status: SYSTEM_POWER_STATUS = std::mem::zeroed();
             
             if GetSystemPowerStatus(&mut status) != 0 {
                 // 255 is the Windows kernel code for "No Battery / Desktop PC"
                 if status.BatteryLifePercent != 255 {
-                    return Some(status.BatteryLifePercent as f32);
+                    return Some(status.BatteryLifePercent as u32);
                 }
             }
         }

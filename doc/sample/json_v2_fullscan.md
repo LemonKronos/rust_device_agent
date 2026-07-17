@@ -8,21 +8,21 @@
       "POWER_PLUGGED": true
     },
     "BIOS_VERSION": "Insyde Corp. V1.08",
-    "BOOT_TIME_EPOCH": 1784163319,
+    "BOOT_TIME_EPOCH": 1784251501,
     "COMPUTER_NAME": "AcerLinux",
     "COMPUTER_TYPE": "Laptop: Notebook",
     "CPU": {
       "CORES": 6,
       "CPU_DESCRIPTION": "Comming Soon",
       "CPU_NAME": "AMD Ryzen 5 5600H with Radeon Graphics",
-      "CPU_USAGE_RATE": 17.378047943115234,
+      "CPU_USAGE_RATE": 14.642858505249023,
       "LOGICAL_PROCESSORS": 12,
       "MACHINE": "x86_64",
-      "PROCESSES": 1955,
+      "PROCESSES": 1722,
       "SOCKETS": 0,
-      "SPEED": 4114,
-      "TEMPERATURE": "61.625",
-      "UPTIME": "000:08:36:30"
+      "SPEED": 3996,
+      "TEMPERATURE": "68.125",
+      "UPTIME": "000:00:06:10"
     },
     "FULL_COMPUTER_NAME": "AcerLinux",
     "GPU_Lst": [
@@ -31,7 +31,7 @@
         "GLOBAL_MEMORY": "4",
         "GPU_NAME": "NVIDIA GeForce GTX 1650",
         "MAX_CLOCK_SPEED": "1785",
-        "TEMPERATURE": "45"
+        "TEMPERATURE": "44"
       },
       {
         "DRIVER_VERSION": "3.64.0",
@@ -47,7 +47,7 @@
         "HARD_DISK_NAME": "/dev/nvme1n1p2",
         "MOUNT_POINT": "/",
         "TOTAL": 456.34729766845703,
-        "USAGE": 328.35828018188477
+        "USAGE": 329.6245002746582
       },
       {
         "FILE_SYSTEM_TYPE": "vfat",
@@ -59,38 +59,6 @@
     ],
     "MOTHER_BOARD": "Scala_CAS",
     "NETWORK_Lst": [
-      {
-        "CONNECTION_TYPE": "docker0",
-        "INET_CARD": "",
-        "INET_CARD_SPEED": 0,
-        "IP": "172.17.0.1/16",
-        "MAC_ADDRESS": "d6:e9:86:f7:02:f9",
-        "SSID": "Unknown"
-      },
-      {
-        "CONNECTION_TYPE": "br-9e4b968fd9d1",
-        "INET_CARD": "",
-        "INET_CARD_SPEED": 0,
-        "IP": "172.19.0.1/16",
-        "MAC_ADDRESS": "7e:84:a7:69:b5:96",
-        "SSID": "Unknown"
-      },
-      {
-        "CONNECTION_TYPE": "br-b68dd5d7c3e7",
-        "INET_CARD": "",
-        "INET_CARD_SPEED": 0,
-        "IP": "172.18.0.1/16",
-        "MAC_ADDRESS": "fa:ff:a5:e8:b0:ac",
-        "SSID": "Unknown"
-      },
-      {
-        "CONNECTION_TYPE": "wlp5s0",
-        "INET_CARD": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
-        "INET_CARD_SPEED": 0,
-        "IP": "172.20.1.20/22",
-        "MAC_ADDRESS": "e0:0a:f6:be:44:9f",
-        "SSID": "GGROUP-LAU1"
-      },
       {
         "CONNECTION_TYPE": "lo",
         "INET_CARD": "",
@@ -106,9 +74,17 @@
         "IP": "None",
         "MAC_ADDRESS": "08:8f:c3:56:4e:01",
         "SSID": "Unknown"
+      },
+      {
+        "CONNECTION_TYPE": "wlp5s0",
+        "INET_CARD": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
+        "INET_CARD_SPEED": 0,
+        "IP": "172.20.1.20/22",
+        "MAC_ADDRESS": "e0:0a:f6:be:44:9f",
+        "SSID": "GGROUP-LAU1"
       }
     ],
-    "OPERATING_SYSTEM": "Ubuntu (kernel 6.17.0-35-generic)",
+    "OPERATING_SYSTEM": "Ubuntu (kernel 6.17.0-40-generic)",
     "PHYSICAL_DISK_Lst": [
       {
         "DISK_NAME": "nvme0n1",
@@ -174,8 +150,8 @@
     "PRODUCER": "Acer",
     "RAM": {
       "DETAILS": null,
-      "TOTAL": 14.977317810058594,
-      "USAGE": 9.95809555053711
+      "TOTAL": 14.97732162475586,
+      "USAGE": 11.058452606201172
     },
     "SERIAL_NUMBER": "Unknown",
     "SOFTWARE_Lst": [

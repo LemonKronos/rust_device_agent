@@ -2,10 +2,10 @@
 {
   "CPU": {
     "core": 12,
-    "frequency": 2529,
+    "frequency": 3996,
     "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 61.75,
-    "usage": 8.834259033203125
+    "temperature": 68.125,
+    "usage": 14.642858505249023
   },
   "GPUs": [
     {
@@ -14,10 +14,10 @@
       "max_clock": 1785,
       "name": "NVIDIA GeForce GTX 1650",
       "serial": "Unknown",
-      "temperature": 45,
+      "temperature": 44,
       "utilization": 0.0,
       "vram_total": 4294967296,
-      "vram_usage": 130416640
+      "vram_usage": 3145728
     },
     {
       "driver": "3.64.0",
@@ -25,39 +25,20 @@
       "max_clock": null,
       "name": "AMD Radeon Graphics",
       "serial": "Unknown",
-      "temperature": 49,
+      "temperature": 50,
       "utilization": 100.0,
       "vram_total": 536870912,
-      "vram_usage": 458682368
+      "vram_usage": 442183680
     }
   ],
   "RAM": {
-    "hardware": [
-      {
-        "bank": "P0 CHANNEL A",
-        "form_factor": "SODIMM",
-        "name": "Kingston KVR32S22S6/8GB 3200",
-        "serial": "40D9D109",
-        "size": 8192,
-        "speed": "3200",
-        "type": "DDR4"
-      },
-      {
-        "bank": "P0 CHANNEL B",
-        "form_factor": "SODIMM",
-        "name": "Kingston ACR32D4S2S1ME-8",
-        "serial": "25AB2457",
-        "size": 8192,
-        "speed": "3200",
-        "type": "DDR4"
-      }
-    ],
-    "total": 16081772544,
-    "usage": 10712608768
+    "hardware": null,
+    "total": 16081776640,
+    "usage": 11873923072
   },
   "SWAP": {
     "total": 4294963200,
-    "usage": 3608420352
+    "usage": 2505797632
   },
   "agent_version": "3.0.0",
   "battery": {
@@ -139,7 +120,7 @@
         "name": "/dev/nvme1n1p2",
         "removable": false,
         "total": 489999179776,
-        "used": 352570200064
+        "used": 353931612160
       },
       {
         "file_system": "vfat",
@@ -152,106 +133,70 @@
     ]
   },
   "general": {
-    "boot_time": 1784163319,
+    "boot_time": 1784251501,
     "host": "AcerLinux",
-    "run_time": 31130
+    "run_time": 370
   },
   "machine": {
     "architecture": "x86_64",
     "machine_type": "Laptop: Notebook",
     "model": "Nitro AN515-45",
     "producer": "Acer",
-    "serial": "NHQBMSV0062131BB0D3400"
+    "serial": "Unknown"
   },
   "motherboard": {
-    "cpu_socket": 1,
+    "cpu_socket": null,
     "gpu_socket": 2,
     "name": "Scala_CAS",
-    "ram_socket": 2,
-    "serial": "NBQBM11001213B72373400",
-    "tempe": 45.0
+    "ram_socket": null,
+    "serial": "Unknown",
+    "tempe": 43.0
   },
   "networks": [
     {
       "card": "",
       "config_speed": 0,
-      "download": 0,
-      "ipv4": "172.17.0.1/16",
-      "ipv6": "None",
-      "mac": "d6:e9:86:f7:02:f9",
-      "mtu": 1500,
-      "name": "docker0",
-      "ssid": "Unknown",
-      "upload": 0
-    },
-    {
-      "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
-      "config_speed": 0,
-      "download": 2255336553,
-      "ipv4": "172.20.1.20/22",
-      "ipv6": "fe80::515a:3399:7f4f:c499/64",
-      "mac": "e0:0a:f6:be:44:9f",
-      "mtu": 1500,
-      "name": "wlp5s0",
-      "ssid": "GGROUP-LAU1",
-      "upload": 625585381
-    },
-    {
-      "card": "",
-      "config_speed": 0,
-      "download": 84,
-      "ipv4": "172.18.0.1/16",
-      "ipv6": "fe80::f8ff:a5ff:fee8:b0ac/64",
-      "mac": "fa:ff:a5:e8:b0:ac",
-      "mtu": 1500,
-      "name": "br-b68dd5d7c3e7",
-      "ssid": "Unknown",
-      "upload": 18657677
-    },
-    {
-      "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
-      "config_speed": 0,
-      "download": 342856275,
-      "ipv4": "None",
-      "ipv6": "None",
-      "mac": "08:8f:c3:56:4e:01",
-      "mtu": 1500,
-      "name": "enp4s0",
-      "ssid": "Unknown",
-      "upload": 9312677
-    },
-    {
-      "card": "",
-      "config_speed": 0,
-      "download": 0,
-      "ipv4": "172.19.0.1/16",
-      "ipv6": "None",
-      "mac": "7e:84:a7:69:b5:96",
-      "mtu": 1500,
-      "name": "br-9e4b968fd9d1",
-      "ssid": "Unknown",
-      "upload": 0
-    },
-    {
-      "card": "",
-      "config_speed": 0,
-      "download": 238152260,
+      "download": 125824,
       "ipv4": "127.0.0.1/8",
       "ipv6": "::1/128",
       "mac": "00:00:00:00:00:00",
       "mtu": 65536,
       "name": "lo",
       "ssid": "Unknown",
-      "upload": 238152260
+      "upload": 125824
+    },
+    {
+      "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
+      "config_speed": 0,
+      "download": 0,
+      "ipv4": "None",
+      "ipv6": "None",
+      "mac": "08:8f:c3:56:4e:01",
+      "mtu": 1500,
+      "name": "enp4s0",
+      "ssid": "Unknown",
+      "upload": 0
+    },
+    {
+      "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
+      "config_speed": 0,
+      "download": 41438426,
+      "ipv4": "172.20.1.20/22",
+      "ipv6": "fe80::515a:3399:7f4f:c499/64",
+      "mac": "e0:0a:f6:be:44:9f",
+      "mtu": 1500,
+      "name": "wlp5s0",
+      "ssid": "GGROUP-LAU1",
+      "upload": 12839903
     }
   ],
   "os": {
-    "kernel": "6.17.0-35-generic",
+    "kernel": "6.17.0-40-generic",
     "os_distro": "Ubuntu",
     "os_name": "linux",
     "os_version": "24.04"
   },
-  "process_count": 1966,
+  "process_count": 1722,
   "softwares": [
     {
       "install_date": 1763425716,
@@ -289,67 +234,67 @@
       "version": "2.3.2-1build1.1"
     }
   ],
-  "time_stamp": 1784194449,
+  "time_stamp": 1784251871,
   "top_processes": [
     {
-      "cpu": 23.21966552734375,
-      "memory": 458584064,
-      "name": "code",
-      "runtime": 17167
+      "cpu": 0.0,
+      "memory": 157077504,
+      "name": "PerfettoTrace",
+      "runtime": 253
     },
     {
-      "cpu": 23.029340744018555,
-      "memory": 593170432,
-      "name": "chrome",
-      "runtime": 29479
+      "cpu": 0.0,
+      "memory": 275193856,
+      "name": "FSBroker6252",
+      "runtime": 348
     },
     {
-      "cpu": 21.126089096069336,
-      "memory": 458584064,
-      "name": "DedicatedWorker",
-      "runtime": 2451
-    },
-    {
-      "cpu": 17.509912490844727,
-      "memory": 523939840,
-      "name": "chrome",
-      "runtime": 27925
-    },
-    {
-      "cpu": 6.661379337310791,
-      "memory": 401989632,
-      "name": "brave",
-      "runtime": 30089
-    },
-    {
-      "cpu": 4.948453426361084,
-      "memory": 76247040,
-      "name": "chrome",
-      "runtime": 30929
-    },
-    {
-      "cpu": 4.187152862548828,
-      "memory": 523939840,
+      "cpu": 0.0,
+      "memory": 126074880,
       "name": "Compositor",
-      "runtime": 27925
+      "runtime": 305
     },
     {
-      "cpu": 3.9968278408050537,
-      "memory": 76247040,
-      "name": "VizCompositorTh",
-      "runtime": 30929
+      "cpu": 0.0,
+      "memory": 80039936,
+      "name": "ThreadPoolForeg",
+      "runtime": 304
     },
     {
-      "cpu": 3.8065028190612793,
-      "memory": 43732992,
-      "name": "main_worker",
-      "runtime": 38
+      "cpu": 0.0,
+      "memory": 0,
+      "name": "kworker/2:2-events",
+      "runtime": 368
     },
     {
-      "cpu": 3.616177558898926,
-      "memory": 3211100160,
-      "name": "rust-analyzer",
-      "runtime": 17163
+      "cpu": 0.0,
+      "memory": 7708672,
+      "name": "power-profiles-",
+      "runtime": 367
+    },
+    {
+      "cpu": 0.0,
+      "memory": 275193856,
+      "name": "Timer",
+      "runtime": 349
+    },
+    {
+      "cpu": 0.0,
+      "memory": 99856384,
+      "name": "PerfettoTrace",
+      "runtime": 303
+    },
+    {
+      "cpu": 0.0,
+      "memory": 0,
+      "name": "kworker/5:9",
+      "runtime": 285
+    },
+    {
+      "cpu": 0.0,
+      "memory": 275193856,
+      "name": "WRScene~derLP#1",
+      "runtime": 348
     }
   ]
 }
