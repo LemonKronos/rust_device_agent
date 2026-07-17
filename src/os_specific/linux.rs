@@ -4,7 +4,9 @@ use std::fs::File;
 use std::path::Path;
 use std::process::Command;
 use std::result::Result::Ok;
-use std::io::{ErrorKind::PermissionDenied,BufRead, BufReader};
+use std::io::{ErrorKind::{PermissionDenied, NotFound, InvalidInput},BufRead, BufReader};
+use std::collections::HashMap;
+
 use sysinfo::Components;
 use smbioslib::{SMBiosMemoryDevice,SMBiosPhysicalMemoryArray, SMBiosProcessorInformation, table_load_from_device};
 
@@ -42,6 +44,7 @@ struct CachedInfo {
 
     ram_list: Option<Vec<Ram>>,
     physical_disk_list: Option<Vec<PhysicalDisk>>,
+    network_hardware: Option<HashMap<String,NetworkHardware>>,
 }
 
 #[derive(Debug)]
@@ -77,6 +80,8 @@ impl OsSpecificBackend {
                 println!("Required Admin to read {}", file);
                 None
             },
+            Err(e) if e.kind() == InvalidInput => None,
+            Err(e) if e.kind() == NotFound && Path::new(path).exists() => None,
             Err(e) if e.kind() != PermissionDenied => {
                 println!("Linux file parser error for {}: {}", file, e.kind());
                 None
@@ -123,6 +128,8 @@ impl OsSpecificBackend {
         info.ram_list = Self::cache_ram_list();
 
         info.physical_disk_list = Self::cache_physical_disk_list();
+
+        info.network_hardware = Self::cache_network_hardware();
 
         info
     }
@@ -360,6 +367,42 @@ impl OsSpecificBackend {
         }
     }
 
+    fn cache_network_hardware() -> Option<HashMap<String,NetworkHardware>> {
+        let mut net_cache = HashMap::new();
+    
+        let entries = fs::read_dir(NETWORK_PATH).ok()?;
+
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            let path = entry.path();
+            let path_str = path.to_str().unwrap_or("");
+
+            let speed = Self::parse_file(path_str, "speed")
+                .and_then(|s| s.trim().parse::<u32>().ok());
+
+            let mut card = None;
+            if let Ok(target) = fs::read_link(path.join("device")) {
+                if let Some(pci) = target.file_name().and_then(|n| n.to_str()) {
+                    if let Ok(output) = Command::new("lspci").arg("-s").arg(pci).output() {
+                        let out_str = String::from_utf8_lossy(&output.stdout);
+                        if let Some(desc) = out_str.split(": ").nth(1) {
+                            card = Some(desc.trim().to_string());
+                        }
+                    }
+                }
+            }
+
+            
+            if let Some(card_name) = card {
+                    net_cache.insert(name, NetworkHardware {
+                    card: card_name,
+                    speed 
+                });
+            }
+        }
+
+        Some(net_cache)
+    }
 }
 
 impl OsSpecificInterface for OsSpecificBackend {
@@ -499,38 +542,16 @@ impl OsSpecificInterface for OsSpecificBackend {
 
     fn fill_network_hardware(&self, network_list: &mut Vec<crate::types::Network<'_>>) {
         for interface in network_list {
-            let interface_path = format!("{}/{}", NETWORK_PATH, &interface.get_name());
-
-            // Read config speed via file
-            if interface.get_name() == "enp4s0" {
-                interface.hardware.speed = Self::parse_file(&interface_path, "speed")
-                    .unwrap_or("0".to_string())
-                    .trim()
-                    .parse::<u32>()
-                    .unwrap_or(0);
+            if let Some(hw_map) = &self.cached_info.network_hardware {
+                interface.hardware = hw_map.get(interface.get_name().as_str()).cloned();
             }
 
-            if interface.get_name() == "enp4s0" || interface.get_name() == "wlp5s0" {
-                // Read card name by first found out it pci code via syslink, then read with lspci command
-                let device_link = Path::new(&interface_path).join("device");
-                if let Ok(target) = fs::read_link(&device_link) {
-                    if let Some(pci_addr) = target.file_name().and_then(|n| n.to_str()) {
-                        if let Ok(output) = Command::new("lspci").arg("-s").arg(pci_addr).output() {
-                            let out_str = String::from_utf8_lossy(&output.stdout);
-                            if let Some(desc) = out_str.split(": ").nth(1) {
-                                interface.hardware.card = desc.trim().to_string();
-                            }
-                        }
-                    }
-                }
-            }
-
+            // Read SSID with iwgetid command decisively
             if interface.get_name() == "wlp5s0" {
-                // Read with iwgetid command
                 if let Ok(output) = Command::new("iwgetid").arg("-r").arg(interface.get_name()).output() {
                     let out_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
                     if !out_str.is_empty() {
-                        interface.ssid = out_str;
+                        interface.ssid = Some(out_str);
                     }
                 }
             }

@@ -2,16 +2,16 @@
 {
   "AGENT_VERSION": "2.0.0",
   "SCAN_DATA": {
-    "BOOT_TIME_EPOCH": 1784163319,
+    "BOOT_TIME_EPOCH": 1784251501,
     "COMPUTER_NAME": "AcerLinux",
     "CPU": {
-      "CPU_USAGE_RATE": 11.13744068145752,
-      "PROCESSES": 1992,
-      "SPEED": 3374,
-      "TEMPERATURE": "70.625",
-      "UPTIME": "000:08:37:39"
+      "CPU_USAGE_RATE": 16.491228103637695,
+      "PROCESSES": 1757,
+      "SPEED": 2996,
+      "TEMPERATURE": "69.5",
+      "UPTIME": "000:02:06:27"
     },
-    "SERIAL_NUMBER": "NHQBMSV0062131BB0D3400"
+    "SERIAL_NUMBER": "Unknown"
   }
 }
 ```
