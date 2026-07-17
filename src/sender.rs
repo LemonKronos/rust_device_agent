@@ -35,7 +35,7 @@ impl Sender {
 
         let reply_text = response.into_body().read_to_string()?;
 
-        println!("Success! Edge server replied: {}", reply_text);
+        log::info!("Success! Edge server replied: {}", reply_text);
         
         Ok(())
     }

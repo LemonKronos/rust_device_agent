@@ -77,13 +77,13 @@ impl OsSpecificBackend {
         match std::fs::read_to_string(format!("{}/{}", path, file)) {
             Ok(s) => Some(s.trim().to_string()),
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read {}", file);
+                log::warn!("Required Admin to read {}", file);
                 None
             },
             Err(e) if e.kind() == InvalidInput => None,
             Err(e) if e.kind() == NotFound && Path::new(path).exists() => None,
             Err(e) if e.kind() != PermissionDenied => {
-                println!("Linux file parser error for {}: {}", file, e.kind());
+                log::error!("Linux file parser error for {}: {}", file, e.kind());
                 None
             },
             Err(_) => None,
@@ -140,11 +140,11 @@ impl OsSpecificBackend {
                 Some(data.defined_struct_iter::<SMBiosProcessorInformation>().count() as u32)
             }
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read cpu socket");
+                log::warn!("Required Admin to read cpu socket");
                 None
             }
             Err(e) => {
-                println!("Failded to read cpu socket: {}", e);
+                log::error!("Failded to read cpu socket: {}", e);
                 None
             }
         }
@@ -162,11 +162,11 @@ impl OsSpecificBackend {
                 Some(ram_socket as u32)
             }
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read ram socket");
+                log::warn!("Required Admin to read ram socket");
                 None
             }
             Err(e) => {
-                println!("Failded to read ram socket: {}", e);
+                log::error!("Failded to read ram socket: {}", e);
                 None
             }
         }
@@ -189,11 +189,11 @@ impl OsSpecificBackend {
                 Some(gpu_socket)
             }
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read gpu socket");
+                log::warn!("Required Admin to read gpu socket");
                 None
             }
             Err(e) => {
-                println!("Failded to read ram socket: {}", e);
+                log::error!("Failded to read ram socket: {}", e);
                 None
             }
         }
@@ -203,11 +203,11 @@ impl OsSpecificBackend {
         let data = match table_load_from_device() {
             Ok(d) => d,
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read ram list");
+                log::warn!("Required Admin to read ram list");
                  return None;
             }
             Err(e) => {
-                println!("Failded to read ram list: {}", e);
+                log::error!("Failded to read ram list: {}", e);
                 return None;
             }
         };
@@ -357,11 +357,11 @@ impl OsSpecificBackend {
                 Some(list)
             }
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read disk hardware");
+                log::warn!("Required Admin to read disk hardware");
                 None
             }
             Err(e) => {
-                println!("Failded to read disk hardware: {}", e);
+                log::error!("Failded to read disk hardware: {}", e);
                 None
             }
         }
@@ -565,11 +565,11 @@ impl OsSpecificInterface for OsSpecificBackend {
         let file = match File::open(status_path) {
             Ok(f) => f,
             Err(e) if e.kind() == PermissionDenied => {
-                println!("Required Admin to read software list");
+                log::warn!("Required Admin to read software list");
                 return None;
             }
             Err(e) => {
-                println!("Failded to read software list: {}", e);
+                log::error!("Failded to read software list: {}", e);
                 return None;
             }
         };
@@ -599,8 +599,6 @@ impl OsSpecificInterface for OsSpecificBackend {
                     _ => {},
                 }
             }
-
-
         }
         Some(list)
     }

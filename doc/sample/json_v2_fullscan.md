@@ -8,42 +8,21 @@
       "POWER_PLUGGED": true
     },
     "BIOS_VERSION": "Insyde Corp. V1.08",
-    "BOOT_TIME_EPOCH": 1784251501,
+    "BOOT_TIME_EPOCH": 1784269939,
     "COMPUTER_NAME": "AcerLinux",
     "COMPUTER_TYPE": "Laptop: Notebook",
     "CPU": {
       "CORES": 6,
       "CPU_DESCRIPTION": "Comming Soon",
       "CPU_NAME": "AMD Ryzen 5 5600H with Radeon Graphics",
-<<<<<<< HEAD
-      "CPU_USAGE_RATE": 16.107383728027344,
-=======
-<<<<<<< HEAD
-      "CPU_USAGE_RATE": 14.642858505249023,
+      "CPU_USAGE_RATE": 66.7415771484375,
       "LOGICAL_PROCESSORS": 12,
       "MACHINE": "x86_64",
-      "PROCESSES": 1722,
+      "PROCESSES": 1850,
       "SOCKETS": 0,
-      "SPEED": 3996,
-      "TEMPERATURE": "68.125",
-      "UPTIME": "000:00:06:10"
-=======
-      "CPU_USAGE_RATE": 37.89809036254883,
->>>>>>> windows
-      "LOGICAL_PROCESSORS": 12,
-      "MACHINE": "x86_64",
-      "PROCESSES": 1863,
-      "SOCKETS": 0,
-<<<<<<< HEAD
-      "SPEED": 3899,
-      "TEMPERATURE": "70.25",
-      "UPTIME": "000:02:26:40"
-=======
-      "SPEED": 3002,
-      "TEMPERATURE": "67.75",
-      "UPTIME": "000:02:06:27"
->>>>>>> main
->>>>>>> windows
+      "SPEED": 3605,
+      "TEMPERATURE": "75.75",
+      "UPTIME": "000:02:48:57"
     },
     "FULL_COMPUTER_NAME": "AcerLinux",
     "GPU_Lst": [
@@ -52,22 +31,14 @@
         "GLOBAL_MEMORY": "4",
         "GPU_NAME": "NVIDIA GeForce GTX 1650",
         "MAX_CLOCK_SPEED": "1785",
-<<<<<<< HEAD
-        "TEMPERATURE": "47"
-=======
-<<<<<<< HEAD
-        "TEMPERATURE": "44"
-=======
-        "TEMPERATURE": "46"
->>>>>>> main
->>>>>>> windows
+        "TEMPERATURE": "49"
       },
       {
         "DRIVER_VERSION": "3.64.0",
         "GLOBAL_MEMORY": "0.5",
         "GPU_NAME": "AMD Radeon Graphics",
         "MAX_CLOCK_SPEED": "0",
-        "TEMPERATURE": "52"
+        "TEMPERATURE": "58"
       }
     ],
     "HARD_DISK_Lst": [
@@ -76,15 +47,7 @@
         "HARD_DISK_NAME": "/dev/nvme1n1p2",
         "MOUNT_POINT": "/",
         "TOTAL": 456.34729766845703,
-<<<<<<< HEAD
-        "USAGE": 329.92324447631836
-=======
-<<<<<<< HEAD
-        "USAGE": 329.6245002746582
-=======
-        "USAGE": 329.58679580688477
->>>>>>> main
->>>>>>> windows
+        "USAGE": 331.54782485961914
       },
       {
         "FILE_SYSTEM_TYPE": "vfat",
@@ -97,17 +60,14 @@
     "MOTHER_BOARD": "Scala_CAS",
     "NETWORK_Lst": [
       {
-<<<<<<< HEAD
-=======
-        "CONNECTION_TYPE": "wlp5s0",
-        "INET_CARD": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
+        "CONNECTION_TYPE": "enp4s0",
+        "INET_CARD": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
         "INET_CARD_SPEED": null,
-        "IP": "172.20.1.20/22",
-        "MAC_ADDRESS": "e0:0a:f6:be:44:9f",
-        "SSID": "GGROUP-LAU1"
+        "IP": "None",
+        "MAC_ADDRESS": "08:8f:c3:56:4e:01",
+        "SSID": null
       },
       {
->>>>>>> main
         "CONNECTION_TYPE": "lo",
         "INET_CARD": null,
         "INET_CARD_SPEED": null,
@@ -116,24 +76,12 @@
         "SSID": null
       },
       {
-        "CONNECTION_TYPE": "enp4s0",
-        "INET_CARD": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
-        "INET_CARD_SPEED": null,
-        "IP": "None",
-        "MAC_ADDRESS": "08:8f:c3:56:4e:01",
-<<<<<<< HEAD
-        "SSID": "Unknown"
-      },
-      {
         "CONNECTION_TYPE": "wlp5s0",
         "INET_CARD": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
-        "INET_CARD_SPEED": 0,
-        "IP": "172.20.1.20/22",
+        "INET_CARD_SPEED": null,
+        "IP": "10.247.198.129/24",
         "MAC_ADDRESS": "e0:0a:f6:be:44:9f",
-        "SSID": "GGROUP-LAU1"
-=======
-        "SSID": null
->>>>>>> main
+        "SSID": "TECNO POVA 6 Neo"
       }
     ],
     "OPERATING_SYSTEM": "Ubuntu (kernel 6.17.0-40-generic)",
@@ -202,16 +150,8 @@
     "PRODUCER": "Acer",
     "RAM": {
       "DETAILS": null,
-      "TOTAL": 14.97732162475586,
-<<<<<<< HEAD
-      "USAGE": 11.871780395507812
-=======
-<<<<<<< HEAD
-      "USAGE": 11.058452606201172
-=======
-      "USAGE": 11.02163314819336
->>>>>>> main
->>>>>>> windows
+      "TOTAL": 14.977325439453125,
+      "USAGE": 8.625633239746094
     },
     "SERIAL_NUMBER": "Unknown",
     "SOFTWARE_Lst": [

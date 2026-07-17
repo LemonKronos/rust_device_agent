@@ -1,100 +1,5 @@
 ```json
 {
-  "CPU": {
-    "core": 12,
-<<<<<<< HEAD
-    "frequency": 3899,
-    "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 70.25,
-    "usage": 16.107383728027344
-=======
-<<<<<<< HEAD
-    "frequency": 3996,
-    "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 68.125,
-    "usage": 14.642858505249023
-=======
-    "frequency": 3002,
-    "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 67.75,
-    "usage": 37.89809036254883
->>>>>>> main
->>>>>>> windows
-  },
-  "GPUs": [
-    {
-      "driver": "580.159.03",
-      "frequency": 300,
-      "max_clock": 1785,
-      "name": "NVIDIA GeForce GTX 1650",
-      "serial": "Unknown",
-<<<<<<< HEAD
-      "temperature": 47,
-=======
-<<<<<<< HEAD
-      "temperature": 44,
-      "utilization": 0.0,
-      "vram_total": 4294967296,
-      "vram_usage": 3145728
-=======
-      "temperature": 46,
->>>>>>> windows
-      "utilization": 0.0,
-      "vram_total": 4294967296,
-      "vram_usage": 5242880
->>>>>>> main
-    },
-    {
-      "driver": "3.64.0",
-      "frequency": 400,
-      "max_clock": null,
-      "name": "AMD Radeon Graphics",
-      "serial": "Unknown",
-<<<<<<< HEAD
-      "temperature": 54,
-      "utilization": 100.0,
-      "vram_total": 536870912,
-      "vram_usage": 474329088
-=======
-<<<<<<< HEAD
-      "temperature": 50,
-      "utilization": 100.0,
-      "vram_total": 536870912,
-      "vram_usage": 442183680
-=======
-      "temperature": 53,
-      "utilization": 100.0,
-      "vram_total": 536870912,
-      "vram_usage": 483848192
->>>>>>> main
->>>>>>> windows
-    }
-  ],
-  "RAM": {
-    "hardware": null,
-    "total": 16081776640,
-<<<<<<< HEAD
-    "usage": 12747227136
-  },
-  "SWAP": {
-    "total": 4294963200,
-    "usage": 4291866624
-=======
-<<<<<<< HEAD
-    "usage": 11873923072
-  },
-  "SWAP": {
-    "total": 4294963200,
-    "usage": 2505797632
-=======
-    "usage": 11834388480
-  },
-  "SWAP": {
-    "total": 4294963200,
-    "usage": 4057665536
->>>>>>> main
->>>>>>> windows
-  },
   "agent_version": "3.0.0",
   "battery": {
     "is_plugged_in": true,
@@ -105,8 +10,33 @@
     "vendor": "Insyde Corp.",
     "version": "24.04"
   },
+  "cpu": {
+    "core": 12,
+    "frequency": 3605,
+    "name": "AMD Ryzen 5 5600H with Radeon Graphics",
+    "temperature": 75.75,
+    "usage": 66.7415771484375
+  },
   "disks": {
-    "hardware": [
+    "logical": [
+      {
+        "file_system": "ext4",
+        "mount_point": "/",
+        "name": "/dev/nvme1n1p2",
+        "removable": false,
+        "total": 489999179776,
+        "used": 355996766208
+      },
+      {
+        "file_system": "vfat",
+        "mount_point": "/boot/efi",
+        "name": "/dev/nvme1n1p1",
+        "removable": false,
+        "total": 1124999168,
+        "used": 6541312
+      }
+    ],
+    "physical": [
       {
         "drive": "nvme0n1",
         "firmware": "EDFK0S03",
@@ -167,47 +97,37 @@
         "size": 500,
         "status": "live"
       }
-    ],
-    "logical": [
-      {
-        "file_system": "ext4",
-        "mount_point": "/",
-        "name": "/dev/nvme1n1p2",
-        "removable": false,
-        "total": 489999179776,
-<<<<<<< HEAD
-        "used": 354252386304
-=======
-<<<<<<< HEAD
-        "used": 353931612160
-=======
-        "used": 353891127296
->>>>>>> main
->>>>>>> windows
-      },
-      {
-        "file_system": "vfat",
-        "mount_point": "/boot/efi",
-        "name": "/dev/nvme1n1p1",
-        "removable": false,
-        "total": 1124999168,
-        "used": 6541312
-      }
     ]
   },
   "general": {
-    "boot_time": 1784251501,
+    "boot_time": 1784269939,
     "host": "AcerLinux",
-<<<<<<< HEAD
-    "run_time": 8800
-=======
-<<<<<<< HEAD
-    "run_time": 370
-=======
-    "run_time": 7587
->>>>>>> main
->>>>>>> windows
+    "run_time": 10137
   },
+  "gpu": [
+    {
+      "driver": "580.159.03",
+      "frequency": 300,
+      "max_clock": 1785,
+      "name": "NVIDIA GeForce GTX 1650",
+      "serial": "Unknown",
+      "temperature": 49,
+      "utilization": 0.0,
+      "vram_total": 4294967296,
+      "vram_usage": 3932160
+    },
+    {
+      "driver": "3.64.0",
+      "frequency": 1625,
+      "max_clock": null,
+      "name": "AMD Radeon Graphics",
+      "serial": "Unknown",
+      "temperature": 57,
+      "utilization": 100.0,
+      "vram_total": 536870912,
+      "vram_usage": 497373184
+    }
+  ],
   "machine": {
     "architecture": "x86_64",
     "machine_type": "Laptop: Notebook",
@@ -221,88 +141,44 @@
     "name": "Scala_CAS",
     "ram_socket": null,
     "serial": "Unknown",
-<<<<<<< HEAD
     "tempe": 46.0
-=======
-<<<<<<< HEAD
-    "tempe": 43.0
   },
   "networks": [
     {
-      "card": "",
-      "config_speed": 0,
-      "download": 125824,
-=======
-    "tempe": 44.0
->>>>>>> windows
-  },
-  "networks": [
-    {
-      "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
-      "config_speed": null,
-      "download": 313103054,
-      "ipv4": "172.20.1.20/22",
-      "ipv6": "fe80::515a:3399:7f4f:c499/64",
-      "mac": "e0:0a:f6:be:44:9f",
-      "mtu": 1500,
-      "name": "wlp5s0",
-      "ssid": "GGROUP-LAU1",
-      "upload": 39065278
-    },
-    {
-      "card": null,
-      "config_speed": null,
-<<<<<<< HEAD
-      "download": 752994,
-=======
-      "download": 630731,
->>>>>>> main
->>>>>>> windows
-      "ipv4": "127.0.0.1/8",
-      "ipv6": "::1/128",
-      "mac": "00:00:00:00:00:00",
-      "mtu": 65536,
-      "name": "lo",
-<<<<<<< HEAD
-      "ssid": "Unknown",
-      "upload": 125824
-    },
-    {
-      "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
-      "config_speed": 0,
-=======
-      "ssid": null,
-      "upload": 752994
-    },
-    {
       "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
       "config_speed": null,
->>>>>>> main
       "download": 0,
       "ipv4": "None",
       "ipv6": "None",
       "mac": "08:8f:c3:56:4e:01",
       "mtu": 1500,
       "name": "enp4s0",
-<<<<<<< HEAD
-      "ssid": "Unknown",
+      "ssid": null,
       "upload": 0
     },
     {
+      "card": null,
+      "config_speed": null,
+      "download": 922231,
+      "ipv4": "127.0.0.1/8",
+      "ipv6": "::1/128",
+      "mac": "00:00:00:00:00:00",
+      "mtu": 65536,
+      "name": "lo",
+      "ssid": null,
+      "upload": 922231
+    },
+    {
       "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
-      "config_speed": 0,
-      "download": 41438426,
-      "ipv4": "172.20.1.20/22",
-      "ipv6": "fe80::515a:3399:7f4f:c499/64",
+      "config_speed": null,
+      "download": 565060681,
+      "ipv4": "10.247.198.129/24",
+      "ipv6": "2401:d800:940:e36c:35ef:90b5:17cb:6ef5/64, 2401:d800:940:e36c:b911:ecfe:c056:aa2a/64, fe80::9985:939:1da7:d03/64",
       "mac": "e0:0a:f6:be:44:9f",
       "mtu": 1500,
       "name": "wlp5s0",
-      "ssid": "GGROUP-LAU1",
-      "upload": 12839903
-=======
-      "ssid": null,
-      "upload": 0
->>>>>>> main
+      "ssid": "TECNO POVA 6 Neo",
+      "upload": 36242122
     }
   ],
   "os": {
@@ -311,15 +187,14 @@
     "os_name": "linux",
     "os_version": "24.04"
   },
-<<<<<<< HEAD
-  "process_count": 1863,
-=======
-<<<<<<< HEAD
-  "process_count": 1722,
-=======
-  "process_count": 1759,
->>>>>>> main
->>>>>>> windows
+  "process_count": 1850,
+  "ram": {
+    "logical": {
+      "total": 16081780736,
+      "usage": 9261703168
+    },
+    "physical": null
+  },
   "softwares": [
     {
       "install_date": 1763425716,
@@ -357,141 +232,71 @@
       "version": "2.3.2-1build1.1"
     }
   ],
-<<<<<<< HEAD
-  "time_stamp": 1784260301,
-=======
-<<<<<<< HEAD
-  "time_stamp": 1784251871,
+  "swap": {
+    "total": 4294963200,
+    "usage": 3089936384
+  },
+  "time_stamp": 1784280076,
   "top_processes": [
     {
       "cpu": 0.0,
-      "memory": 157077504,
+      "memory": 171057152,
       "name": "PerfettoTrace",
-      "runtime": 253
+      "runtime": 1111
     },
     {
       "cpu": 0.0,
-      "memory": 275193856,
-      "name": "FSBroker6252",
-      "runtime": 348
-    },
-    {
-      "cpu": 0.0,
-      "memory": 126074880,
-      "name": "Compositor",
-      "runtime": 305
-    },
-    {
-      "cpu": 0.0,
-      "memory": 80039936,
-      "name": "ThreadPoolForeg",
-      "runtime": 304
+      "memory": 49754112,
+      "name": "gdbus",
+      "runtime": 10124
     },
     {
       "cpu": 0.0,
       "memory": 0,
-      "name": "kworker/2:2-events",
-      "runtime": 368
+      "name": "cpuhp/7",
+      "runtime": 10136
     },
     {
       "cpu": 0.0,
-      "memory": 7708672,
-      "name": "power-profiles-",
-      "runtime": 367
+      "memory": 16977920,
+      "name": "containerd",
+      "runtime": 10125
     },
     {
       "cpu": 0.0,
-      "memory": 275193856,
-      "name": "Timer",
-      "runtime": 349
-    },
-    {
-      "cpu": 0.0,
-      "memory": 99856384,
-      "name": "PerfettoTrace",
-      "runtime": 303
+      "memory": 16977920,
+      "name": "containerd",
+      "runtime": 10125
     },
     {
       "cpu": 0.0,
       "memory": 0,
-      "name": "kworker/5:9",
-      "runtime": 285
+      "name": "jbd2/nvme1n1p2-8",
+      "runtime": 10135
     },
     {
       "cpu": 0.0,
-      "memory": 275193856,
-      "name": "WRScene~derLP#1",
-      "runtime": 348
-=======
-  "time_stamp": 1784259088,
->>>>>>> windows
-  "top_processes": [
-    {
-      "cpu": 0.0,
-      "memory": 692871168,
-      "name": "chrome",
-      "runtime": 8779
+      "memory": 44974080,
+      "name": "gsoft_device_ag",
+      "runtime": 0
     },
     {
       "cpu": 0.0,
-      "memory": 46866432,
-      "name": "waybar",
-      "runtime": 8783
-    },
-    {
-      "cpu": 0.0,
-      "memory": 75718656,
-      "name": "ThreadPoolForeg",
-      "runtime": 8681
-    },
-    {
-      "cpu": 0.0,
-      "memory": 32894976,
-      "name": "Timer",
-      "runtime": 8779
-    },
-    {
-      "cpu": 0.0,
-      "memory": 1761280,
-      "name": "wl-paste",
-      "runtime": 8783
-    },
-    {
-      "cpu": 0.0,
-      "memory": 405934080,
-      "name": "ThreadPoolForeg",
-      "runtime": 8580
-    },
-    {
-      "cpu": 0.0,
-      "memory": 120614912,
-      "name": "hyprloc:disk$0",
-      "runtime": 2210
-    },
-    {
-      "cpu": 0.0,
-      "memory": 49938432,
-      "name": "Xwayland:gl0",
-      "runtime": 8783
-    },
-    {
-      "cpu": 0.0,
-      "memory": 220024832,
-      "name": "WorkerThread",
-      "runtime": 8689
-    },
-    {
-      "cpu": 0.0,
-<<<<<<< HEAD
-      "memory": 26062848,
-      "name": "dconf worker",
-      "runtime": 8783
-=======
       "memory": 0,
-      "name": "kworker/R-nvme-delete-wq",
-      "runtime": 7587
->>>>>>> main
->>>>>>> windows
+      "name": "kworker/10:3-events",
+      "runtime": 237
+    },
+    {
+      "cpu": 0.0,
+      "memory": 49487872,
+      "name": "pw-data-loop",
+      "runtime": 10125
+    },
+    {
+      "cpu": 0.0,
+      "memory": 77082624,
+      "name": "ThreadPoolForeg",
+      "runtime": 9820
     }
   ]
 }

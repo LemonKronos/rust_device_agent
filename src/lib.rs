@@ -172,26 +172,28 @@ impl DeviceAgent {
                 "os_version": self.info.get_os_version(),
                 "kernel": self.info.get_kernel(),
             },
-            "CPU": {
+            "cpu": {
                 "name": self.info.get_cpu_name(),
                 "core": self.info.get_cpu_core(),
                 "usage": self.info.get_cpu_usage(), // %
                 "frequency": self.info.get_cpu_freq(), // MHz
                 "temperature": self.info.get_cpu_temp(), // ℃
             },
-            "RAM": {
-                "total": self.info.get_ram_total(), // byte
-                "usage": self.info.get_ram_usage(), // byte
-                "hardware": rams_json, // list
+            "ram": {
+                "logical": {
+                    "total": self.info.get_ram_total(), // byte
+                    "usage": self.info.get_ram_usage(), // byte
+                },
+                "physical": rams_json, // list
             },
-            "SWAP": {
+            "swap": {
                 "total": self.info.get_swap_total(), // byte
                 "usage": &self.info.get_swap_usage(), // byte
             },
-            "GPUs": gpus_json, // list
+            "gpu": gpus_json, // list
             "disks": {
                 "logical": logical_disks_json, // list
-                "hardware": physical_disks_json, // list
+                "physical": physical_disks_json, // list
             },
             "networks": networks_json, // list
             "process_count": self.info.get_process_count(),
@@ -379,24 +381,29 @@ impl DeviceAgent {
     }
 
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Agent running");
 
-        println!("Getting full scan v2...");
+        init_logger();
+
+        log::info!("Agent running");
+
+        log::info!("Getting full scan v2...");
         let _ = self.get_json_v2_fullscan();
-        println!("Complete");
+        log::info!("Complete");
 
-        println!("Getting full scan v3...");
+        log::info!("Getting full scan v3...");
         let _ = self.get_json_v3_fullscan();
-        println!("Complete");
+        log::info!("Complete");
 
-        println!("Start loop sending telementry v2 demo ");
+        log::info!("Start loop sending telementry v2 demo ");
         loop {
             self.info.prepare();
 
+            let _ = self.get_json_v3_fullscan();
+
             if let Err(e) = self.sender.transmit(self.get_json_v2_telemetry()) {
-                eprintln!("Sender warning: {}", e);
+                log::warn!("Sender warning: {}", e);
             } else {
-                println!("Sended info at timestamp {}", self.info.get_timestamp());
+                log::info!("Sended info at timestamp {}", self.info.get_timestamp());
             }
 
             thread::sleep(Duration::from_secs(5));
@@ -404,26 +411,54 @@ impl DeviceAgent {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
-    use std::{thread::sleep, time::Duration};
-    use super::DeviceAgent;
-    
+    use super::*;
+    use serde_json::Value;
+
+    /// Recursively traverses a JSON Value and asserts that no string is exactly `""`.
+    fn assert_no_empty_strings(value: &Value) {
+        match value {
+            Value::String(s) => {
+                assert!(
+                    !s.is_empty(),
+                    "Test failed: Found an empty string `\"\"` in the JSON payload!"
+                );
+            },
+            Value::Array(arr) => {
+                for item in arr {
+                    assert_no_empty_strings(item);
+                }
+            },
+            Value::Object(obj) => {
+                for val in obj.values() {
+                    assert_no_empty_strings(val);
+                }
+            },
+            _ => {},
+        }
+    }
 
     #[test]
-    fn test_json() {
-        let mut agent = DeviceAgent::new();
+    fn test_limit_agent_runtime() {
+        let agent = DeviceAgent::new();
+        let start = std::time::Instant::now();
+        let _payload_v3_fullscan = agent.get_json_v3_fullscan();
+        assert!(start.elapsed().as_millis() < 500, "Fullscan took too long, over {} ms", start.elapsed().as_millis());
+    }
 
-        sleep(Duration::from_secs(1));
+    #[test]
+    fn test_payload_has_no_empty_strings() {
+        let agent = DeviceAgent::new();
 
-        agent.info.prepare();
+        let payload_v3_fullscan = agent.get_json_v3_fullscan();
+        assert_no_empty_strings(&payload_v3_fullscan);
 
-        let payload = agent.get_json_v3_fullscan();
+        let payload_v2_fullscan = agent.get_json_v2_fullscan();
+        assert_no_empty_strings(&payload_v2_fullscan);
 
-        let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
-        
-        println!("\n=== GENERATED HARDWARE PAYLOAD ===");
-        println!("{}", pretty_json);
-        println!("==================================\n");
+        let payload_v2_telemetry = agent.get_json_v2_telemetry();
+        assert_no_empty_strings(&payload_v2_telemetry);
     }
 }

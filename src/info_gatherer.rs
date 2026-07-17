@@ -249,3 +249,85 @@ impl Info {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_initialization_and_prepare() {
+        // If the SMI or OS-specific components fail to init or panic during refresh, 
+        // this test will catch it immediately.
+        let mut info = Info::new();
+        info.prepare(); 
+    }
+
+    #[test]
+    fn test_time_invariants() {
+        let info = Info::new();
+        
+        let boot_time = info.get_boot_time();
+        let current_time = info.get_timestamp();
+        let uptime = info.get_up_time();
+
+        assert!(current_time > 0, "Timestamp should be valid");
+        assert!(boot_time > 0, "Boot time should be valid");
+        // Uptime should be strictly less than the current epoch timestamp
+        assert!(uptime < current_time, "Uptime cannot exceed current epoch time"); 
+    }
+
+    #[test]
+    fn test_cpu_sanity() {
+        let mut info = Info::new();
+        info.prepare(); // Must be called to populate CPU data
+
+        let cores = info.get_cpu_core();
+        assert!(cores > 0, "System must report at least 1 CPU core");
+
+        let usage = info.get_cpu_usage();
+        assert!(
+            usage >= 0.0 && usage <= 100.0,
+            "CPU usage must be between 0.0 and 100.0%, got {}",
+            usage
+        );
+    }
+
+    #[test]
+    fn test_memory_sanity() {
+        let mut info = Info::new();
+        info.prepare();
+
+        let total_ram = info.get_ram_total();
+        let used_ram = info.get_ram_usage();
+        
+        assert!(total_ram > 0, "Total RAM cannot be 0");
+        assert!(
+            used_ram <= total_ram,
+            "Used RAM ({}) cannot exceed Total RAM ({})",
+            used_ram,
+            total_ram
+        );
+
+        let total_swap = info.get_swap_total();
+        let used_swap = info.get_swap_usage();
+        assert!(
+            used_swap <= total_swap,
+            "Used SWAP cannot exceed Total SWAP"
+        );
+    }
+
+    #[test]
+    fn test_list_iterators_do_not_panic() {
+        let mut info = Info::new();
+        info.prepare();
+
+        // We don't care if these lists are empty (e.g., a server with no GPU),
+        // we just care that mapping them into our custom structs doesn't panic.
+        let _gpus = info.get_gpu_list();
+        let _logical_disks = info.get_logical_disk_list();
+        let _networks = info.get_network_list();
+        let _top_processes = info.get_top_process_list();
+        
+        // Ensure the top process list respects the take(10) limit we set
+        assert!(_top_processes.len() <= 10, "Top processes should be capped at 10");
+    }
+}
