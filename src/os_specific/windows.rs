@@ -405,16 +405,17 @@ impl OsSpecificInterface for OsSpecificBackend {
     }
 
     fn fill_network_hardware(&self, network_list: &mut Vec<Network<'_>>) {
-        if let Some(hardware_map) = &self.cached_info.as_ref().and_then(|i| i.network_hardware.as_ref()) {
-            for net in network_list.iter_mut() {
+        for net in network_list.iter_mut() {
+            if let Some(hardware_map) = &self.cached_info.as_ref().and_then(|i| i.network_hardware.as_ref()) {
                 if let Some(hw) = hardware_map.get(net.get_name().as_str()) {
                     net.hardware = hw.clone();
                 }
+            }
 
-                let name = &net.get_name();
-                if name.contains("wlan") || name.contains("wi-fi") || name.contains("wireless") {
-                    net.ssid = get_ssid_of(name);
-                }
+            // Read SSID with netsh command decisively
+            let name = &net.get_name();
+            if name.contains("wlan") || name.contains("wi-fi") || name.contains("wireless") {
+                net.ssid = get_ssid_of(name);
             }
         }
     }
