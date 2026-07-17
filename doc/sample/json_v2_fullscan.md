@@ -15,14 +15,14 @@
       "CORES": 6,
       "CPU_DESCRIPTION": "Comming Soon",
       "CPU_NAME": "AMD Ryzen 5 5600H with Radeon Graphics",
-      "CPU_USAGE_RATE": 37.89809036254883,
+      "CPU_USAGE_RATE": 16.107383728027344,
       "LOGICAL_PROCESSORS": 12,
       "MACHINE": "x86_64",
-      "PROCESSES": 1759,
+      "PROCESSES": 1863,
       "SOCKETS": 0,
-      "SPEED": 3002,
-      "TEMPERATURE": "67.75",
-      "UPTIME": "000:02:06:27"
+      "SPEED": 3899,
+      "TEMPERATURE": "70.25",
+      "UPTIME": "000:02:26:40"
     },
     "FULL_COMPUTER_NAME": "AcerLinux",
     "GPU_Lst": [
@@ -31,14 +31,14 @@
         "GLOBAL_MEMORY": "4",
         "GPU_NAME": "NVIDIA GeForce GTX 1650",
         "MAX_CLOCK_SPEED": "1785",
-        "TEMPERATURE": "46"
+        "TEMPERATURE": "47"
       },
       {
         "DRIVER_VERSION": "3.64.0",
         "GLOBAL_MEMORY": "0.5",
         "GPU_NAME": "AMD Radeon Graphics",
         "MAX_CLOCK_SPEED": "0",
-        "TEMPERATURE": "55"
+        "TEMPERATURE": "52"
       }
     ],
     "HARD_DISK_Lst": [
@@ -47,7 +47,7 @@
         "HARD_DISK_NAME": "/dev/nvme1n1p2",
         "MOUNT_POINT": "/",
         "TOTAL": 456.34729766845703,
-        "USAGE": 329.58679580688477
+        "USAGE": 329.92324447631836
       },
       {
         "FILE_SYSTEM_TYPE": "vfat",
@@ -151,7 +151,7 @@
     "RAM": {
       "DETAILS": null,
       "TOTAL": 14.97732162475586,
-      "USAGE": 11.02163314819336
+      "USAGE": 11.871780395507812
     },
     "SERIAL_NUMBER": "Unknown",
     "SOFTWARE_Lst": [

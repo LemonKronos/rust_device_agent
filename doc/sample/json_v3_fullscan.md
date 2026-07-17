@@ -2,10 +2,10 @@
 {
   "CPU": {
     "core": 12,
-    "frequency": 3002,
+    "frequency": 3899,
     "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 67.75,
-    "usage": 37.89809036254883
+    "temperature": 70.25,
+    "usage": 16.107383728027344
   },
   "GPUs": [
     {
@@ -14,31 +14,31 @@
       "max_clock": 1785,
       "name": "NVIDIA GeForce GTX 1650",
       "serial": "Unknown",
-      "temperature": 46,
+      "temperature": 47,
       "utilization": 0.0,
       "vram_total": 4294967296,
       "vram_usage": 5242880
     },
     {
       "driver": "3.64.0",
-      "frequency": 1800,
+      "frequency": 400,
       "max_clock": null,
       "name": "AMD Radeon Graphics",
       "serial": "Unknown",
-      "temperature": 53,
+      "temperature": 54,
       "utilization": 100.0,
       "vram_total": 536870912,
-      "vram_usage": 483848192
+      "vram_usage": 474329088
     }
   ],
   "RAM": {
     "hardware": null,
     "total": 16081776640,
-    "usage": 11834388480
+    "usage": 12747227136
   },
   "SWAP": {
     "total": 4294963200,
-    "usage": 4057665536
+    "usage": 4291866624
   },
   "agent_version": "3.0.0",
   "battery": {
@@ -120,7 +120,7 @@
         "name": "/dev/nvme1n1p2",
         "removable": false,
         "total": 489999179776,
-        "used": 353891127296
+        "used": 354252386304
       },
       {
         "file_system": "vfat",
@@ -135,7 +135,7 @@
   "general": {
     "boot_time": 1784251501,
     "host": "AcerLinux",
-    "run_time": 7587
+    "run_time": 8800
   },
   "machine": {
     "architecture": "x86_64",
@@ -150,32 +150,32 @@
     "name": "Scala_CAS",
     "ram_socket": null,
     "serial": "Unknown",
-    "tempe": 44.0
+    "tempe": 46.0
   },
   "networks": [
     {
       "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
       "config_speed": null,
-      "download": 203005656,
+      "download": 313103054,
       "ipv4": "172.20.1.20/22",
       "ipv6": "fe80::515a:3399:7f4f:c499/64",
       "mac": "e0:0a:f6:be:44:9f",
       "mtu": 1500,
       "name": "wlp5s0",
       "ssid": "GGROUP-LAU1",
-      "upload": 32643576
+      "upload": 39065278
     },
     {
       "card": null,
       "config_speed": null,
-      "download": 630731,
+      "download": 752994,
       "ipv4": "127.0.0.1/8",
       "ipv6": "::1/128",
       "mac": "00:00:00:00:00:00",
       "mtu": 65536,
       "name": "lo",
       "ssid": null,
-      "upload": 630731
+      "upload": 752994
     },
     {
       "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
@@ -196,7 +196,7 @@
     "os_name": "linux",
     "os_version": "24.04"
   },
-  "process_count": 1759,
+  "process_count": 1863,
   "softwares": [
     {
       "install_date": 1763425716,
@@ -234,67 +234,67 @@
       "version": "2.3.2-1build1.1"
     }
   ],
-  "time_stamp": 1784259088,
+  "time_stamp": 1784260301,
   "top_processes": [
     {
       "cpu": 0.0,
-      "memory": 0,
-      "name": "kworker/u49:6-ttm",
-      "runtime": 359
+      "memory": 692871168,
+      "name": "chrome",
+      "runtime": 8779
     },
     {
       "cpu": 0.0,
-      "memory": 12808192,
-      "name": "gmain",
-      "runtime": 7585
+      "memory": 46866432,
+      "name": "waybar",
+      "runtime": 8783
     },
     {
       "cpu": 0.0,
-      "memory": 0,
-      "name": "idle_inject/6",
-      "runtime": 7587
+      "memory": 75718656,
+      "name": "ThreadPoolForeg",
+      "runtime": 8681
     },
     {
       "cpu": 0.0,
-      "memory": 2138112,
-      "name": "chrome_crashpad",
-      "runtime": 7523
+      "memory": 32894976,
+      "name": "Timer",
+      "runtime": 8779
     },
     {
       "cpu": 0.0,
-      "memory": 136228864,
-      "name": "brave:traceq0",
-      "runtime": 7523
+      "memory": 1761280,
+      "name": "wl-paste",
+      "runtime": 8783
     },
     {
       "cpu": 0.0,
-      "memory": 196608,
-      "name": "lf",
-      "runtime": 7455
+      "memory": 405934080,
+      "name": "ThreadPoolForeg",
+      "runtime": 8580
     },
     {
       "cpu": 0.0,
-      "memory": 0,
-      "name": "nv_open_q",
-      "runtime": 7583
+      "memory": 120614912,
+      "name": "hyprloc:disk$0",
+      "runtime": 2210
     },
     {
       "cpu": 0.0,
-      "memory": 1916928,
-      "name": "exe",
-      "runtime": 7571
+      "memory": 49938432,
+      "name": "Xwayland:gl0",
+      "runtime": 8783
     },
     {
       "cpu": 0.0,
-      "memory": 51929088,
-      "name": "Xwayla:sh_opt0",
-      "runtime": 7570
+      "memory": 220024832,
+      "name": "WorkerThread",
+      "runtime": 8689
     },
     {
       "cpu": 0.0,
-      "memory": 0,
-      "name": "kworker/R-nvme-delete-wq",
-      "runtime": 7587
+      "memory": 26062848,
+      "name": "dconf worker",
+      "runtime": 8783
     }
   ]
 }

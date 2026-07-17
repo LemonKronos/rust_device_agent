@@ -8,9 +8,12 @@ all-smi = "0.22.0"
 chrono = "0.4.45"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
-smbios-lib = "0.9.2"
 sysinfo = "0.38.4"
 ureq = { version = "3.3.0", features = ["json"] }
+
+# Linux-only dependencies
+[target.'cfg(target_os = "linux")'.dependencies]
+smbios-lib = "0.9.2"
 
 # Windows-only dependencies
 [target.'cfg(target_os = "windows")'.dependencies]
