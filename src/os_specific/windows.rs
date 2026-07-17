@@ -228,7 +228,7 @@ impl OsSpecificBackend {
                             interface_name,
                             NetworkHardware {
                                 card: adapter.name.unwrap_or_else(|| "Unknown".to_string()),
-                                speed: speed_mbps,
+                                speed: Some(speed_mbps),
                             },
                         );
                     }
@@ -375,14 +375,14 @@ impl OsSpecificInterface for OsSpecificBackend {
         tempes.into_iter().max_by(|a, b| a.total_cmp(b))
     }
 
-    fn get_battery_percentage(&self) -> Option<f32> {
+    fn get_battery_percentage(&self) -> Option<u32> {
         unsafe {
             let mut status: SYSTEM_POWER_STATUS = std::mem::zeroed();
             
             if GetSystemPowerStatus(&mut status) != 0 {
                 // 255 is the Windows kernel code for "No Battery / Desktop PC"
                 if status.BatteryLifePercent != 255 {
-                    return Some(status.BatteryLifePercent as f32);
+                    return Some(status.BatteryLifePercent as u32);
                 }
             }
         }
@@ -405,16 +405,17 @@ impl OsSpecificInterface for OsSpecificBackend {
     }
 
     fn fill_network_hardware(&self, network_list: &mut Vec<Network<'_>>) {
-        if let Some(hardware_map) = &self.cached_info.as_ref().and_then(|i| i.network_hardware.as_ref()) {
-            for net in network_list.iter_mut() {
+        for net in network_list.iter_mut() {
+            if let Some(hardware_map) = &self.cached_info.as_ref().and_then(|i| i.network_hardware.as_ref()) {
                 if let Some(hw) = hardware_map.get(net.get_name().as_str()) {
-                    net.hardware = hw.clone();
+                    net.hardware = Some(hw.clone());
                 }
+            }
 
-                let name = &net.get_name();
-                if name.contains("wlan") || name.contains("wi-fi") || name.contains("wireless") {
-                    net.ssid = get_ssid_of(name);
-                }
+            // Read SSID with netsh command decisively
+            let name = &net.get_name();
+            if name.contains("wlan") || name.contains("wi-fi") || name.contains("wireless") {
+                net.ssid = Some(get_ssid_of(name));
             }
         }
     }
