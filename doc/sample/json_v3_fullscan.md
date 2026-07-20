@@ -2,24 +2,10 @@
 {
   "CPU": {
     "core": 12,
-<<<<<<< HEAD
-    "frequency": 3899,
+    "frequency": 3575,
     "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 70.25,
-    "usage": 16.107383728027344
-=======
-<<<<<<< HEAD
-    "frequency": 3996,
-    "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 68.125,
-    "usage": 14.642858505249023
-=======
-    "frequency": 3002,
-    "name": "AMD Ryzen 5 5600H with Radeon Graphics",
-    "temperature": 67.75,
-    "usage": 37.89809036254883
->>>>>>> main
->>>>>>> windows
+    "temperature": 76.25,
+    "usage": 57.54060745239258
   },
   "GPUs": [
     {
@@ -28,21 +14,10 @@
       "max_clock": 1785,
       "name": "NVIDIA GeForce GTX 1650",
       "serial": "Unknown",
-<<<<<<< HEAD
-      "temperature": 47,
-=======
-<<<<<<< HEAD
-      "temperature": 44,
-      "utilization": 0.0,
-      "vram_total": 4294967296,
-      "vram_usage": 3145728
-=======
       "temperature": 46,
->>>>>>> windows
       "utilization": 0.0,
       "vram_total": 4294967296,
-      "vram_usage": 5242880
->>>>>>> main
+      "vram_usage": 3932160
     },
     {
       "driver": "3.64.0",
@@ -50,50 +25,20 @@
       "max_clock": null,
       "name": "AMD Radeon Graphics",
       "serial": "Unknown",
-<<<<<<< HEAD
       "temperature": 54,
       "utilization": 100.0,
       "vram_total": 536870912,
-      "vram_usage": 474329088
-=======
-<<<<<<< HEAD
-      "temperature": 50,
-      "utilization": 100.0,
-      "vram_total": 536870912,
-      "vram_usage": 442183680
-=======
-      "temperature": 53,
-      "utilization": 100.0,
-      "vram_total": 536870912,
-      "vram_usage": 483848192
->>>>>>> main
->>>>>>> windows
+      "vram_usage": 497922048
     }
   ],
   "RAM": {
     "hardware": null,
-    "total": 16081776640,
-<<<<<<< HEAD
-    "usage": 12747227136
+    "total": 16078426112,
+    "usage": 9503617024
   },
   "SWAP": {
     "total": 4294963200,
-    "usage": 4291866624
-=======
-<<<<<<< HEAD
-    "usage": 11873923072
-  },
-  "SWAP": {
-    "total": 4294963200,
-    "usage": 2505797632
-=======
-    "usage": 11834388480
-  },
-  "SWAP": {
-    "total": 4294963200,
-    "usage": 4057665536
->>>>>>> main
->>>>>>> windows
+    "usage": 3590787072
   },
   "agent_version": "3.0.0",
   "battery": {
@@ -109,62 +54,62 @@
     "hardware": [
       {
         "drive": "nvme0n1",
-        "firmware": "EDFK0S03",
-        "index": 0,
-        "interface": "NVMe",
-        "media": "SSD",
-        "model": "KINGSTON OM8PDP3512B-AA1",
-        "partition": [
-          {
-            "name": "0",
-            "size": 96.64
-          },
-          {
-            "name": "1",
-            "size": 6.96
-          },
-          {
-            "name": "2",
-            "size": 0.27
-          },
-          {
-            "name": "3",
-            "size": 1.07
-          },
-          {
-            "name": "4",
-            "size": 407.14
-          },
-          {
-            "name": "5",
-            "size": 0.02
-          }
-        ],
-        "partitions": 1,
-        "serial": "50026B76857E7C0B",
-        "size": 512,
-        "status": "live"
-      },
-      {
-        "drive": "nvme1n1",
         "firmware": "P9CR313",
-        "index": 1,
+        "index": 0,
         "interface": "NVMe",
         "media": "SSD",
         "model": "CT500P3SSD8",
         "partition": [
           {
             "name": "0",
-            "size": 498.98
+            "size": 1.13
           },
           {
             "name": "1",
-            "size": 1.13
+            "size": 498.98
           }
         ],
         "partitions": 1,
         "serial": "2404468C8B64",
         "size": 500,
+        "status": "live"
+      },
+      {
+        "drive": "nvme1n1",
+        "firmware": "EDFK0S03",
+        "index": 1,
+        "interface": "NVMe",
+        "media": "SSD",
+        "model": "KINGSTON OM8PDP3512B-AA1",
+        "partition": [
+          {
+            "name": "0",
+            "size": 407.14
+          },
+          {
+            "name": "1",
+            "size": 0.02
+          },
+          {
+            "name": "2",
+            "size": 96.64
+          },
+          {
+            "name": "3",
+            "size": 6.96
+          },
+          {
+            "name": "4",
+            "size": 0.27
+          },
+          {
+            "name": "5",
+            "size": 1.07
+          }
+        ],
+        "partitions": 1,
+        "serial": "50026B76857E7C0B",
+        "size": 512,
         "status": "live"
       }
     ],
@@ -172,41 +117,49 @@
       {
         "file_system": "ext4",
         "mount_point": "/",
-        "name": "/dev/nvme1n1p2",
+        "name": "/dev/nvme0n1p2",
         "removable": false,
         "total": 489999179776,
-<<<<<<< HEAD
-        "used": 354252386304
-=======
-<<<<<<< HEAD
-        "used": 353931612160
-=======
-        "used": 353891127296
->>>>>>> main
->>>>>>> windows
+        "used": 359769608192
       },
       {
         "file_system": "vfat",
         "mount_point": "/boot/efi",
-        "name": "/dev/nvme1n1p1",
+        "name": "/dev/nvme0n1p1",
         "removable": false,
         "total": 1124999168,
         "used": 6541312
+      },
+      {
+        "file_system": "overlay",
+        "mount_point": "/var/lib/docker/overlay2/6981e29be77e7afdaf5631f656f54f7fc5588cd499bdb790761e72de2cc0d37a/merged",
+        "name": "overlay",
+        "removable": false,
+        "total": 0,
+        "used": 0
+      },
+      {
+        "file_system": "overlay",
+        "mount_point": "/var/lib/docker/overlay2/06ec881ff472e8082c5f0fa3d54ec8b06cd5fce0ff6104898e63439f0e84499b/merged",
+        "name": "overlay",
+        "removable": false,
+        "total": 0,
+        "used": 0
+      },
+      {
+        "file_system": "ntfs3",
+        "mount_point": "/media/01DD05DDDC2FE2E0",
+        "name": "/dev/nvme1n1p3",
+        "removable": false,
+        "total": 6964637696,
+        "used": 45490176
       }
     ]
   },
   "general": {
-    "boot_time": 1784251501,
+    "boot_time": 1784508907,
     "host": "AcerLinux",
-<<<<<<< HEAD
-    "run_time": 8800
-=======
-<<<<<<< HEAD
-    "run_time": 370
-=======
-    "run_time": 7587
->>>>>>> main
->>>>>>> windows
+    "run_time": 22567
   },
   "machine": {
     "architecture": "x86_64",
@@ -221,105 +174,101 @@
     "name": "Scala_CAS",
     "ram_socket": null,
     "serial": "Unknown",
-<<<<<<< HEAD
     "tempe": 46.0
-=======
-<<<<<<< HEAD
-    "tempe": 43.0
   },
   "networks": [
     {
-      "card": "",
-      "config_speed": 0,
-      "download": 125824,
-=======
-    "tempe": 44.0
->>>>>>> windows
-  },
-  "networks": [
-    {
-      "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
+      "card": null,
       "config_speed": null,
-      "download": 313103054,
-      "ipv4": "172.20.1.20/22",
-      "ipv6": "fe80::515a:3399:7f4f:c499/64",
-      "mac": "e0:0a:f6:be:44:9f",
+      "download": 0,
+      "ipv4": "172.19.0.1/16",
+      "ipv6": "None",
+      "mac": "02:14:fc:09:e9:62",
       "mtu": 1500,
-      "name": "wlp5s0",
-      "ssid": "GGROUP-LAU1",
-      "upload": 39065278
+      "name": "br-9e4b968fd9d1",
+      "ssid": null,
+      "upload": 0
     },
     {
       "card": null,
       "config_speed": null,
-<<<<<<< HEAD
-      "download": 752994,
-=======
-      "download": 630731,
->>>>>>> main
->>>>>>> windows
+      "download": 1268391,
       "ipv4": "127.0.0.1/8",
       "ipv6": "::1/128",
       "mac": "00:00:00:00:00:00",
       "mtu": 65536,
       "name": "lo",
-<<<<<<< HEAD
-      "ssid": "Unknown",
-      "upload": 125824
+      "ssid": null,
+      "upload": 1268391
     },
     {
-      "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
-      "config_speed": 0,
-=======
+      "card": null,
+      "config_speed": null,
+      "download": 0,
+      "ipv4": "172.17.0.1/16",
+      "ipv6": "None",
+      "mac": "92:54:73:cc:9a:21",
+      "mtu": 1500,
+      "name": "docker0",
       "ssid": null,
-      "upload": 752994
+      "upload": 0
+    },
+    {
+      "card": null,
+      "config_speed": null,
+      "download": 126,
+      "ipv4": "None",
+      "ipv6": "fe80::bc4e:35ff:fe04:f7fb/64",
+      "mac": "be:4e:35:04:f7:fb",
+      "mtu": 1500,
+      "name": "veth611b088",
+      "ssid": null,
+      "upload": 138408
+    },
+    {
+      "card": null,
+      "config_speed": null,
+      "download": 84,
+      "ipv4": "172.18.0.1/16",
+      "ipv6": "fe80::8c4c:3dff:fe35:e59e/64",
+      "mac": "8e:4c:3d:35:e5:9e",
+      "mtu": 1500,
+      "name": "br-b68dd5d7c3e7",
+      "ssid": null,
+      "upload": 136982
     },
     {
       "card": "Realtek Semiconductor Co., Ltd. Killer E2600 GbE Controller (rev 21)",
       "config_speed": null,
->>>>>>> main
       "download": 0,
       "ipv4": "None",
       "ipv6": "None",
       "mac": "08:8f:c3:56:4e:01",
       "mtu": 1500,
       "name": "enp4s0",
-<<<<<<< HEAD
-      "ssid": "Unknown",
+      "ssid": null,
       "upload": 0
     },
     {
       "card": "MEDIATEK Corp. MT7921 802.11ax PCI Express Wireless Network Adapter",
-      "config_speed": 0,
-      "download": 41438426,
+      "config_speed": null,
+      "download": 669699123,
       "ipv4": "172.20.1.20/22",
       "ipv6": "fe80::515a:3399:7f4f:c499/64",
       "mac": "e0:0a:f6:be:44:9f",
       "mtu": 1500,
       "name": "wlp5s0",
       "ssid": "GGROUP-LAU1",
-      "upload": 12839903
-=======
-      "ssid": null,
-      "upload": 0
->>>>>>> main
+      "upload": 62410150
     }
   ],
   "os": {
-    "kernel": "6.17.0-40-generic",
+    "kernel": "7.0.0-28-generic",
     "os_distro": "Ubuntu",
     "os_name": "linux",
     "os_version": "24.04"
   },
-<<<<<<< HEAD
-  "process_count": 1863,
-=======
-<<<<<<< HEAD
-  "process_count": 1722,
-=======
-  "process_count": 1759,
->>>>>>> main
->>>>>>> windows
+  "process_count": 2025,
   "softwares": [
     {
       "install_date": 1763425716,
@@ -357,141 +306,67 @@
       "version": "2.3.2-1build1.1"
     }
   ],
-<<<<<<< HEAD
-  "time_stamp": 1784260301,
-=======
-<<<<<<< HEAD
-  "time_stamp": 1784251871,
+  "time_stamp": 1784531475,
   "top_processes": [
     {
       "cpu": 0.0,
-      "memory": 157077504,
-      "name": "PerfettoTrace",
-      "runtime": 253
+      "memory": 7491584,
+      "name": "xdg-document-po",
+      "runtime": 22551
     },
     {
       "cpu": 0.0,
-      "memory": 275193856,
-      "name": "FSBroker6252",
-      "runtime": 348
-    },
-    {
-      "cpu": 0.0,
-      "memory": 126074880,
-      "name": "Compositor",
-      "runtime": 305
-    },
-    {
-      "cpu": 0.0,
-      "memory": 80039936,
-      "name": "ThreadPoolForeg",
-      "runtime": 304
+      "memory": 105070592,
+      "name": "ThreadPoolServi",
+      "runtime": 12
     },
     {
       "cpu": 0.0,
       "memory": 0,
-      "name": "kworker/2:2-events",
-      "runtime": 368
+      "name": "kworker/R-comp_1.0.0",
+      "runtime": 22561
     },
     {
       "cpu": 0.0,
-      "memory": 7708672,
-      "name": "power-profiles-",
-      "runtime": 367
+      "memory": 620318720,
+      "name": "ThreadPoolForeg",
+      "runtime": 21272
     },
     {
       "cpu": 0.0,
-      "memory": 275193856,
-      "name": "Timer",
-      "runtime": 349
-    },
-    {
-      "cpu": 0.0,
-      "memory": 99856384,
-      "name": "PerfettoTrace",
-      "runtime": 303
+      "memory": 189374464,
+      "name": "ImageIO",
+      "runtime": 22548
     },
     {
       "cpu": 0.0,
       "memory": 0,
-      "name": "kworker/5:9",
-      "runtime": 285
+      "name": "kworker/u48:8-sdma0",
+      "runtime": 7139
     },
     {
       "cpu": 0.0,
-      "memory": 275193856,
-      "name": "WRScene~derLP#1",
-      "runtime": 348
-=======
-  "time_stamp": 1784259088,
->>>>>>> windows
-  "top_processes": [
-    {
-      "cpu": 0.0,
-      "memory": 692871168,
-      "name": "chrome",
-      "runtime": 8779
+      "memory": 183549952,
+      "name": "chrome:disk$2",
+      "runtime": 21283
     },
     {
       "cpu": 0.0,
-      "memory": 46866432,
-      "name": "waybar",
-      "runtime": 8783
-    },
-    {
-      "cpu": 0.0,
-      "memory": 75718656,
-      "name": "ThreadPoolForeg",
-      "runtime": 8681
-    },
-    {
-      "cpu": 0.0,
-      "memory": 32894976,
-      "name": "Timer",
-      "runtime": 8779
-    },
-    {
-      "cpu": 0.0,
-      "memory": 1761280,
-      "name": "wl-paste",
-      "runtime": 8783
-    },
-    {
-      "cpu": 0.0,
-      "memory": 405934080,
-      "name": "ThreadPoolForeg",
-      "runtime": 8580
-    },
-    {
-      "cpu": 0.0,
-      "memory": 120614912,
-      "name": "hyprloc:disk$0",
-      "runtime": 2210
-    },
-    {
-      "cpu": 0.0,
-      "memory": 49938432,
-      "name": "Xwayland:gl0",
-      "runtime": 8783
-    },
-    {
-      "cpu": 0.0,
-      "memory": 220024832,
-      "name": "WorkerThread",
-      "runtime": 8689
-    },
-    {
-      "cpu": 0.0,
-<<<<<<< HEAD
-      "memory": 26062848,
-      "name": "dconf worker",
-      "runtime": 8783
-=======
       "memory": 0,
-      "name": "kworker/R-nvme-delete-wq",
-      "runtime": 7587
->>>>>>> main
->>>>>>> windows
+      "name": "kworker/R-kvfree_rcu_reclaim",
+      "runtime": 22566
+    },
+    {
+      "cpu": 0.0,
+      "memory": 123928576,
+      "name": "ThreadPoolForeg",
+      "runtime": 21241
+    },
+    {
+      "cpu": 0.0,
+      "memory": 21196800,
+      "name": "fcitx5",
+      "runtime": 22551
     }
   ]
 }

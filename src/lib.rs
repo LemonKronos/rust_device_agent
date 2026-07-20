@@ -14,6 +14,7 @@ pub mod config_handler;
 
 use crate::payload_maker::Payload;
 use crate::sender::Sender;
+use crate::utils::*;
 
 pub struct DeviceAgent {
     payload: Payload,
@@ -29,24 +30,29 @@ impl DeviceAgent {
     }
 
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Agent running");
 
-        println!("Getting full scan v2...");
+        init_logger();
+
+        log::info!("Agent running");
+
+        log::info!("Getting full scan v2...");
         let _ = self.payload.get_json_v2_fullscan();
-        println!("Complete");
+        log::info!("Complete");
 
-        println!("Getting full scan v3...");
+        log::info!("Getting full scan v3...");
         let _ = self.payload.get_json_v3_fullscan();
-        println!("Complete");
+        log::info!("Complete");
 
-        println!("Start loop sending telementry v2 demo ");
+        log::info!("Start loop sending telementry v2 demo ");
         loop {
             self.payload.prepare();
 
+            let _ = self.payload.get_json_v3_fullscan();
+
             if let Err(e) = self.sender.transmit(self.payload.get_json_v2_telemetry()) {
-                eprintln!("Sender warning: {}", e);
+                log::warn!("Sender warning: {}", e);
             } else {
-                println!("Sended info at timestamp {}", self.payload.timestamp());
+                log::info!("Sended info at timestamp {}", self.payload.timestamp());
             }
 
             thread::sleep(Duration::from_secs(5));
@@ -54,26 +60,54 @@ impl DeviceAgent {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
-    use std::{thread::sleep, time::Duration};
-    use super::DeviceAgent;
-    
+    use super::*;
+    use serde_json::Value;
+
+    /// Recursively traverses a JSON Value and asserts that no string is exactly `""`.
+    fn assert_no_empty_strings(value: &Value) {
+        match value {
+            Value::String(s) => {
+                assert!(
+                    !s.is_empty(),
+                    "Test failed: Found an empty string `\"\"` in the JSON payload!"
+                );
+            },
+            Value::Array(arr) => {
+                for item in arr {
+                    assert_no_empty_strings(item);
+                }
+            },
+            Value::Object(obj) => {
+                for val in obj.values() {
+                    assert_no_empty_strings(val);
+                }
+            },
+            _ => {},
+        }
+    }
 
     #[test]
-    fn test_json() {
-        let mut agent = DeviceAgent::new();
+    fn test_limit_agent_runtime() {
+        let agent = DeviceAgent::new();
+        let start = std::time::Instant::now();
+        let _payload_v3_fullscan = agent.payload.get_json_v3_fullscan();
+        assert!(start.elapsed().as_millis() < 500, "Fullscan took too long, over {} ms", start.elapsed().as_millis());
+    }
 
-        sleep(Duration::from_secs(1));
+    #[test]
+    fn test_payload_has_no_empty_strings() {
+        let agent = DeviceAgent::new();
 
-        agent.payload.prepare();
+        let payload_v3_fullscan = agent.payload.get_json_v3_fullscan();
+        assert_no_empty_strings(&payload_v3_fullscan);
 
-        let payload = agent.payload.get_json_v3_fullscan();
+        let payload_v2_fullscan = agent.payload.get_json_v2_fullscan();
+        assert_no_empty_strings(&payload_v2_fullscan);
 
-        let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
-        
-        println!("\n=== GENERATED HARDWARE PAYLOAD ===");
-        println!("{}", pretty_json);
-        println!("==================================\n");
+        let payload_v2_telemetry = agent.payload.get_json_v2_telemetry();
+        assert_no_empty_strings(&payload_v2_telemetry);
     }
 }

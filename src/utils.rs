@@ -1,7 +1,7 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-// _ TIME Conversion
+// : TIME Conversion
 pub trait FormatTime { 
     fn to_datetime_string(&self) -> String;
     fn to_time_sec(&self) -> u64;
@@ -31,7 +31,7 @@ impl FormatUptime for u64 {
     }
 }
 
-// _ MEMORY Conversion
+// : MEMORY Conversion
 pub trait FormatMem {
     fn b_to_mb(&self) -> f64;
     fn b_to_gb(&self) -> f64;
@@ -48,4 +48,47 @@ impl FormatMem for u64 {
     fn kb_to_gb(&self) -> f64 { *self as f64 / 1_048_576.0 }
     fn mb_to_gb(&self) -> f64 { *self as f64 / 1024.0 }
     fn gb_to_mb(&self) -> f64 { *self as f64 * 1024.0 }
+}
+
+// : Logger
+use flexi_logger::{Cleanup, Criterion, DeferredNow, FileSpec, Logger, Naming, Record};
+
+fn log_format(
+    w: &mut dyn std::io::Write,
+    _now: &mut DeferredNow,
+    record: &Record,
+) -> Result<(), std::io::Error> {
+    let raw_msg = record.args().to_string();
+    let indented_msg = raw_msg.replace('\n', "\n\t");
+    
+    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+
+    write!(
+        w,
+        "[{timestamp} {level} {module}]:\n\t{message}\n",
+        timestamp = timestamp,
+        level = record.level(),
+        module = record.target(),
+        message = indented_msg
+    )
+}
+
+pub fn init_logger() {
+    // Initialize the logger
+    Logger::try_with_env_or_str("info")
+        .unwrap()
+        .log_to_file(
+            FileSpec::default()
+                .directory("./doc/logs")
+                .basename("agent")
+                .suppress_timestamp()
+        )
+        .format(log_format)
+        .rotate(
+            Criterion::Size(5242880), // 5 MB
+            Naming::Numbers,
+            Cleanup::KeepLogFiles(5),
+        )
+        .start()
+        .expect("Failed to initialize logger");
 }
