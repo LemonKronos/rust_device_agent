@@ -139,7 +139,7 @@ impl DeviceAgent {
         // let peripheral_json: Vec<_> = 
 
         let payload = json!({
-            "agent_version": "3.0.0",
+            "agent_version": "0.3.0",
             "time_stamp": self.info.get_timestamp(), // second
             "general": {
                 "host": self.info.get_host(),
@@ -188,7 +188,7 @@ impl DeviceAgent {
             },
             "swap": {
                 "total": self.info.get_swap_total(), // byte
-                "usage": &self.info.get_swap_usage(), // byte
+                "usage": self.info.get_swap_usage(), // byte
             },
             "gpu": gpus_json, // list
             "disks": {
