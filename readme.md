@@ -11,4 +11,9 @@
 - Please note on Window 10, Window 8 and Window XP
 - For Linux, change struct to keep string on for "static" OS info? Use `Option<String>`
 - Should bring all the error output to a json return to server as debug
-- Use debug option for all the code print and the md store
+- Should agent just send only when info change??? Why keep sending when server just discard?
+- The option choose logic of if choose item in list must include name is on server side
+- Stuff like disk info, need check if new disk added, give all info
+- <mark style="background: #CF8861;">If send when there are changes, why to we need time option at all, just send full at init and update through out with heartbeat</mark>: What the option really mean is when to send, but that is when to scan. That let user config Agent resource, only scan cycle that user need, Agent do scan cycle, but only send when info change
+- TODO: Which mean info_gatherer need a cache, so it check everytime a field is called
+- So there should be also a case when usage < total, so should also check total, cause maybe it just also change. There could be other upward propagate case

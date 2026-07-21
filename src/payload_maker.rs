@@ -1,3 +1,6 @@
+///
+/// Make make payload by calling info_gatherer, serialize to json
+/// 
 
 use std::fs;
 use serde_json::json;
@@ -17,6 +20,7 @@ impl Payload {
     pub fn prepare(&mut self) {
         self.info.prepare()
     }
+
     pub fn timestamp(&self) -> u64 {
         self.info.get_timestamp()
     }
@@ -28,7 +32,7 @@ impl Payload {
                 "name": ram.get_name(),
                 "serial": ram.get_serial(),
                 "type": ram.get_type(),
-                "speed": ram.get_speed(),
+                "config_speed": ram.get_speed(),
                 "size": ram.get_size(),
                 "bank": ram.get_bank(),
                 "form_factor": ram.get_form_factor(),
@@ -79,7 +83,7 @@ impl Payload {
                     "status": hd.get_status(),
                     "media": hd.get_media(),
                     "interface": hd.get_interface(),
-                    "partitions": hd.get_partition_number(),
+                    "parted": hd.get_partition_number(),
                     "partition": partition_list,
                 })
             }).collect::<Vec<_>>()
@@ -133,7 +137,7 @@ impl Payload {
         // let peripheral_json: Vec<_> = 
 
         let payload = json!({
-            "agent_version": "3.0.0",
+            "agent_version": "0.3.0",
             "time_stamp": self.info.get_timestamp(), // second
             "general": {
                 "host": self.info.get_host(),
@@ -145,15 +149,15 @@ impl Payload {
                 "architecture": self.info.get_architecture(),
                 "producer": self.info.get_producer(),
                 "model": self.info.get_system_model(),
-                "machine_type": self.info.get_machine_type(),
+                "type": self.info.get_machine_type(),
             },
             "motherboard": {
                 "name": self.info.get_motherboard(),
                 "serial": self.info.get_motherboard_serial(),
                 "tempe": self.info.get_temp_mobo(),
-                "cpu_socket": self.info.get_cpu_socket(),
-                "ram_socket": self.info.get_ram_socket(),
-                "gpu_socket": self.info.get_gpu_socket(),
+                "cpu_slot": self.info.get_cpu_slot(),
+                "ram_slot": self.info.get_ram_slot(),
+                "gpu_slot": self.info.get_gpu_slot(),
             },
             "bios": {
                 "version": self.info.get_os_version(),
@@ -161,41 +165,41 @@ impl Payload {
                 "secure_boot": self.info.get_is_secure_boot(),
             },
             "os": {
-                "os_distro": self.info.get_os_distro(),
-                "os_name": self.info.get_os_name(),
-                "os_version": self.info.get_os_version(),
+                "distro": self.info.get_os_distro(),
+                "name": self.info.get_os_name(),
+                "version": self.info.get_os_version(),
                 "kernel": self.info.get_kernel(),
             },
-            "CPU": {
+            "cpu": {
                 "name": self.info.get_cpu_name(),
                 "core": self.info.get_cpu_core(),
                 "usage": self.info.get_cpu_usage(), // %
                 "frequency": self.info.get_cpu_freq(), // MHz
                 "temperature": self.info.get_cpu_temp(), // ℃
             },
-            "RAM": {
+            "ram": {
                 "total": self.info.get_ram_total(), // byte
                 "usage": self.info.get_ram_usage(), // byte
-                "hardware": rams_json, // list
+                "physical": rams_json, // list
             },
-            "SWAP": {
+            "swap": {
                 "total": self.info.get_swap_total(), // byte
                 "usage": &self.info.get_swap_usage(), // byte
             },
-            "GPUs": gpus_json, // list
-            "disks": {
+            "gpu": gpus_json, // list
+            "disk": {
                 "logical": logical_disks_json, // list
                 "hardware": physical_disks_json, // list
             },
-            "networks": networks_json, // list
+            "network": networks_json, // list
             "process_count": self.info.get_process_count(),
-            "top_processes": top_processes_json, // list
+            "top_process": top_processes_json, // list
             // "all_process": all_processes_json, // list
             "battery": {
                 "percentage": self.info.get_battery_percentage(),
                 "is_plugged_in": self.info.get_battery_is_plugged_in(),
             },
-            "softwares": softwares_json,
+            "software": softwares_json,
         });
 
         let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
@@ -319,7 +323,7 @@ impl Payload {
                     "CPU_USAGE_RATE": self.info.get_cpu_usage(),
                     "SPEED": self.info.get_cpu_freq(),
                     "PROCESSES": self.info.get_process_count(),
-                    "SOCKETS": self.info.get_cpu_socket().unwrap_or(0), // ? This supposed to be "in use", that doesn't make sense
+                    "SOCKETS": self.info.get_cpu_slot().unwrap_or(0), // ? This supposed to be "in use", that doesn't make sense
                     "UPTIME": self.info.get_up_time().to_uptime_string(), 
                     "MACHINE": self.info.get_architecture(), // ? Why this being the same as "SYSTEM TYPE"
                     "TEMPERATURE": self.info.get_cpu_temp().unwrap_or_default().to_string(),

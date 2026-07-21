@@ -1,5 +1,12 @@
-// admin fetcher: handle task that need root privelege
+///
+/// Separate binary, handle task that need root privelege
+/// 
+
+use gsoft_device_agent::utils::*;
+use gsoft_device_agent::config_handler::*;
 
 fn main() {
-    todo!()
+    init_logger();
+
+    let _ = load_config();
 }

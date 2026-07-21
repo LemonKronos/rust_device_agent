@@ -1,4 +1,6 @@
-
+///
+/// Contain all logic for Agent
+/// 
 
 use std::thread;
 use std::time::Duration;
@@ -15,6 +17,7 @@ pub mod config_handler;
 use crate::payload_maker::Payload;
 use crate::sender::Sender;
 use crate::utils::*;
+use crate::config_handler::*;
 
 pub struct DeviceAgent {
     payload: Payload,
@@ -32,6 +35,8 @@ impl DeviceAgent {
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
 
         init_logger();
+
+        let _ = load_config();
 
         log::info!("Agent running");
 

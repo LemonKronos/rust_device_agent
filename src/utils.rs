@@ -1,3 +1,6 @@
+///
+/// Utilities function
+/// 
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -90,5 +93,5 @@ pub fn init_logger() {
             Cleanup::KeepLogFiles(5),
         )
         .start()
-        .expect("Failed to initialize logger");
+        .expect("Failed to initialize logger"); // TODO fix this code smell
 }

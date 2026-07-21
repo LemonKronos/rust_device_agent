@@ -1,3 +1,7 @@
+///
+/// Read machine info
+/// 
+
 
 use std::time::{SystemTime, UNIX_EPOCH};
 use sysinfo::System;
@@ -94,15 +98,15 @@ impl Info {
         self.os_specific.get_tempe_mobo()
     }
 
-    pub fn get_cpu_socket(&self) -> Option<u32> {
+    pub fn get_cpu_slot(&self) -> Option<u32> {
         self.os_specific.get_cpu_socket()
     }
 
-    pub fn get_ram_socket(&self) -> Option<u32> {
+    pub fn get_ram_slot(&self) -> Option<u32> {
         self.os_specific.get_ram_socket()
     }
 
-    pub fn get_gpu_socket(&self) -> Option<u32> {
+    pub fn get_gpu_slot(&self) -> Option<u32> {
         self.os_specific.get_gpu_socket()
     }
 

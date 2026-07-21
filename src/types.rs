@@ -1,7 +1,10 @@
+///
+/// Define custom types here
+/// 
 
-use std::{time::SystemTime};
+use std::time::SystemTime;
 
-//_ RAM
+/// RAM
 #[derive(Debug, Default)]
 pub struct Ram {
     pub name: String,
@@ -57,7 +60,7 @@ impl Ram {
     }
 }
 
-//_ GPU
+/// GPU
 #[derive(Debug)]
 pub struct Gpu {
     gpu: all_smi::device::types::GpuInfo
@@ -119,7 +122,7 @@ impl Gpu {
     }
 }
 
-//_ Disk
+/// Disk
 #[derive(Debug)]
 pub struct LogicalDisk<'a> {
     disk: &'a sysinfo::Disk,
@@ -252,7 +255,7 @@ impl Partition {
     }
 }
 
-//_ Network
+/// Network
 #[derive(Debug)]
 pub struct Network<'a> {
     name : &'a String,
@@ -342,7 +345,7 @@ pub struct NetworkHardware {
     pub speed: Option<u32>,
 }
 
-//_ Process
+/// Process
 #[derive(Debug)]
 pub struct Process<'a> {
     process: &'a sysinfo::Process,
@@ -374,7 +377,7 @@ impl<'a> Process<'a> {
     }
 }
 
-//_ Software
+/// Software
 //TODO deal with the jungle of Linux software
 #[derive(Debug)]
 pub struct Software {
@@ -418,4 +421,3 @@ impl Software {
         self.install_date
     }
 }
-
