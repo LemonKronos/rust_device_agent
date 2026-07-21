@@ -202,12 +202,24 @@ impl Payload {
             "software": softwares_json,
         });
 
-        let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
-        let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::create_dir_all("doc/sample/").expect("v3 full scan: Failed to create dir");
-        fs::write("doc/sample/json_v3_fullscan.md", md_content).expect("v3 full scan: Failed to write file");
+        let Ok(pretty_json) = serde_json::to_string_pretty(&payload) else {
+            log::error!("Failed to serialize payload to JSON");
+            return payload;
+        };
 
-        return payload;
+        let md_content = format!("```json\n{}\n```", pretty_json);
+
+        if let Err(e) = fs::create_dir_all("doc/sample/") {
+            log::error!("Failed to create directory 'doc/sample/': {}", e);
+        }
+
+        if let Err(e) = fs::write("doc/sample/json_v3_fullscan.md", md_content) {
+            log::error!("Failed to write file 'json_v3_fullscan.md': {}", e);
+        } else {
+            log::info!("Successfully saved JSON sample.");
+        }
+
+        payload
     }
 
     pub fn get_json_v2_fullscan(&self) -> serde_json::Value {
@@ -343,12 +355,24 @@ impl Payload {
             "AGENT_VERSION": "2.0.0"
             });
 
-        let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
-        let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::create_dir_all("doc/sample/").expect("v2 full scan: Failed to create dir");
-        fs::write("doc/sample/json_v2_fullscan.md", md_content).expect("v2 full scan: Failed to write file");
+        let Ok(pretty_json) = serde_json::to_string_pretty(&payload) else {
+            log::error!("Failed to serialize payload to JSON");
+            return payload;
+        };
 
-        return payload;
+        let md_content = format!("```json\n{}\n```", pretty_json);
+
+        if let Err(e) = fs::create_dir_all("doc/sample/") {
+            log::error!("Failed to create directory 'doc/sample/': {}", e);
+        }
+
+        if let Err(e) = fs::write("doc/sample/json_v2_fullscan.md", md_content) {
+            log::error!("Failed to write file 'json_v2_fullscan.md': {}", e);
+        } else {
+            log::info!("Successfully saved JSON sample.");
+        }
+
+        payload
     }
 
     pub fn get_json_v2_telemetry(&self) -> serde_json::Value {
@@ -368,12 +392,24 @@ impl Payload {
             "AGENT_VERSION": "2.0.0",
             });
 
-        let pretty_json = serde_json::to_string_pretty(&payload).unwrap();
-        let md_content = format!("```json\n{}\n```", pretty_json);
-        fs::create_dir_all("doc/sample/").expect("v2 telemetry: Failed to create dir");
-        fs::write("doc/sample/json_v2_telemetry.md", md_content).expect("v2 telemetry: Failed to write file");
+        let Ok(pretty_json) = serde_json::to_string_pretty(&payload) else {
+            log::error!("Failed to serialize payload to JSON");
+            return payload;
+        };
 
-        return payload;
+        let md_content = format!("```json\n{}\n```", pretty_json);
+
+        if let Err(e) = fs::create_dir_all("doc/sample/") {
+            log::error!("Failed to create directory 'doc/sample/': {}", e);
+        }
+
+        if let Err(e) = fs::write("doc/sample/json_v2_telemetry.md", md_content) {
+            log::error!("Failed to write file 'json_v2_telemetry.md': {}", e);
+        } else {
+            log::info!("Successfully saved JSON sample.");
+        }
+
+        payload
     }
 
 }

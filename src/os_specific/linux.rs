@@ -516,7 +516,7 @@ impl OsSpecificInterface for OsSpecificBackend {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("acpitz"))
-            .map(|c| c.temperature().unwrap() as f32)
+            .map(|c| c.temperature().unwrap_or(0.0) as f32)
             .max_by(|a, b| a.total_cmp(b))
     }
 
@@ -524,7 +524,7 @@ impl OsSpecificInterface for OsSpecificBackend {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("k10temp"))
-            .map(|c| c.temperature().unwrap() as f32)
+            .map(|c| c.temperature().unwrap_or(0.0) as f32)
             .max_by(|a, b| a.total_cmp(b))
     }
 

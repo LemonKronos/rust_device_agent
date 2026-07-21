@@ -10,10 +10,13 @@ use std::fs;
 use std::path::Path;
 use tokio::time::Instant;
 
+use crate::scheduler::TaskID::*;
 use crate::scheduler::{ScheduledTask,TimerWheel};
+use crate::utils::flatten_config;
 
 const CONFIG_PATH: &str = "doc/config.json";
 
+/// Try to load config, if not found generate default config
 pub fn load_config() -> TimerWheel {
     let config_path = Path::new(CONFIG_PATH);
 
@@ -35,8 +38,21 @@ pub fn load_config() -> TimerWheel {
     init_config()
 }
 
-pub fn save_config() {
-    todo!()
+pub fn save_config(timer_wheel: &TimerWheel) {
+    let config_path = Path::new(CONFIG_PATH);
+
+    match serde_json::to_string_pretty(timer_wheel) {
+        Ok(json) => {
+            let flat_json = flatten_config(&json);
+
+            if let Err(e) = fs::write(config_path, flat_json) {
+                log::error!("Failed to write config to disk: {}",  e);
+            } else {
+                log::info!("Config saved to {}", CONFIG_PATH);
+            }
+        },
+        Err(e) => log::error!("Failed to serialize config: {}", e),
+    }
 }
 
 /// Make default config, load to TimerWheel and store it
@@ -53,441 +69,609 @@ pub fn init_config() -> TimerWheel {
 
     //_ General
     default_queue.push(ScheduledTask {
-        id: "general.host".to_string(),
+        id: GeneralHost,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "general.boot_time".to_string(),
+        id: GeneralBootTime,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "general.run_time".to_string(),
+        id: GeneralRunTime,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ Machine
     default_queue.push(ScheduledTask {
-        id: "machine.architecture".to_string(),
+        id: MachineArchitecture,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "machine.producer".to_string(),
+        id: MachineProducer,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "machine.model".to_string(),
+        id: MachineModel,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "machine.type".to_string(),
+        id: MachineType,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ Motherboard
     default_queue.push(ScheduledTask {
-        id: "motherboard.name".to_string(),
+        id: MotherboardName,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "motherboard.serial".to_string(),
+        id: MotherboardSerial,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "motherboard.tempe".to_string(),
+        id: MotherboardTempe,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "motherboard.cpu_slot".to_string(),
+        id: MotherboardCpuSlot,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "motherboard.ram_slot".to_string(),
+        id: MotherboardRamSlot,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "motherboard.gpu_slot".to_string(),
+        id: MotherboardGpuSlot,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ Bios
     default_queue.push(ScheduledTask {
-        id: "bios.version".to_string(),
+        id: BiosVersion,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "bios.vendor".to_string(),
+        id: BiosVendor,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "bios.sercure_boot".to_string(),
+        id: BiosSecureBoot,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ OS
     default_queue.push(ScheduledTask {
-        id: "os.distro".to_string(),
+        id: OsDistro,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "os.name".to_string(),
+        id: OsName,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "os.version".to_string(),
+        id: OsVersion,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "os.kernel".to_string(),
+        id: OsKernel,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ CPU
     default_queue.push(ScheduledTask {
-        id: "cpu.name".to_string(),
+        id: CpuName,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "cpu.core".to_string(),
+        id: CpuCore,
         cycle_time: init,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "cpu.usage".to_string(),
+        id: CpuUsage,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "cpu.frequency".to_string(),
+        id: CpuFreq,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "cpu.temperature".to_string(),
+        id: CpuTempe,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ RAM
     default_queue.push(ScheduledTask {
-        id: "ram.total".to_string(),
+        id: RamTotal,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.usage".to_string(),
+        id: RamUsage,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
         //_Physical
     default_queue.push(ScheduledTask {
-        id: "ram.physical.name".to_string(),
+        id: RamPhysicalName,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.physical.serial".to_string(),
+        id: RamPhysicalSerial,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.physical.type".to_string(),
+        id: RamPhysicalType,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.physical.config_speed".to_string(),
+        id: RamPhysicalConfigSpeed,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.physical.size".to_string(),
+        id: RamPhysicalSize,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.physical.bank".to_string(),
+        id: RamPhysicalBank,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "ram.physical.form_factor".to_string(),
+        id: RamPhysicalFormFactor,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ SWAP
     default_queue.push(ScheduledTask {
-        id: "swap.total".to_string(),
+        id: SwapTotal,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "swap.usage".to_string(),
+        id: SwapUsage,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ GPU
     default_queue.push(ScheduledTask {
-        id: "gpu.name".to_string(),
+        id: GpuName,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.driver".to_string(),
+        id: GpuDriver,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.utilization".to_string(),
+        id: GpuUtilization,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.temperature".to_string(),
+        id: GpuTempe,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.frequency".to_string(),
+        id: GpuFreq,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.vram_total".to_string(),
+        id: GpuVramTotal,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.vram_usage".to_string(),
+        id: GpuVramUsage,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.max_clock".to_string(),
+        id: GpuMaxClock,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "gpu.serial".to_string(),
+        id: GpuSerial,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ Disk
         //_ Logical
     default_queue.push(ScheduledTask {
-        id: "disk.logical.name".to_string(),
+        id: DiskLogicalName,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.logical.file_name".to_string(),
+        id: DiskLogicalFileName,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.logical.mount_point".to_string(),
+        id: DiskLogicalMountPoint,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.logical.removable".to_string(),
+        id: DiskLogicalRemovable,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.logical.total".to_string(),
+        id: DiskLogicalTotal,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.logical.used".to_string(),
+        id: DiskLogicalUsed,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
         //_Physical
     default_queue.push(ScheduledTask {
-        id: "disk.physical.drive".to_string(),
+        id: DiskPhysicalDrive,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.index".to_string(),
+        id: DiskPhysicalIndex,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.serial".to_string(),
+        id: DiskPhysicalSerial,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.firmware".to_string(),
+        id: DiskPhysicalFirmware,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.size".to_string(),
+        id: DiskPhysicalSize,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.status".to_string(),
+        id: DiskPhysicalStatus,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.media".to_string(),
+        id: DiskPhysicalMedia,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.interface".to_string(),
+        id: DiskPhysicalInterface,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.parted".to_string(),
+        id: DiskPhysicalParted,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.partition.name".to_string(),
+        id: DiskPhysicalPartitionName,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "disk.physical.partition.size".to_string(),
+        id: DiskPhysicalPartitionSize,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_Network
     default_queue.push(ScheduledTask {
-        id: "network.name".to_string(),
+        id: NetworkName,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.ipv4".to_string(),
+        id: NetworkIpv4,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.ipv6".to_string(),
+        id: NetworkIpv6,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.mac".to_string(),
+        id: NetworkMac,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.mtu".to_string(),
+        id: NetworkMtu,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.upload".to_string(),
+        id: NetworkUpload,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.download".to_string(),
+        id: NetworkDownload,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.card".to_string(),
+        id: NetworkCard,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.config_speed".to_string(),
+        id: NetworkConfigSpeed,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "network.ssid".to_string(),
+        id: NetworkSsid,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_ Process
     default_queue.push(ScheduledTask {
-        id: "process_count".to_string(),
+        id: ProcessCount,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "top_process.name".to_string(),
+        id: TopProcessName,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "top_process.cpu".to_string(),
+        id: TopProcessCpu,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "top_process.memory".to_string(),
+        id: TopProcessMemory,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "top_process.runtime".to_string(),
+        id : TopProcessRuntime,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //TODO All Process
     //_Battery
     default_queue.push(ScheduledTask {
-        id: "battery.percentage".to_string(),
+        id: BatteryPercentage,
         cycle_time: min5,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "battery.is_plugged_in".to_string(),
+        id: BatteryIsPluggedIn,
         cycle_time: min30,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     //_Software
     default_queue.push(ScheduledTask {
-        id: "software.name".to_string(),
+        id: SoftwareName,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "software.version".to_string(),
+        id: SoftwareVersion,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "sofware.source".to_string(),
+        id: SoftwareSource,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "software.size".to_string(),
+        id: SoftwareSize,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
     default_queue.push(ScheduledTask {
-        id: "software.install_date".to_string(),
+        id: SoftwareInstallDate,
         cycle_time: hourly,
         execute_at: now,
+        limit: None,
+        last_value: None,
     });
 
     // Ensure the parent directory ("doc/") exists
@@ -497,19 +681,7 @@ pub fn init_config() -> TimerWheel {
         }
     }
 
-    match serde_json::to_string_pretty(&default_queue) {
-        Ok(json) => {
-            let re = regex::Regex::new(r"\[\s+(\d+),\s+(\d+)\s+\]").unwrap();
-            let flat_json = re.replace_all(&json, "[$1, $2]").to_string();
-
-            if let Err(e) = std::fs::write(config_path, flat_json) {
-                log::error!("Failed to write default config to disk: {}", e);
-            } else {
-                log::info!("Default config saved to {}", CONFIG_PATH);
-            }
-        }
-        Err(e) => log::error!("Failed to serialize default config: {}", e),
-    }
+    save_config(&default_queue);
 
     default_queue
 }

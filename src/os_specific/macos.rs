@@ -30,7 +30,7 @@ impl TemperatureInterface for Temperature {
                 // Catches both Intel and Apple Silicon CPU sensors
                 name.contains("tc0") || name.contains("pmu tdie") || name.contains("acc mtr")
             })
-            .map(|c| c.temperature().unwrap() as f32)
+            .map(|c| c.temperature().unwrap_or(0.0) as f32)
             .max_by(|a, b| a.total_cmp(b))
             .unwrap_or(0.0)
     }
@@ -41,7 +41,7 @@ impl TemperatureInterface for Temperature {
                 let name = c.label().to_lowercase();
                 name.contains("tm0p") || name.contains("soc mtr")
             })
-            .map(|c| c.temperature().unwrap() as f32)
+            .map(|c| c.temperature().unwrap_or(0.0) as f32)
             .max_by(|a, b| a.total_cmp(b))
             .unwrap_or(0.0)
     }
