@@ -89,8 +89,8 @@ impl Gpu {
     }
 
     /// Return GPU temperature in ℃
-    pub fn get_tempe(&self) -> u32 {
-        self.gpu.temperature
+    pub fn get_tempe(&self) -> u64 {
+        self.gpu.temperature as u64
     }
 
     /// Return GPU total VRAM in Byte
@@ -103,12 +103,12 @@ impl Gpu {
     }
 
     /// Return GPU current frequency in MHz
-    pub fn get_freq(&self) -> u32 {
-        self.gpu.frequency
+    pub fn get_freq(&self) -> u64 {
+        self.gpu.frequency as u64
     }
 
     /// Return GPU maximum frequency in MHz
-    pub fn get_max_clock(&self) -> Option<u32> {
+    pub fn get_max_clock(&self) -> Option<u64> {
         self.gpu.detail.get("clock_graphics_max")
             .and_then(|s| s.trim().parse().ok())
     }
@@ -164,7 +164,7 @@ impl<'a> LogicalDisk<'a> {
 #[derive(Debug)]
 pub struct PhysicalDisk {
     pub drive: String,
-    pub index: u32,
+    pub index: u64,
     pub model: String,
     pub serial: String,
     pub firmware: String,
@@ -179,7 +179,7 @@ pub struct PhysicalDisk {
 impl PhysicalDisk {
     pub fn new(
         drive: String,
-        index: u32,
+        index: u64,
         model: String,
         serial: String,
         firmware: String,
@@ -195,7 +195,7 @@ impl PhysicalDisk {
         &self.drive
     }
 
-    pub fn get_index(&self) -> u32 {
+    pub fn get_index(&self) -> u64 {
         self.index
     }
 
@@ -228,8 +228,8 @@ impl PhysicalDisk {
         &self.interface
     }
 
-    pub fn get_partition_number(&self) -> u32 {
-        self.partition.iter().count() as u32
+    pub fn get_partition_number(&self) -> u64 {
+        self.partition.iter().count() as u64
     }
 
     pub fn get_partition(&self) -> Option<&Vec<Partition>> {
@@ -329,7 +329,7 @@ impl<'a> Network<'a> {
     }
 
     /// Return Ethernet config speed in Mbps, will be 0 for Wifi
-    pub fn get_config_speed(&self) -> Option<u32> {
+    pub fn get_config_speed(&self) -> Option<u64> {
         self.hardware.as_ref().and_then(|hw| hw.speed)
     }
 
@@ -342,7 +342,7 @@ impl<'a> Network<'a> {
 #[derive(Debug, Default, Clone)]
 pub struct NetworkHardware {
     pub card: String,
-    pub speed: Option<u32>,
+    pub speed: Option<u64>,
 }
 
 /// Process
@@ -362,8 +362,8 @@ impl<'a> Process<'a> {
 
     /// Return process cpu usage
     ///> [!WARNING] could grow pass 100% if process run multi-core
-    pub fn get_cpu_usage(&self) -> f32 {
-        self.process.cpu_usage()
+    pub fn get_cpu_usage(&self) -> f64 {
+        self.process.cpu_usage() as f64
     }
 
     /// Return memory usage of the process in Byte

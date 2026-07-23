@@ -38,9 +38,9 @@ struct CachedInfo {
 
     mobo_name: Option<String>,
     mobo_serial: Option<String>,
-    cpu_socket: Option<u32>,
-    ram_socket: Option<u32>,
-    gpu_socket: Option<u32>,
+    cpu_socket: Option<u64>,
+    ram_socket: Option<u64>,
+    gpu_socket: Option<u64>,
 
     ram_list: Option<Vec<Ram>>,
     physical_disk_list: Option<Vec<PhysicalDisk>>,
@@ -134,10 +134,10 @@ impl OsSpecificBackend {
         info
     }
 
-    fn cache_cpu_socket() -> Option<u32> {
+    fn cache_cpu_socket() -> Option<u64> {
         match table_load_from_device() {
             Ok(data) => {
-                Some(data.defined_struct_iter::<SMBiosProcessorInformation>().count() as u32)
+                Some(data.defined_struct_iter::<SMBiosProcessorInformation>().count() as u64)
             }
             Err(e) if e.kind() == PermissionDenied => {
                 log::warn!("Required Admin to read cpu socket");
@@ -150,7 +150,7 @@ impl OsSpecificBackend {
         }
     }
 
-    fn cache_ram_socket() -> Option<u32> {
+    fn cache_ram_socket() -> Option<u64> {
         match table_load_from_device() {
             Ok(data) => {
                 let mut ram_socket = 0;
@@ -159,7 +159,7 @@ impl OsSpecificBackend {
                         ram_socket += count;
                     }
                 }
-                Some(ram_socket as u32)
+                Some(ram_socket as u64)
             }
             Err(e) if e.kind() == PermissionDenied => {
                 log::warn!("Required Admin to read ram socket");
@@ -172,7 +172,7 @@ impl OsSpecificBackend {
         }
     }
 
-    fn cache_gpu_socket() -> Option<u32> {
+    fn cache_gpu_socket() -> Option<u64> {
         let mut gpu_socket = 0;
         match  fs::read_dir(PCI_DEVICE_PATH) {
             Ok(entries) =>  {
@@ -265,7 +265,7 @@ impl OsSpecificBackend {
         let block_dir = Path::new(HARD_DISK_PATH);
         match fs::read_dir(block_dir) {
             Ok(entries) => {
-                let mut index: u32 = 0;
+                let mut index: u64 = 0;
 
                 for entry in entries.flatten() {
                     let drive = entry.file_name().to_string_lossy().into_owned();
@@ -378,7 +378,7 @@ impl OsSpecificBackend {
             let path_str = path.to_str().unwrap_or("");
 
             let speed = Self::parse_file(path_str, "speed")
-                .and_then(|s| s.trim().parse::<u32>().ok());
+                .and_then(|s| s.trim().parse::<u64>().ok());
 
             let mut card = None;
             if let Ok(target) = fs::read_link(path.join("device")) {
@@ -492,15 +492,15 @@ impl OsSpecificInterface for OsSpecificBackend {
         }
     }
 
-    fn get_cpu_socket(&self) -> Option<u32> {
+    fn get_cpu_socket(&self) -> Option<u64> {
         self.cached_info.cpu_socket
     }
 
-    fn get_gpu_socket(&self) -> Option<u32> {
+    fn get_gpu_socket(&self) -> Option<u64> {
         self.cached_info.gpu_socket
     }
     
-    fn get_ram_socket(&self) -> Option<u32> {
+    fn get_ram_socket(&self) -> Option<u64> {
         self.cached_info.ram_socket
     }
 
@@ -512,23 +512,23 @@ impl OsSpecificInterface for OsSpecificBackend {
         self.cached_info.physical_disk_list.as_ref()
     }
 
-    fn get_tempe_mobo(&self) -> Option<f32> {
+    fn get_tempe_mobo(&self) -> Option<f64> {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("acpitz"))
-            .map(|c| c.temperature().unwrap_or(0.0) as f32)
+            .map(|c| c.temperature().unwrap_or(0.0) as f64)
             .max_by(|a, b| a.total_cmp(b))
     }
 
-    fn get_tempe_cpu(&self) -> Option<f32> {
+    fn get_tempe_cpu(&self) -> Option<f64> {
         self.components
             .iter()
             .filter(|c| c.label().to_lowercase().contains("k10temp"))
-            .map(|c| c.temperature().unwrap_or(0.0) as f32)
+            .map(|c| c.temperature().unwrap_or(0.0) as f64)
             .max_by(|a, b| a.total_cmp(b))
     }
 
-    fn get_battery_percentage(&self) -> Option<u32> {
+    fn get_battery_percentage(&self) -> Option<u64> {
         self.battery_path.as_ref()
             .and_then(|p| Self::parse_file(p, "capacity"))
             .and_then(|i| i.trim().parse().ok())

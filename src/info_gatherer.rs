@@ -94,19 +94,19 @@ impl Info {
         self.os_specific.get_motherboard_serial()
     }
 
-    pub fn get_temp_mobo(&self) -> Option<f32> {
+    pub fn get_temp_mobo(&self) -> Option<f64> {
         self.os_specific.get_tempe_mobo()
     }
 
-    pub fn get_cpu_slot(&self) -> Option<u32> {
+    pub fn get_cpu_slot(&self) -> Option<u64> {
         self.os_specific.get_cpu_socket()
     }
 
-    pub fn get_ram_slot(&self) -> Option<u32> {
+    pub fn get_ram_slot(&self) -> Option<u64> {
         self.os_specific.get_ram_socket()
     }
 
-    pub fn get_gpu_slot(&self) -> Option<u32> {
+    pub fn get_gpu_slot(&self) -> Option<u64> {
         self.os_specific.get_gpu_socket()
     }
 
@@ -147,13 +147,13 @@ impl Info {
             .unwrap_or_else(|| "Unknown".to_string())
     }
 
-    pub fn get_cpu_core(&self) -> u32 {
-        self.sys.cpus().len() as u32
+    pub fn get_cpu_core(&self) -> u64 {
+        self.sys.cpus().len() as u64
     }
 
     /// Return CPU usage in %, will not grow pass 100%
-    pub fn get_cpu_usage(&self) -> f32 {
-        self.sys.global_cpu_usage()
+    pub fn get_cpu_usage(&self) -> f64 {
+        self.sys.global_cpu_usage() as f64
     }
 
     /// Return CPU clock in MHz
@@ -163,7 +163,7 @@ impl Info {
     }
 
     /// Return CPU internal sensor temperature in ℃
-    pub fn get_cpu_temp(&self) -> Option<f32> {
+    pub fn get_cpu_temp(&self) -> Option<f64> {
         self.os_specific.get_tempe_cpu()
     }
 
@@ -221,8 +221,8 @@ impl Info {
     }
 
     //: Processes info
-    pub fn get_process_count(&self) -> u32 {
-        self.sys.processes().iter().count() as u32
+    pub fn get_process_count(&self) -> u64 {
+        self.sys.processes().iter().count() as u64
     }
 
     pub fn get_top_process_list(&self) -> Vec<Process<'_>> {
@@ -238,7 +238,7 @@ impl Info {
     }
 
     //: Battery info
-    pub fn get_battery_percentage(&self) -> Option<u32> {
+    pub fn get_battery_percentage(&self) -> Option<u64> {
         self.os_specific.get_battery_percentage()
     }
 

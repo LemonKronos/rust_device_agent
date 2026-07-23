@@ -17,18 +17,18 @@ pub trait OsSpecificInterface {
 
     fn get_motherboard(&self) -> &str;
     fn get_motherboard_serial(&self) -> &str;
-    fn get_cpu_socket(&self) -> Option<u32>;
-    fn get_ram_socket(&self) -> Option<u32>;
-    fn get_gpu_socket(&self) -> Option<u32>;
+    fn get_cpu_socket(&self) -> Option<u64>;
+    fn get_ram_socket(&self) -> Option<u64>;
+    fn get_gpu_socket(&self) -> Option<u64>;
 
     fn get_ram_list(&self) -> Option<&Vec<Ram>>;
 
     fn get_physical_disk_list(&self) -> Option<&Vec<PhysicalDisk>>;
 
-    fn get_tempe_mobo(&self) -> Option<f32>;
-    fn get_tempe_cpu(&self) -> Option<f32>;
+    fn get_tempe_mobo(&self) -> Option<f64>;
+    fn get_tempe_cpu(&self) -> Option<f64>;
 
-    fn get_battery_percentage(&self) -> Option<u32>;
+    fn get_battery_percentage(&self) -> Option<u64>;
     fn get_is_plugged_in(&self) -> Option<bool>;
 
     fn fill_network_hardware(&self, network_list: &mut Vec<Network<'_>>);

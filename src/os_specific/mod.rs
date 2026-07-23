@@ -83,15 +83,15 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_motherboard_serial()
     }
 
-    fn get_cpu_socket(&self) -> Option<u32> {
+    fn get_cpu_socket(&self) -> Option<u64> {
         self.backend.get_cpu_socket()
     }
 
-    fn get_ram_socket(&self) -> Option<u32> {
+    fn get_ram_socket(&self) -> Option<u64> {
         self.backend.get_ram_socket()
     }
 
-    fn get_gpu_socket(&self) -> Option<u32> {
+    fn get_gpu_socket(&self) -> Option<u64> {
         self.backend.get_gpu_socket()
     }
 
@@ -103,15 +103,15 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_physical_disk_list()    
     }
 
-    fn get_tempe_mobo(&self) -> Option<f32> {
+    fn get_tempe_mobo(&self) -> Option<f64> {
         self.backend.get_tempe_mobo()
     }
 
-    fn get_tempe_cpu(&self) -> Option<f32> {
+    fn get_tempe_cpu(&self) -> Option<f64> {
         self.backend.get_tempe_cpu()
     }
 
-    fn get_battery_percentage(&self) -> Option<u32> {
+    fn get_battery_percentage(&self) -> Option<u64> {
         self.backend.get_battery_percentage()
     }
 
