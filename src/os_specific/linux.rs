@@ -416,6 +416,8 @@ impl OsSpecificInterface for OsSpecificBackend {
         } else {
             None
         };
+        
+        todo!("What to refresh?")
     }
 
     fn get_product_serial(&self) -> &str {

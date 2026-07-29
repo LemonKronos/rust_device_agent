@@ -1,3 +1,4 @@
+
 use serde_json::{json, Map, Value};
 use std::time::Duration;
 use tokio::time::{sleep_until, Instant};
@@ -6,26 +7,6 @@ use tokio::signal;
 use gsoft_device_agent::info_gatherer::Info;
 use gsoft_device_agent::config_handler::*;
 use gsoft_device_agent::scheduler::*;
-
-fn insert_nested(mut current_map: &mut Map<String, Value>, path: &[&str], val: Value) {
-    // Split into ["disk", "physical", "partition"] and "name"
-    let (last, prefixes) = path.split_last().expect("Path cannot be empty");
-    
-    for &prefix in prefixes {
-        let next_val = current_map
-            .entry(prefix.to_string())
-            .or_insert_with(|| Value::Object(Map::new()));
-            
-        if let Value::Object(map) = next_val {
-            current_map = map; // Move deeper into the tree
-        } else {
-            return; // Safety fallback in case of a JSON type conflict
-        }
-    }
-    
-    // Insert the final value at the deepest level
-    current_map.insert(last.to_string(), val);
-}
 
 pub async fn run_agent_loop(mut queue: TimerWheel) {
     println!("Agent running. Timer wheel engaged.");
@@ -55,11 +36,10 @@ pub async fn run_agent_loop(mut queue: TimerWheel) {
 
         // --- STEP 3: Pop the batch ---
         info.prepare();
-        let now = Instant::now();
         let mut batch = Vec::new();
 
         while let Some(task) = queue.peek() {
-            if task.execute_at <= now {
+            if task.execute_at <= Instant::now() {
                 batch.push(queue.pop().expect("I was just peeking it, where is it now?"));
             } else {
                 break; // Hit a future task, stop popping
@@ -74,78 +54,60 @@ pub async fn run_agent_loop(mut queue: TimerWheel) {
         // Just one single map for the whole wake-up cycle!
         let mut payload_map = Map::new();
 
-        for mut task in batch {
-            match task.id {
-                TaskID::GeneralRunTime => {
-                    let current_uptime = info.get_up_time();
+        // for mut task in batch {
+        //     let path = match task.id.get_path() {
+        //         Some(p) => p,
+        //         None => continue,
+        //     };
 
-                    let should_send = match task.last_value {
-                        Some(AgentValue::Int(last)) => current_uptime != last,
-                        _ => true,
-                    };
+        //     if let Some(new_value) = task.id.fetch_value(&mut info) {
+        //         let have_changed = match (&task.last_value, &task.limit, &new_value) {
+        //             (Some(AgentValue::Int(last)), Some(AgentValue::Int(limit)), AgentValue::Int(current)) => {
+        //                 current.abs_diff(*last) >= *limit
+        //             },
 
-                    if should_send {
-                        task.last_value = Some(AgentValue::Int(current_uptime));
-                        
-                        // Inject straight into the master payload map!
-                        insert_nested(
-                            &mut payload_map, 
-                            "general", 
-                            "run_time", 
-                            json!(current_uptime)
-                        );
-                    }
-                },
-                TaskID::GeneralBootTime => {
-                    let current_bootime = info.get_boot_time();
+        //             (Some(AgentValue::Float(last)), Some(AgentValue::Float(limit)), AgentValue::Float(current)) => {
+        //                 (current - last).abs() >= *limit
+        //             },
 
-                    let should_send = match task.last_value {
-                        Some(AgentValue::Int(last)) => current_bootime != last,
-                        _ => true,
-                    };
+        //             (Some(last), None, current) => {
+        //                 last != current
+        //             },
 
-                    if should_send {
-                        task.last_value = Some(AgentValue::Int(current_bootime));
+        //             (None, _, _) => true,
 
-                        insert_nested(&mut payload_map,
-                            "general",
-                            "boot_time",
-                            json!(current_bootime)
-                        );
-                    }
-                },
-                TaskID::CpuUsage => {
-                    let current_cpu = info.get_cpu_usage();
-                    
-                    // ... assuming the diff logic passes ...
-                    
-                    // This will automatically create the "cpu" object if it doesn't exist
-                    insert_nested(
-                        &mut payload_map, 
-                        "cpu", 
-                        "usage",
-                        json!(current_cpu)
-                    );
-                }
-                // ... handle other TaskIds
-                _ => {}
-            }
+        //             _ => true,
+        //         };
+                
+        //         if have_changed {
+        //             task.last_value = Some(new_value.clone());
 
-            // Reschedule the task
-            if task.cycle_time > 0 {
-                task.execute_at = tokio::time::Instant::now() + Duration::from_secs(task.cycle_time);
-                queue.push(task); 
-            }
-        }
+        //             let json_value = match new_value {
+        //                 AgentValue::Int(i) => json!(i),
+        //                 AgentValue::Float(f) => json!(f),
+        //                 AgentValue::Text(s) => json!(s),
+        //             };
+
+        //             insert_nested(&mut payload_map, path, json_value);
+        //         }
+        //     }
+
+        //     // Reschedule the task
+        //     if task.cycle_time > 0 {
+        //         task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
+        //         queue.push(task); 
+        //     }
+        // }
 
         // --- STEP 5: Hand the JSON to sender ---
-        // If the payload map isn't empty, it means at least one category was created
         if !payload_map.is_empty() {
-            // Add your static root identifiers
-            payload_map.insert("agent_version".to_string(), json!("0.3.0.scheduler"));
+            let final_json = json!({
+                "agent_version": "0.3.0.scheduler_run",
+                "in_test": true,
+                "config": payload_map,
+            });
             
-            let final_json = Value::Object(payload_map);
-            println!("Sending Payload: {}", serde_json::to_string_pretty(&final_json).unwrap());
+            println!("Sending Payload: {}", serde_json::to_string_pretty(&final_json).expect("Where is the json?"));
             
             // tokio::spawn(async move {
             //     send_to_server(final_json).await;

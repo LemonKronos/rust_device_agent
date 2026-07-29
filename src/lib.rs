@@ -2,8 +2,8 @@
 /// Contain all logic for Agent
 /// 
 
-use std::thread;
-use std::time::Duration;
+use std::error::Error;
+use tokio::signal;
 
 pub mod os_specific;
 pub mod info_gatherer;
@@ -14,58 +14,65 @@ pub mod payload_maker;
 pub mod scheduler;
 pub mod config_handler;
 
-use crate::payload_maker::Payload;
+use crate::scheduler::TimerWheel;
+use crate::payload_maker::{Payload, PayloadMaker};
 use crate::sender::Sender;
 use crate::utils::*;
 use crate::config_handler::*;
 
 pub struct DeviceAgent {
     payload: Payload,
+    payload_maker: PayloadMaker,
     sender: Sender,
+    scheduler: TimerWheel,
 }
 
 impl DeviceAgent {
     pub fn new() -> Self {
         Self {
             payload: Payload::new(),
+            payload_maker: PayloadMaker::new(),
             sender: Sender::new(),
+            scheduler: load_config(),
         }
     }
 
-    pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-
+    pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
         init_logger();
 
-        let _ = load_config();
+        log::info!("Agent loop start");
 
-        log::info!("Agent running");
-
-        log::info!("Getting full scan v2...");
-        let _ = self.payload.get_json_v2_fullscan();
-        log::info!("Complete");
-
-        log::info!("Getting full scan v3...");
-        let _ = self.payload.get_json_v3_fullscan();
-        log::info!("Complete");
-
-        log::info!("Start loop sending telementry v2 demo ");
         loop {
-            self.payload.prepare();
-
-            let _ = self.payload.get_json_v3_fullscan();
-
-            if let Err(e) = self.sender.transmit(self.payload.get_json_v2_telemetry()) {
-                log::warn!("Sender warning: {}", e);
-            } else {
-                log::info!("Sended info at timestamp {}", self.payload.timestamp());
+            tokio::select! {
+                _ = self.scheduler.go_sleep() => {
+                    log::info!("Agent wake up")
+                },
+                _ = signal::ctrl_c() => {
+                    log::info!("Normal shutdown");
+                    break;
+                }
             }
 
-            thread::sleep(Duration::from_secs(5));
+            let batch = self.scheduler.pop_due_batch();
+            if batch.is_empty() {
+                continue;
+            }
+
+            let (updated_batch, json) = self.payload_maker.process_batch();
+            
+            //TODO Run sequential for now
+            self.scheduler.reschedule_batch(updated_batch);
+            self.sender.transmit(json);
+
+            // End of cycle, agent sleep here
         }
+
+
+        Ok(())
     }
 }
 
-
+//TODO redo the test for new run
 #[cfg(test)]
 mod tests {
     use super::*;

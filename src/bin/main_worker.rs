@@ -6,11 +6,12 @@
 
 use gsoft_device_agent::DeviceAgent;
 
-fn main() {
+#[tokio::main]
+async fn main() {
 
     let mut agent = DeviceAgent::new();
 
-    if let Err(e) = agent.run() {
+    if let Err(e) = agent.run().await {
         eprintln!("Critial fatal error: Agent crashed!");
         eprintln!("Reason: {}", e);
 

@@ -3,10 +3,11 @@
 /// 
 
 use std::fs;
-use serde_json::json;
-use crate::utils::*;
+use serde_json::{json, Value as Json};
 
+use crate::utils::*;
 use crate::info_gatherer::Info;
+use crate::scheduler::{ScheduledTask, TaskID, AgentValue};
 
 pub struct Payload {
     info: Info,
@@ -25,7 +26,7 @@ impl Payload {
         self.info.get_timestamp()
     }
 
-    pub fn get_json_v3_fullscan(&self) -> serde_json::Value {
+    pub fn get_json_v3_fullscan(&self) -> Json {
 
         let rams_json = self.info.get_ram_list().map(|ram| {
             ram.iter().map(|ram| json!({
@@ -216,13 +217,13 @@ impl Payload {
         if let Err(e) = fs::write("doc/sample/json_v3_fullscan.md", md_content) {
             log::error!("Failed to write file 'json_v3_fullscan.md': {}", e);
         } else {
-            log::info!("Successfully saved JSON sample.");
+            log::info!("Successfully saved JSON V3 sample.");
         }
 
         payload
     }
 
-    pub fn get_json_v2_fullscan(&self) -> serde_json::Value {
+    pub fn get_json_v2_fullscan(&self) -> Json {
         
         let rams_json = self.info.get_ram_list().map(|ram| {
             ram.iter().map(|ram| json!({
@@ -375,7 +376,7 @@ impl Payload {
         payload
     }
 
-    pub fn get_json_v2_telemetry(&self) -> serde_json::Value {
+    pub fn get_json_v2_telemetry(&self) -> Json {
         let payload = json!({
             "SCAN_DATA": {
                 "COMPUTER_NAME": self.info.get_host(), 
@@ -412,4 +413,18 @@ impl Payload {
         payload
     }
 
+}
+
+pub struct PayloadMaker {
+    info: Info,
+}
+
+impl PayloadMaker {
+    pub fn new() -> Self {
+        Self { info: Info::new() }
+    }
+
+    pub fn process_batch(&mut self) -> (Vec<ScheduledTask>, Json) {
+
+    }
 }

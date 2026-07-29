@@ -3,7 +3,7 @@
 /// 
 
 use std::cmp::Ordering;
-use tokio::time::Instant;
+use tokio::time::{Instant, sleep_until};
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -274,17 +274,44 @@ impl TimerWheel {
         self.heap.push(task);
     }
 
-    pub fn pop(&mut self) -> Option<ScheduledTask> {
-        self.heap.pop()
+    pub async fn go_sleep(&self) {
+        match self.heap.peek().map(|task| task.execute_at) {
+            Some(wake_time) => {
+                log::info!("Agent go to sleep for {}", {
+                    let secs = (wake_time - Instant::now()).as_secs();
+                    if secs < 60 { format!("{secs} seconds") } else { format!("{} minutes", secs / 60) }
+                });
+                sleep_until(wake_time).await;
+            },
+            None => {
+                log::warn!("Timer Wheel empty! Temporary sleep for 5 min.");
+                sleep_until(Instant::now() + Duration::from_mins(5)).await;
+            },
+        }
     }
 
-    pub fn peek(&self) -> Option<&ScheduledTask> {
-        self.heap.peek()
+    pub fn pop_due_batch(&mut self) -> Vec<ScheduledTask> {
+        let mut batch = Vec::new();
+        while let Some(head_task) = self.heap.peek() {
+            if head_task.execute_at <= Instant::now() {
+                if let Some(due_task) = self.heap.pop() {
+                    batch.push(due_task);
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        batch
     }
 
-    //? Might not be needed anymore
-    pub fn into_vec(self) -> Vec<ScheduledTask> {
-        self.heap.into_vec()
+    pub fn reschedule_batch(&mut self, batch: Vec<ScheduledTask>) {
+        for mut task in batch {
+            if task.cycle_time > 0 {
+                task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
+                self.heap.push(task);
+            }
+        }
     }
 }
 

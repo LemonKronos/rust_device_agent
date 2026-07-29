@@ -67,6 +67,7 @@ pub fn init_config() -> TimerWheel {
     let min30 = 1800;
     let hourly = 3600;
 
+    //TODO There are more that 80 push here, is that OK
     //_ General
     default_queue.push(ScheduledTask {
         id: GeneralHost,
