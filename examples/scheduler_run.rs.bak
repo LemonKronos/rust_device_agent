@@ -54,50 +54,50 @@ pub async fn run_agent_loop(mut queue: TimerWheel) {
         // Just one single map for the whole wake-up cycle!
         let mut payload_map = Map::new();
 
-        // for mut task in batch {
-        //     let path = match task.id.get_path() {
-        //         Some(p) => p,
-        //         None => continue,
-        //     };
+        for mut task in batch {
+            let path = match task.id.get_path() {
+                Some(p) => p,
+                None => continue,
+            };
 
-        //     if let Some(new_value) = task.id.fetch_value(&mut info) {
-        //         let have_changed = match (&task.last_value, &task.limit, &new_value) {
-        //             (Some(AgentValue::Int(last)), Some(AgentValue::Int(limit)), AgentValue::Int(current)) => {
-        //                 current.abs_diff(*last) >= *limit
-        //             },
+            if let Some(new_value) = task.id.fetch_value(&mut info) {
+                let have_changed = match (&task.last_value, &task.limit, &new_value) {
+                    (Some(AgentValue::Int(last)), Some(AgentValue::Int(limit)), AgentValue::Int(current)) => {
+                        current.abs_diff(*last) >= *limit
+                    },
 
-        //             (Some(AgentValue::Float(last)), Some(AgentValue::Float(limit)), AgentValue::Float(current)) => {
-        //                 (current - last).abs() >= *limit
-        //             },
+                    (Some(AgentValue::Float(last)), Some(AgentValue::Float(limit)), AgentValue::Float(current)) => {
+                        (current - last).abs() >= *limit
+                    },
 
-        //             (Some(last), None, current) => {
-        //                 last != current
-        //             },
+                    (Some(last), None, current) => {
+                        last != current
+                    },
 
-        //             (None, _, _) => true,
+                    (None, _, _) => true,
 
-        //             _ => true,
-        //         };
+                    _ => true,
+                };
                 
-        //         if have_changed {
-        //             task.last_value = Some(new_value.clone());
+                if have_changed {
+                    task.last_value = Some(new_value.clone());
 
-        //             let json_value = match new_value {
-        //                 AgentValue::Int(i) => json!(i),
-        //                 AgentValue::Float(f) => json!(f),
-        //                 AgentValue::Text(s) => json!(s),
-        //             };
+                    let json_value = match new_value {
+                        AgentValue::Int(i) => json!(i),
+                        AgentValue::Float(f) => json!(f),
+                        AgentValue::Text(s) => json!(s),
+                    };
 
-        //             insert_nested(&mut payload_map, path, json_value);
-        //         }
-        //     }
+                    insert_nested(&mut payload_map, path, json_value);
+                }
+            }
 
-        //     // Reschedule the task
-        //     if task.cycle_time > 0 {
-        //         task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
-        //         queue.push(task); 
-        //     }
-        // }
+            // Reschedule the task
+            if task.cycle_time > 0 {
+                task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
+                queue.push(task); 
+            }
+        }
 
         // --- STEP 5: Hand the JSON to sender ---
         if !payload_map.is_empty() {

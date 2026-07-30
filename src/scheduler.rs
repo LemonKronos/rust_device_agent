@@ -22,7 +22,7 @@ pub enum AgentValue {
     Float(f64),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TaskID {
     //: General
     #[serde(rename = "general.host")]
@@ -192,7 +192,7 @@ pub enum TaskID {
     #[serde(rename = "network.ssid")]
     NetworkSsid,
 
-    //: Processes
+    //: Top Processes
     #[serde(rename = "process_count")]
     ProcessCount,
     #[serde(rename = "top_process.name")]
@@ -203,6 +203,16 @@ pub enum TaskID {
     TopProcessMemory,
     #[serde(rename = "top_process.runtime")]
     TopProcessRuntime,
+
+    //: All Processes
+    #[serde(rename = "all_process.name")]
+    AllProcessName,
+    #[serde(rename = "all_process.cpu")]
+    AllProcessCpu,
+    #[serde(rename = "all_process.memory")]
+    AllProcessMemory,
+    #[serde(rename = "all_process.runtime")]
+    AllProcessRuntime,
 
     //: Battery
     #[serde(rename = "battery.percentage")]
@@ -234,7 +244,7 @@ pub struct ScheduledTask {
     pub cycle_time: u64,
     pub execute_at: Instant,
     pub limit: Option<AgentValue>,
-    pub last_value: Option<AgentValue>,
+    // pub last_value: Option<AgentValue>,
 }
 
 impl PartialEq for ScheduledTask {

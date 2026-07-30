@@ -58,7 +58,7 @@ impl DeviceAgent {
                 continue;
             }
 
-            let (updated_batch, json) = self.payload_maker.process_batch();
+            let (updated_batch, json) = self.payload_maker.process_batch(batch);
             
             //TODO Run sequential for now
             self.scheduler.reschedule_batch(updated_batch);

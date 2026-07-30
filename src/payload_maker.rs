@@ -7,7 +7,12 @@ use serde_json::{json, Value as Json};
 
 use crate::utils::*;
 use crate::info_gatherer::Info;
-use crate::scheduler::{ScheduledTask, TaskID, AgentValue};
+use crate::scheduler::{ScheduledTask, TaskID, {TaskID::*}, AgentValue};
+use crate::types;
+
+mod serialize_type;
+use serialize_type::*;
+
 
 pub struct Payload {
     info: Info,
@@ -134,7 +139,7 @@ impl Payload {
             })).collect::<Vec<_>>()
         });
 
-        //TODO
+        //TODO peripheral
         // let peripheral_json: Vec<_> = 
 
         let payload = json!({
@@ -424,7 +429,239 @@ impl PayloadMaker {
         Self { info: Info::new() }
     }
 
-    pub fn process_batch(&mut self) -> (Vec<ScheduledTask>, Json) {
+    pub fn process_batch(&mut self, mut batch: Vec<ScheduledTask>) -> (Vec<ScheduledTask>, Json) {
+        //: Flags list
+        let mut rams_physical = false;
+        let mut gpus = false;
+        let mut disks_logical = false;
+        let mut disks_physical = false;
+        let mut disks_physical_partition = false;
+        let mut networks = false;
+        let mut processes = false;
+        let mut software = false;
 
+        //: Check to raise flags
+        for task in &batch {
+            match task.id {
+                | RamPhysicalBank
+                | RamPhysicalConfigSpeed
+                | RamPhysicalFormFactor
+                | RamPhysicalName
+                | RamPhysicalSerial
+                | RamPhysicalSize
+                | RamPhysicalType => rams_physical = true,
+
+                | GpuDriver
+                | GpuFreq
+                | GpuMaxClock
+                | GpuName
+                | GpuSerial
+                | GpuTempe
+                | GpuUtilization
+                | GpuVramTotal
+                | GpuVramUsage => gpus = true,
+
+                | DiskLogicalFileName
+                | DiskLogicalMountPoint
+                | DiskLogicalName
+                | DiskLogicalRemovable
+                | DiskLogicalTotal
+                | DiskLogicalUsed => disks_logical = true,
+
+                | DiskPhysicalDrive
+                | DiskPhysicalFirmware
+                | DiskPhysicalIndex
+                | DiskPhysicalInterface
+                | DiskPhysicalMedia
+                | DiskPhysicalParted
+                | DiskPhysicalSerial
+                | DiskPhysicalSize
+                | DiskPhysicalStatus => disks_physical = true,
+
+                | DiskPhysicalPartitionName
+                | DiskPhysicalPartitionSize => { disks_physical = true; disks_physical_partition = true },
+
+                | NetworkCard
+                | NetworkConfigSpeed
+                | NetworkDownload
+                | NetworkIpv4
+                | NetworkIpv6
+                | NetworkMac
+                | NetworkMtu
+                | NetworkName
+                | NetworkSsid
+                | NetworkUpload => networks = true,
+
+                | TopProcessCpu
+                | TopProcessMemory
+                | TopProcessName
+                | TopProcessRuntime
+                | AllProcessCpu
+                | AllProcessMemory
+                | AllProcessName
+                | AllProcessRuntime => processes = true,
+
+                | SoftwareInstallDate
+                | SoftwareName
+                | SoftwareSize
+                | SoftwareSource
+                | SoftwareVersion => software = true,
+
+                _ => continue,
+            }
+        }
+        
+        //: Define parent field
+        let mut ram_physical_list: Option<&Vec<types::Ram>> = None;
+        let mut gpu_list: Option<&Vec<types::Gpu>> = None;
+        let mut disk_logical_list: Option<&Vec<types::LogicalDisk>> = None;
+        let mut disk_physical_list: Option<&Vec<types::PhysicalDisk>> = None;
+
+        //: Build payload
+        let mut info_payload = InfoPayload::default();
+        for task in &mut batch {
+            match task.id {
+                GeneralHost => {
+                    let general = info_payload.general.get_or_insert_with(GeneralPayload::default);
+                    general.host = check_diff_update(task, self.info.get_host());
+                },
+                GeneralBootTime => {
+                    let general = info_payload.general.get_or_insert_with(GeneralPayload::default);
+                    general.boot_time = check_diff_update(task, self.info.get_boot_time());
+                }
+                
+                DiskPhysicalFirmware => {
+                    let disk_payload = info_payload.disk.get_or_insert_with(DiskPayload::default);
+                    let disk_physical_payload_list = disk_payload.physical.get_or_insert_with(Vec::new);
+
+                    if disk_physical_list.is_none() {
+                        disk_physical_list = self.info.get_physical_disk_list();
+                    }
+
+                    if disk_physical_payload_list.is_empty() {
+                        disk_physical_list.map(|pd| {
+                            pd.iter().map(|pd| {
+                                let new_pd_payload = PhysicalDiskPayload::default();
+                                new_pd_payload.firmware = pd.firmware;
+                                disk_physical_payload_list.push(new_pd_payload);
+                            })
+                        })
+                    } else {
+                        
+                    };
+
+                    disk_physical_payload_list.push(value);
+
+
+                }
+                _ => log::warn!("Unknown task ID: {:?}", task.id),
+            }
+        }
+
+
+        //: Finalize json
+        let info_json = match serde_json::to_value(info_payload) {
+            Ok(json) => json,
+            Err(e) => {
+                let err_msg = e.to_string();
+                serde_json::to_value(err_msg).expect("Can not error here")
+            },
+        };
+
+        let payload_json = json!({
+            "agent_version": "0.3.0.scheduler_run",
+            "in_test": true,
+            "info": info_json,
+        });
+
+        (batch, payload_json)
+    }
+}
+
+//: Helper fn
+fn check_diff_update<T: CheckDiffUpdate>(task: &mut ScheduledTask, new_value: T) -> Option<AgentValue> {
+    new_value.check_diff_update(task)
+}
+
+pub trait CheckDiffUpdate {
+    fn check_diff_update(self, task: &mut ScheduledTask) -> Option<AgentValue>;
+}
+
+impl CheckDiffUpdate for u64 {
+    fn check_diff_update(self, task: &mut ScheduledTask) -> Option<AgentValue> {
+        match (&task.last_value, &task.limit) {
+            //: Have a thresshold => compare
+            (Some(AgentValue::Int(last)), Some(AgentValue::Int(limit))) => {
+                if self.abs_diff(*last) >= *limit {
+                    task.last_value = Some(AgentValue::Int(self));
+                    Some(AgentValue::Int(self))
+                } else {
+                    None
+                }
+            },
+            //: Don't have a thresshold => update if changed
+            (Some(AgentValue::Int(last)), None) => {
+                if self != *last {
+                    task.last_value = Some(AgentValue::Int(self));
+                    Some(AgentValue::Int(self))
+                } else {
+                    None
+                }
+            },
+            //: Init or else => fill
+            _ => {
+                task.last_value = Some(AgentValue::Int(self));
+                Some(AgentValue::Int(self))
+            },
+        }
+    }
+}
+
+impl CheckDiffUpdate for f64 {
+    fn check_diff_update(self, task: &mut ScheduledTask) -> Option<AgentValue> {
+        match (&task.last_value, &task.limit) {
+            //: Have a thresshold => compare
+            (Some(AgentValue::Float(last)), Some(AgentValue::Float(limit))) => {
+                if (self - last).abs() >= *limit {
+                    task.last_value = Some(AgentValue::Float(self));
+                    Some(AgentValue::Float(self))
+                } else {
+                    None
+                }
+            },
+            //: Don't have a thresshold => update if changed
+            (Some(AgentValue::Float(last)), None) => {
+                if self != *last {
+                    task.last_value = Some(AgentValue::Float(self));
+                    Some(AgentValue::Float(self))
+                } else {
+                    None
+                }
+            },
+            //: Init or else => fill
+            _ => {
+                task.last_value = Some(AgentValue::Float(self));
+                Some(AgentValue::Float(self))
+            },
+        }
+    }
+}
+
+impl CheckDiffUpdate for String {
+    fn check_diff_update(self, task: &mut ScheduledTask) -> Option<AgentValue> {
+        match &task.last_value {
+            Some(AgentValue::Text(last)) => {
+                if self != *last {
+                    task.last_value = Some(AgentValue::Text(self.clone()));
+                    Some(AgentValue::Text(self))
+                } else {
+                    None
+                }
+            },
+            _ => {
+                task.last_value = Some(AgentValue::Text(self.clone()));
+                Some(AgentValue::Text(self))
+            },
+        }
     }
 }
