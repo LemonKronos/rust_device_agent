@@ -3,6 +3,8 @@
 /// 
 
 use std::time::SystemTime;
+use serde::Serialize;
+use serde_with::skip_serializing_none;
 
 /// RAM
 #[derive(Debug, Default)]
@@ -229,7 +231,7 @@ impl PhysicalDisk {
     }
 
     pub fn get_partition_number(&self) -> u64 {
-        self.partition.iter().count() as u64
+        self.partition.as_ref().map_or(0, |v| v.len() as u64)
     }
 
     pub fn get_partition(&self) -> Option<&Vec<Partition>> {
@@ -379,11 +381,18 @@ impl<'a> Process<'a> {
 
 /// Software
 //TODO deal with the jungle of Linux software
-#[derive(Debug)]
+#[derive(Debug, Default, Serialize, PartialEq)]
+#[skip_serializing_none]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct Software {
+    #[serde(rename = "SOFTWARE_NAME")]
     pub name: String,
-    pub version: String,
-    pub source: String,
+
+    pub version: Option<String>,
+
+    #[serde(rename = "PUBLISHER")]
+    pub source: Option<String>,
+    
     pub size: f64,
     pub install_date: Option<SystemTime>,
 }
@@ -392,8 +401,8 @@ impl Software {
     pub fn new() -> Self {
         Self {
             name: "Unknown".to_string(),
-            version: "Unknown".to_string(),
-            source: "Unknown".to_string(),
+            version: None,
+            source: None,
             size: 0.0,
             install_date: None,
         }
@@ -403,12 +412,12 @@ impl Software {
         &self.name
     }
 
-    pub fn get_version(&self) -> &str {
-        &self.version
+    pub fn get_version(&self) -> Option<&str> {
+        self.version.as_deref()
     }
 
-    pub fn get_source(&self) -> &str {
-        &self.source
+    pub fn get_source(&self) -> Option<&str> {
+        self.source.as_deref()
     }
 
     /// Return package size in Megabyte

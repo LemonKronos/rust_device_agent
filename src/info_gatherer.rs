@@ -65,7 +65,7 @@ impl Info {
     }
 
     //: Machine info
-    pub fn get_product_serial(&self) -> &str {
+    pub fn get_product_serial(&self) -> Option<&str> {
         self.os_specific.get_product_serial()
     }
 
@@ -90,11 +90,11 @@ impl Info {
         self.os_specific.get_motherboard()
     }
 
-    pub fn get_motherboard_serial(&self) -> &str {
+    pub fn get_motherboard_serial(&self) -> Option<&str> {
         self.os_specific.get_motherboard_serial()
     }
 
-    pub fn get_temp_mobo(&self) -> Option<f64> {
+    pub fn get_tempe_mobo(&self) -> Option<f64> {
         self.os_specific.get_tempe_mobo()
     }
 
@@ -163,7 +163,7 @@ impl Info {
     }
 
     /// Return CPU internal sensor temperature in ℃
-    pub fn get_cpu_temp(&self) -> Option<f64> {
+    pub fn get_cpu_tempe(&self) -> Option<f64> {
         self.os_specific.get_tempe_cpu()
     }
 

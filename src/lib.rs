@@ -15,13 +15,12 @@ pub mod scheduler;
 pub mod config_handler;
 
 use crate::scheduler::TimerWheel;
-use crate::payload_maker::{Payload, PayloadMaker};
+use crate::payload_maker::PayloadMaker;
 use crate::sender::Sender;
 use crate::utils::*;
 use crate::config_handler::*;
 
 pub struct DeviceAgent {
-    payload: Payload,
     payload_maker: PayloadMaker,
     sender: Sender,
     scheduler: TimerWheel,
@@ -30,7 +29,6 @@ pub struct DeviceAgent {
 impl DeviceAgent {
     pub fn new() -> Self {
         Self {
-            payload: Payload::new(),
             payload_maker: PayloadMaker::new(),
             sender: Sender::new(),
             scheduler: load_config(),
@@ -55,14 +53,22 @@ impl DeviceAgent {
 
             let batch = self.scheduler.pop_due_batch();
             if batch.is_empty() {
+                log::warn!("Batch empty, AHHHHHHHH");
                 continue;
             }
 
-            let (updated_batch, json) = self.payload_maker.process_batch(batch);
+            let json = self.payload_maker.process_batch_mock_up(&batch);
             
             //TODO Run sequential for now
-            self.scheduler.reschedule_batch(updated_batch);
-            self.sender.transmit(json);
+            self.scheduler.reschedule_batch(batch);
+            match self.sender.transmit(json) {
+                Ok(_) => {
+
+                },
+                Err(e) => {
+                    log::warn!("Sender warning: {}", e)
+                },
+            }
 
             // End of cycle, agent sleep here
         }
@@ -103,23 +109,24 @@ mod tests {
 
     #[test]
     fn test_limit_agent_runtime() {
-        let agent = DeviceAgent::new();
+        let mut agent = DeviceAgent::new();
         let start = std::time::Instant::now();
-        let _payload_v3_fullscan = agent.payload.get_json_v3_fullscan();
+
+        let mut full_wheel: TimerWheel = init_config();
+        let batch = full_wheel.pop_due_batch();
+        let _ = agent.payload_maker.process_batch_mock_up(&batch);
+        full_wheel.reschedule_batch(batch);
+
         assert!(start.elapsed().as_millis() < 500, "Fullscan took too long, over {} ms", start.elapsed().as_millis());
     }
 
     #[test]
     fn test_payload_has_no_empty_strings() {
-        let agent = DeviceAgent::new();
+        let mut agent = DeviceAgent::new();
 
-        let payload_v3_fullscan = agent.payload.get_json_v3_fullscan();
-        assert_no_empty_strings(&payload_v3_fullscan);
-
-        let payload_v2_fullscan = agent.payload.get_json_v2_fullscan();
-        assert_no_empty_strings(&payload_v2_fullscan);
-
-        let payload_v2_telemetry = agent.payload.get_json_v2_telemetry();
-        assert_no_empty_strings(&payload_v2_telemetry);
+        let mut full_wheel: TimerWheel = init_config();
+        let batch = full_wheel.pop_due_batch();
+        let payload = agent.payload_maker.process_batch_mock_up(&batch);
+        assert_no_empty_strings(&payload);
     }
 }

@@ -3,7 +3,7 @@ use crate::types::*;
 pub trait OsSpecificInterface {
     fn refresh(&mut self);
 
-    fn get_product_serial(&self) -> &str;
+    fn get_product_serial(&self) -> Option<&str>;
     fn get_architecture(&self) -> &str;
     fn get_producer(&self) -> &str;
     fn get_system_model(&self) -> &str;
@@ -16,7 +16,7 @@ pub trait OsSpecificInterface {
     fn get_os_name(&self) -> &str;
 
     fn get_motherboard(&self) -> &str;
-    fn get_motherboard_serial(&self) -> &str;
+    fn get_motherboard_serial(&self) -> Option<&str>;
     fn get_cpu_socket(&self) -> Option<u64>;
     fn get_ram_socket(&self) -> Option<u64>;
     fn get_gpu_socket(&self) -> Option<u64>;

@@ -2,7 +2,7 @@ use std::time::Duration;
 use serde_json::Value;
 use ureq::tls::TlsConfig;
 
-const SERVER_ENDPOINT: &str = "https://172.20.2.113:44301/api/Agent/Telemetry";
+const SERVER_ENDPOINT: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
 const API_KEY: &str = "72895e95e7634de2a8f554abaf10ec0e7a46fff57b114b68b74efcd65a5d3ec5";
 
 pub struct Sender {

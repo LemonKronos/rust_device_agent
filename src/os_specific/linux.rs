@@ -417,14 +417,11 @@ impl OsSpecificInterface for OsSpecificBackend {
             None
         };
         
-        todo!("What to refresh?")
+        // todo!("What to refresh?")
     }
 
-    fn get_product_serial(&self) -> &str {
-        match &self.cached_info.product_serial {
-            Some(info) => info.as_str(),
-            None => "Unknown",
-        }
+    fn get_product_serial(&self) -> Option<&str> {
+        self.cached_info.product_serial.as_deref()
     }
 
     fn get_architecture(&self) -> &str {
@@ -487,11 +484,8 @@ impl OsSpecificInterface for OsSpecificBackend {
         }
     }
 
-    fn get_motherboard_serial(&self) -> &str {
-        match &self.cached_info.mobo_serial {
-            Some(info) => info.as_str(),
-            None => "Unknown",
-        }
+    fn get_motherboard_serial(&self) -> Option<&str> {
+        self.cached_info.mobo_serial.as_deref()
     }
 
     fn get_cpu_socket(&self) -> Option<u64> {
@@ -595,8 +589,8 @@ impl OsSpecificInterface for OsSpecificBackend {
             if let Some((key, value)) = line.split_once(": ") {
                 match key {
                     "Package" => current.name = value.to_string(),
-                    "Version" => current.version = value.to_string(),
-                    "Maintainer" => current.source = value.split('<').next().unwrap_or(value).trim().to_string(),
+                    "Version" => current.version = Some(value.to_string()),
+                    "Maintainer" => current.source = Some(value.split('<').next().unwrap_or(value).trim().to_string()),
                     "Installed-Size" => current.size = value.parse::<f64>().unwrap_or_default(),
                     _ => {},
                 }

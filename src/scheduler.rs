@@ -22,7 +22,7 @@ pub enum AgentValue {
     Float(f64),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TaskID {
     //: General
     #[serde(rename = "general.host")]
@@ -41,6 +41,8 @@ pub enum TaskID {
     MachineModel,
     #[serde(rename = "machine.type")]
     MachineType,
+    #[serde(rename = "machine.serial")]
+    MachineSerial,
 
     //: Motherboard
     #[serde(rename = "motherboard.name")]
@@ -161,14 +163,14 @@ pub enum TaskID {
     DiskPhysicalStatus,
     #[serde(rename = "disk.physical.media")]
     DiskPhysicalMedia,
+    #[serde(rename = "disk.physical.model")]
+    DiskPhysicalModel,
     #[serde(rename = "disk.physical.interface")]
     DiskPhysicalInterface,
-    #[serde(rename = "disk.physical.parted")]
-    DiskPhysicalParted,
-    #[serde(rename = "disk.physical.partition.name")]
-    DiskPhysicalPartitionName,
-    #[serde(rename = "disk.physical.partition.size")]
-    DiskPhysicalPartitionSize,
+    #[serde(rename = "disk.physical.partition_num")]
+    DiskPhysicalNumPartition,
+    #[serde(rename = "disk.physical.partition")]
+    DiskPhysicalPartition,
 
     //: Network
     #[serde(rename = "network.name")]
@@ -220,17 +222,21 @@ pub enum TaskID {
     #[serde(rename = "battery.is_plugged_in")]
     BatteryIsPluggedIn,
 
-    //: Software
-    #[serde(rename = "software.name")]
-    SoftwareName,
-    #[serde(rename = "software.version")]
-    SoftwareVersion,
-    #[serde(rename = "sofware.source")]
-    SoftwareSource,
-    #[serde(rename = "software.size")]
-    SoftwareSize,
-    #[serde(rename = "software.install_date")]
-    SoftwareInstallDate,
+    //: Software, currently only allow scan all
+    #[serde(rename = "software")]
+    Software,
+
+    //TODO coming soon
+    // #[serde(rename = "software.name")]
+    // SoftwareName,
+    // #[serde(rename = "software.version")]
+    // SoftwareVersion,
+    // #[serde(rename = "sofware.source")]
+    // SoftwareSource,
+    // #[serde(rename = "software.size")]
+    // SoftwareSize,
+    // #[serde(rename = "software.install_date")]
+    // SoftwareInstallDate,
 
     // Catch-all
     #[serde(other)]
@@ -238,13 +244,12 @@ pub enum TaskID {
 }
 
 /// ScheduledTask in Timer Wheel
- #[derive(Debug)]
+ #[derive(Debug, Clone)]
 pub struct ScheduledTask {
     pub id: TaskID,
     pub cycle_time: u64,
     pub execute_at: Instant,
     pub limit: Option<AgentValue>,
-    // pub last_value: Option<AgentValue>,
 }
 
 impl PartialEq for ScheduledTask {
@@ -287,11 +292,16 @@ impl TimerWheel {
     pub async fn go_sleep(&self) {
         match self.heap.peek().map(|task| task.execute_at) {
             Some(wake_time) => {
-                log::info!("Agent go to sleep for {}", {
-                    let secs = (wake_time - Instant::now()).as_secs();
-                    if secs < 60 { format!("{secs} seconds") } else { format!("{} minutes", secs / 60) }
-                });
-                sleep_until(wake_time).await;
+                if wake_time > Instant::now() {
+
+                    log::info!("Agent go to sleep for {}", {
+                        let secs = (wake_time - Instant::now()).as_secs();
+                        if secs < 60 { format!("{secs} seconds") } else { format!("{} minutes", secs / 60) }
+                    });
+                    sleep_until(wake_time).await;
+                } else {
+                    log::info!("Task already due, skipping sleep");
+                }
             },
             None => {
                 log::warn!("Timer Wheel empty! Temporary sleep for 5 min.");
@@ -310,6 +320,8 @@ impl TimerWheel {
                 else {
                     break;
                 }
+            } else {
+                break;
             }
         }
         batch
@@ -319,6 +331,7 @@ impl TimerWheel {
         for mut task in batch {
             if task.cycle_time > 0 {
                 task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
+                // log::info!("task {:?} have been rescheduled", &task.id);
                 self.heap.push(task);
             }
         }
@@ -403,7 +416,6 @@ impl<'de> Deserialize<'de> for TimerWheel {
                         cycle_time,
                         execute_at,
                         limit,
-                        last_value: None,
                     });
                 }
 

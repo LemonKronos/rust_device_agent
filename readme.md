@@ -17,3 +17,6 @@
 - <mark style="background: #CF8861;">If send when there are changes, why to we need time option at all, just send full at init and update through out with heartbeat</mark>: What the option really mean is when to send, but that is when to scan. That let user config Agent resource, only scan cycle that user need, Agent do scan cycle, but only send when info change
 - TODO: Which mean info_gatherer need a cache, so it check everytime a field is called
 - So there should be also a case when usage < total, so should also check total, cause maybe it just also change. There could be other upward propagate case
+- <mark style="background: #FF0000;">The cache logic need to change, since it just read all. The refesh need to be specific!</mark>. This is currently skip for mockup solution!
+- Disk physical partition need a file type
+- AgentValue may need bool option

@@ -39,7 +39,7 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.refresh();
     }
 
-    fn get_product_serial(&self) -> &str {
+    fn get_product_serial(&self) -> Option<&str> {
         self.backend.get_product_serial()
     }
 
@@ -79,7 +79,7 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_motherboard()
     }
 
-    fn get_motherboard_serial(&self) -> &str {
+    fn get_motherboard_serial(&self) -> Option<&str> {
         self.backend.get_motherboard_serial()
     }
 
