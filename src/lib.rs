@@ -16,9 +16,12 @@ pub mod config_handler;
 
 use crate::scheduler::TimerWheel;
 use crate::payload_maker::PayloadMaker;
-use crate::sender::Sender;
+use crate::sender::{Sender, ServerCmd};
 use crate::utils::*;
 use crate::config_handler::*;
+
+/// Allow software scanning or not
+const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
 
 pub struct DeviceAgent {
     payload_maker: PayloadMaker,
@@ -40,37 +43,57 @@ impl DeviceAgent {
 
         log::info!("Agent loop start");
 
-        loop {
-            tokio::select! {
-                _ = self.scheduler.go_sleep() => {
-                    log::info!("Agent wake up")
-                },
-                _ = signal::ctrl_c() => {
-                    log::info!("Normal shutdown");
-                    break;
-                }
-            }
+        let mut full_scan = true; // Init with full scan
 
+        loop {
             let batch = self.scheduler.pop_due_batch();
             if batch.is_empty() {
-                log::warn!("Batch empty, AHHHHHHHH");
+                log::warn!("Agent wake up but batch is empty!");
                 continue;
             }
 
-            let json = self.payload_maker.process_batch_mock_up(&batch);
+            let json = self.payload_maker.process_batch(&batch, full_scan);
+            full_scan = false;
             
             //TODO Run sequential for now
-            self.scheduler.reschedule_batch(batch);
             match self.sender.transmit(json) {
-                Ok(_) => {
-
+                Ok(cmds) => {
+                    for cmd in cmds {
+                        match cmd {
+                            ServerCmd::AskFullScan => {
+                                log::info!("Server ask for Full Scan");
+                                full_scan = true;
+                                self.scheduler.skip_sleep();
+                            },
+                            ServerCmd::UpdateConfig(new_config) => {
+                                todo!()
+                            },
+                            ServerCmd::UpdateAgent { version } => {
+                                log::info!("Server aske to update to agent version {} over current version {}", version, "0.3.0.dev")
+                            },
+                            ServerCmd::Unknown => {
+                                log::warn!("Agent receive an Unknown Command")
+                            }
+                        }
+                    }
                 },
                 Err(e) => {
                     log::warn!("Sender warning: {}", e)
                 },
             }
 
-            // End of cycle, agent sleep here
+            self.scheduler.reschedule_batch(batch);
+
+            tokio::select! {
+                _ = self.scheduler.go_sleep() => {
+                    // empty
+                },
+                _ = signal::ctrl_c() => {
+                    self.scheduler.save_wheel();
+                    log::info!("Normal shutdown completed, config saved");
+                    break;
+                }
+            }
         }
 
 
@@ -78,7 +101,8 @@ impl DeviceAgent {
     }
 }
 
-//TODO redo the test for new run
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,9 +136,9 @@ mod tests {
         let mut agent = DeviceAgent::new();
         let start = std::time::Instant::now();
 
-        let mut full_wheel: TimerWheel = init_config();
+        let mut full_wheel: TimerWheel = load_config();
         let batch = full_wheel.pop_due_batch();
-        let _ = agent.payload_maker.process_batch_mock_up(&batch);
+        let _ = agent.payload_maker.process_batch(&batch, true);
         full_wheel.reschedule_batch(batch);
 
         assert!(start.elapsed().as_millis() < 500, "Fullscan took too long, over {} ms", start.elapsed().as_millis());
@@ -124,9 +148,9 @@ mod tests {
     fn test_payload_has_no_empty_strings() {
         let mut agent = DeviceAgent::new();
 
-        let mut full_wheel: TimerWheel = init_config();
+        let mut full_wheel: TimerWheel = load_config();
         let batch = full_wheel.pop_due_batch();
-        let payload = agent.payload_maker.process_batch_mock_up(&batch);
+        let payload = agent.payload_maker.process_batch(&batch, true);
         assert_no_empty_strings(&payload);
     }
 }

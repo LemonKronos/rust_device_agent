@@ -1,9 +1,37 @@
 use std::time::Duration;
-use serde_json::Value;
+use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
+use serde::Deserialize;
 
 const SERVER_ENDPOINT: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
 const API_KEY: &str = "72895e95e7634de2a8f554abaf10ec0e7a46fff57b114b68b74efcd65a5d3ec5";
+
+/// APB wrapper
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AbpResponse {
+    pub success: bool,
+    pub result: Option<AbpResult>, 
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AbpResult {
+    pub result: Option<String>,
+    pub error_desc: Option<String>,
+    pub cmds: Option<Vec<ServerCmd>>, 
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "cmd", content = "payload", rename_all = "PascalCase")]
+pub enum ServerCmd {
+    AskFullScan,
+    UpdateConfig(Json),
+    UpdateAgent { version: String },
+
+    #[serde(other)]
+    Unknown,
+}
 
 pub struct Sender {
     server_endpoint: String,
@@ -28,15 +56,31 @@ impl Sender {
         }
     }
 
-    pub fn transmit(&self, payload: Value) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn transmit(&self, payload: Json) -> Result<Vec<ServerCmd>, Box<dyn std::error::Error>> {
         let response = self.agent.post(&self.server_endpoint)
             .header("X-Agent-Key", API_KEY) 
             .send_json(&payload)?;
 
         let reply_text = response.into_body().read_to_string()?;
-
         log::info!("Success! Edge server replied: {}", reply_text);
+
+        if reply_text.trim().is_empty() {
+            return Ok(vec![]);
+        }
+
+        let parsed_rep: AbpResponse = serde_json::from_str(&reply_text).unwrap_or_else(|e| {
+            log::warn!("Json parse error from server: {}", e);
+            AbpResponse { success: false, result: None }
+        });
+
+        if let Some(rep) = &parsed_rep.result {
+            if let Some(err) = &rep.error_desc {
+                log::error!("Server return error description: {}", err);
+            }
+        }
+
+        let cmds = parsed_rep.result.and_then(|rep| rep.cmds).unwrap_or_else(|| vec![]);
         
-        Ok(())
+        Ok(cmds)
     }
 }

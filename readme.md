@@ -20,3 +20,4 @@
 - <mark style="background: #FF0000;">The cache logic need to change, since it just read all. The refesh need to be specific!</mark>. This is currently skip for mockup solution!
 - Disk physical partition need a file type
 - AgentValue may need bool option
+- Save the config when shut down don't seem like a good idea

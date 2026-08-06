@@ -3,23 +3,26 @@
 /// 
 
 use std::cmp::Ordering;
+use std::collections::BinaryHeap;
+use std::fmt;
+use std::time::{Duration, SystemTime};
 use tokio::time::{Instant, sleep_until};
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::BinaryHeap;
-use std::fmt;
-use std::time::{Duration, SystemTime};
+use serde_json::Value as Json;
 
 use crate::utils::FormatTime;
+use  crate::config_handler;
 
-/// AgentValue as dynamic type for last_value and limit, which could be either u64, f64 or String
+/// AgentValue as dynamic type for last_value and limit, which could be either u64, f64 or String or bool
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AgentValue {
     Text(String),
     Int(u64),
     Float(f64),
+    Bool(bool),
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -276,12 +279,16 @@ impl PartialOrd for ScheduledTask {
 #[derive(Debug, Default)]
 pub struct TimerWheel {
     pub heap: BinaryHeap<ScheduledTask>,
+    init_tasks: Vec<ScheduledTask>,
+    skip_sleep: bool,
 }
 
 impl TimerWheel {
     pub fn new() -> Self {
         Self {
             heap: BinaryHeap::new(),
+            init_tasks: Vec::new(),
+            skip_sleep: false,
         }
     }
 
@@ -289,7 +296,12 @@ impl TimerWheel {
         self.heap.push(task);
     }
 
-    pub async fn go_sleep(&self) {
+    pub async fn go_sleep(&mut self) {
+        if self.skip_sleep == true {
+            self.skip_sleep = false;
+            return;
+        }
+
         match self.heap.peek().map(|task| task.execute_at) {
             Some(wake_time) => {
                 if wake_time > Instant::now() {
@@ -308,6 +320,11 @@ impl TimerWheel {
                 sleep_until(Instant::now() + Duration::from_mins(5)).await;
             },
         }
+    }
+
+    pub fn skip_sleep(&mut self) {
+        log::info!("Agent skip sleep");
+        self.skip_sleep = true;
     }
 
     pub fn pop_due_batch(&mut self) -> Vec<ScheduledTask> {
@@ -329,12 +346,27 @@ impl TimerWheel {
 
     pub fn reschedule_batch(&mut self, batch: Vec<ScheduledTask>) {
         for mut task in batch {
-            if task.cycle_time > 0 {
+            if task.cycle_time > 0 { // cycle task being re-schedule
                 task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
                 // log::info!("task {:?} have been rescheduled", &task.id);
                 self.heap.push(task);
+            } else { // one-pass task, wait to be re-added and saved
+                self.init_tasks.push(task);
             }
         }
+    }
+
+    /// Apply the config change directly to the wheel, and immediately save
+    pub fn update_wheel(&mut self, config: Json) {
+        todo!()
+    }
+
+    pub fn save_wheel(&mut self) {
+        for task in self.init_tasks.drain(..) {
+            self.heap.push(task);
+        }
+
+        config_handler::save_config(&self);
     }
 }
 
@@ -421,6 +453,8 @@ impl<'de> Deserialize<'de> for TimerWheel {
 
                 Ok(TimerWheel {
                     heap: BinaryHeap::from(tasks),
+                    init_tasks: Vec::new(),
+                    skip_sleep: false,
                 })
             }
         }

@@ -6,8 +6,6 @@
 /// Note that this is WHEN TO SCAN, not when to send. Agent only send when info change
 /// 
 
-const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) && true;
-
 use std::fs;
 use std::path::Path;
 use tokio::time::Instant;
@@ -15,6 +13,7 @@ use tokio::time::Instant;
 use crate::scheduler::TaskID::*;
 use crate::scheduler::{ScheduledTask,TimerWheel};
 use crate::utils::flatten_config;
+use super::SCAN_SOFTWARE;
 
 const CONFIG_PATH: &str = "doc/config.json";
 
