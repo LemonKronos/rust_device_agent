@@ -2,6 +2,7 @@
 /// Timer wheel 
 /// 
 
+use rustc_hash::FxHashMap;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::fmt;
@@ -251,8 +252,8 @@ pub enum TaskID {
 pub struct ScheduledTask {
     pub id: TaskID,
     pub cycle_time: u64,
-    pub execute_at: Instant,
     pub limit: Option<AgentValue>,
+    pub execute_at: Instant,
 }
 
 impl PartialEq for ScheduledTask {
@@ -279,7 +280,7 @@ impl PartialOrd for ScheduledTask {
 #[derive(Debug, Default)]
 pub struct TimerWheel {
     pub heap: BinaryHeap<ScheduledTask>,
-    init_tasks: Vec<ScheduledTask>,
+    dead_tasks: Vec<ScheduledTask>,
     skip_sleep: bool,
 }
 
@@ -287,7 +288,7 @@ impl TimerWheel {
     pub fn new() -> Self {
         Self {
             heap: BinaryHeap::new(),
-            init_tasks: Vec::new(),
+            dead_tasks: Vec::new(),
             skip_sleep: false,
         }
     }
@@ -297,17 +298,18 @@ impl TimerWheel {
     }
 
     pub async fn go_sleep(&mut self) {
-        if self.skip_sleep == true {
+        if self.skip_sleep {
             self.skip_sleep = false;
             return;
         }
 
+        let now = Instant::now();
         match self.heap.peek().map(|task| task.execute_at) {
             Some(wake_time) => {
-                if wake_time > Instant::now() {
+                if wake_time > now {
 
                     log::info!("Agent go to sleep for {}", {
-                        let secs = (wake_time - Instant::now()).as_secs();
+                        let secs = (wake_time - now).as_secs();
                         if secs < 60 { format!("{secs} seconds") } else { format!("{} minutes", secs / 60) }
                     });
                     sleep_until(wake_time).await;
@@ -316,8 +318,13 @@ impl TimerWheel {
                 }
             },
             None => {
-                log::warn!("Timer Wheel empty! Temporary sleep for 5 min.");
-                sleep_until(Instant::now() + Duration::from_mins(5)).await;
+                if cfg!(debug_assertions) {   
+                    log::warn!("Timer Wheel empty! Temporary sleep for 15 sec.");
+                    sleep_until(now + Duration::from_secs(15)).await;
+                } else {
+                    log::warn!("Timer Wheel empty! Temporary sleep for 5 min.");
+                    sleep_until(now + Duration::from_mins(5)).await;
+                }
             },
         }
     }
@@ -329,8 +336,10 @@ impl TimerWheel {
 
     pub fn pop_due_batch(&mut self) -> Vec<ScheduledTask> {
         let mut batch = Vec::new();
+        let now = Instant::now();
+
         while let Some(head_task) = self.heap.peek() {
-            if head_task.execute_at <= Instant::now() {
+            if head_task.execute_at <= now {
                 if let Some(due_task) = self.heap.pop() {
                     batch.push(due_task);
                 }
@@ -344,33 +353,152 @@ impl TimerWheel {
         batch
     }
 
-    pub fn reschedule_batch(&mut self, batch: Vec<ScheduledTask>) {
-        for mut task in batch {
-            if task.cycle_time > 0 { // cycle task being re-schedule
-                task.execute_at = Instant::now() + Duration::from_secs(task.cycle_time);
-                // log::info!("task {:?} have been rescheduled", &task.id);
-                self.heap.push(task);
-            } else { // one-pass task, wait to be re-added and saved
-                self.init_tasks.push(task);
+    pub fn reschedule_batch(&mut self, batch: Vec<ScheduledTask>, full_scan: bool) {
+        let now  = Instant::now();
+        if full_scan { // Put all to a new timer wheel
+            let mut updated = Vec::new();
+
+            for mut task in batch {
+                if task.cycle_time > 0 {
+                    task.execute_at = now + Duration::from_secs(task.cycle_time);
+                    updated.push(task);
+                } else {
+                    self.dead_tasks.push(task);
+                }
+            }
+
+            for mut task in self.heap.drain() {
+                if task.cycle_time > 0 {
+                    task.execute_at = now + Duration::from_secs(task.cycle_time);
+                    updated.push(task);
+                } else {
+                    self.dead_tasks.push(task);
+                }
+            }
+
+            self.heap = BinaryHeap::from(updated);
+        }
+        else { // Normal reschedule
+            for mut task in batch {
+                if task.cycle_time > 0 { // cycle task being re-schedule
+                    task.execute_at = now + Duration::from_secs(task.cycle_time);
+                    // log::info!("task {:?} have been rescheduled", &task.id);
+                    self.heap.push(task);
+                } else { // one-pass task, wait to be re-added and saved
+                    self.dead_tasks.push(task);
+                }
             }
         }
     }
 
-    /// Apply the config change directly to the wheel, and immediately save
+/// Apply the config change directly to the wheel, and immediately save
     pub fn update_wheel(&mut self, config: Json) {
-        todo!()
+        let mut patch_map: FxHashMap<TaskID, (u64, Option<AgentValue>)> = FxHashMap::default();
+        let now = Instant::now();
+
+        // 1. Parse the Server Delta into a fast lookup map
+        if let Some(map) = config.as_object() {
+            for (key, val_array) in map {
+                let id: TaskID = match serde_json::from_value(Json::String(key.clone())) {
+                    Ok(parsed) => parsed,
+                    Err(_) => continue,
+                };
+
+                if id == TaskID::Unknown {
+                    continue;
+                }
+
+                if let Some(arr) = val_array.as_array() {
+                    if arr.len() >= 2 {
+                        let cycle_time = arr[0].as_u64().unwrap_or(0);
+                        let limit: Option<AgentValue> = serde_json::from_value(arr[1].clone()).unwrap_or(None);
+                        patch_map.insert(id, (cycle_time, limit));
+                    }
+                }
+            }
+        }
+
+        let mut new_heap = Vec::new();
+        let mut new_graveyard = Vec::new();
+
+        // 2. Scan the Active Heap
+        for mut task in self.heap.drain() {
+            if let Some((new_cycle, new_limit)) = patch_map.remove(&task.id) {
+                // If it was ticking, and is still ticking, do the Time Math
+                if task.cycle_time > 0 {
+                    // Find exactly when it fired last
+                    let last_fired = task.execute_at
+                        .checked_sub(Duration::from_secs(task.cycle_time)) // prevents crash if it underflows monotonic clock
+                        .unwrap_or(now);
+                    
+                    task.execute_at = last_fired + Duration::from_secs(new_cycle);
+                } 
+                // If cycle_time was 0, it means it hasn't fired its boot-scan yet, 
+                // so we don't touch execute_at (it will just fire normally)
+
+                task.cycle_time = new_cycle;
+                task.limit = new_limit;
+            }
+            
+            // Regardless of update, anything in the heap currently HAS NOT fired yet, 
+            // so we keep it in the active heap to fire
+            new_heap.push(task);
+        }
+
+        // 3. Scan the Graveyard
+        for mut task in self.dead_tasks.drain(..) {
+            if let Some((new_cycle, new_limit)) = patch_map.remove(&task.id) {
+                task.cycle_time = new_cycle;
+                task.limit = new_limit;
+
+                if new_cycle > 0 {
+                    // Resurrected! It gets a fresh start right now
+                    task.execute_at = now;
+                    new_heap.push(task);
+                } else {
+                    // Still a graveyard task, it just had its limit updated
+                    // Keep it dead
+                    new_graveyard.push(task);
+                }
+            } else {
+                // Unchanged, stays dead
+                new_graveyard.push(task);
+            }
+        }
+
+        // 4. Handle Newcomers
+        // Anything left in the patch_map is a brand new TaskID we didn't have before
+        for (id, (cycle_time, limit)) in patch_map {
+            new_heap.push(ScheduledTask {
+                id,
+                cycle_time,
+                execute_at: now, // Newcomers always fire instantly
+                limit,
+            });
+        }
+
+        // 5. Rebuild Everything
+        self.heap = BinaryHeap::from(new_heap);
+        self.dead_tasks = new_graveyard;
+
+        log::info!("Timer Wheel successfully patched with server config!");
     }
 
     pub fn save_wheel(&mut self) {
-        for task in self.init_tasks.drain(..) {
+        for task in self.dead_tasks.drain(..) {
             self.heap.push(task);
         }
 
-        config_handler::save_config(&self);
+        if !self.heap.is_empty() {
+            log::info!("Save timer wheel as config");
+            config_handler::save_config(&self);
+        } else {
+            log::warn!("Timer wheel emptry, no config save");
+        }
     }
 }
 
-// RAM to DISK
+/// RAM to DISK, format "module.component": [cycle_time, limit, timestamp]
 impl Serialize for TimerWheel {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -392,15 +520,14 @@ impl Serialize for TimerWheel {
 
             let unix_timestamp = target_sys_time.to_time_sec();
 
-            // Serialize as "module.component": [cycle_time, timestamp, limit]
-            map.serialize_entry(&task.id, &(task.cycle_time, unix_timestamp, &task.limit))?;
+            map.serialize_entry(&task.id, &(task.cycle_time, &task.limit, unix_timestamp))?;
         }
         
         map.end()
     }
 }
 
-// DISK to RAM
+/// DISK to RAM
 impl<'de> Deserialize<'de> for TimerWheel {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -428,8 +555,8 @@ impl<'de> Deserialize<'de> for TimerWheel {
                 let now_inst = Instant::now();
 
                 // Stream the JSON map directly into ScheduledTask structs
-                while let Some((id, (cycle_time, saved_timestamp, limit))) =
-                    access.next_entry::<TaskID, (u64, u64, Option<AgentValue>)>()?
+                while let Some((id, (cycle_time, limit, saved_timestamp))) =
+                    access.next_entry::<TaskID, (u64, Option<AgentValue>, u64)>()?
                 {
                     if id == TaskID::Unknown {
                         continue; 
@@ -446,14 +573,14 @@ impl<'de> Deserialize<'de> for TimerWheel {
                     tasks.push(ScheduledTask {
                         id,
                         cycle_time,
-                        execute_at,
                         limit,
+                        execute_at,
                     });
                 }
 
                 Ok(TimerWheel {
                     heap: BinaryHeap::from(tasks),
-                    init_tasks: Vec::new(),
+                    dead_tasks: Vec::new(),
                     skip_sleep: false,
                 })
             }

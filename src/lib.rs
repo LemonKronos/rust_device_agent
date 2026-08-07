@@ -22,6 +22,10 @@ use crate::config_handler::*;
 
 /// Allow software scanning or not
 const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
+const AGENT_VERSION: &str = "0.3.0";
+
+#[cfg(debug_assertions)]
+const DEV_TAG: &str = "handling_response";
 
 pub struct DeviceAgent {
     payload_maker: PayloadMaker,
@@ -31,6 +35,8 @@ pub struct DeviceAgent {
 
 impl DeviceAgent {
     pub fn new() -> Self {
+        init_logger();
+
         Self {
             payload_maker: PayloadMaker::new(),
             sender: Sender::new(),
@@ -39,7 +45,6 @@ impl DeviceAgent {
     }
 
     pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
-        init_logger();
 
         log::info!("Agent loop start");
 
@@ -53,7 +58,6 @@ impl DeviceAgent {
             }
 
             let json = self.payload_maker.process_batch(&batch, full_scan);
-            full_scan = false;
             
             //TODO Run sequential for now
             match self.sender.transmit(json) {
@@ -66,7 +70,8 @@ impl DeviceAgent {
                                 self.scheduler.skip_sleep();
                             },
                             ServerCmd::UpdateConfig(new_config) => {
-                                todo!()
+                                log::info!("Server ask to update config");
+                                self.scheduler.update_wheel(new_config);
                             },
                             ServerCmd::UpdateAgent { version } => {
                                 log::info!("Server aske to update to agent version {} over current version {}", version, "0.3.0.dev")
@@ -78,11 +83,13 @@ impl DeviceAgent {
                     }
                 },
                 Err(e) => {
-                    log::warn!("Sender warning: {}", e)
+                    log::error!("Sender error: {}", e)
                 },
             }
 
-            self.scheduler.reschedule_batch(batch);
+            self.scheduler.reschedule_batch(batch, full_scan);
+
+            full_scan = false;
 
             tokio::select! {
                 _ = self.scheduler.go_sleep() => {
@@ -90,7 +97,7 @@ impl DeviceAgent {
                 },
                 _ = signal::ctrl_c() => {
                     self.scheduler.save_wheel();
-                    log::info!("Normal shutdown completed, config saved");
+                    log::info!("Normal shutdown completed");
                     break;
                 }
             }
@@ -139,7 +146,7 @@ mod tests {
         let mut full_wheel: TimerWheel = load_config();
         let batch = full_wheel.pop_due_batch();
         let _ = agent.payload_maker.process_batch(&batch, true);
-        full_wheel.reschedule_batch(batch);
+        full_wheel.reschedule_batch(batch, true);
 
         assert!(start.elapsed().as_millis() < 500, "Fullscan took too long, over {} ms", start.elapsed().as_millis());
     }

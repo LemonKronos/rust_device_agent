@@ -1,6 +1,7 @@
 use std::time::Duration;
 use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
+use ureq::Error::StatusCode;
 use serde::Deserialize;
 
 const SERVER_ENDPOINT: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
@@ -46,7 +47,7 @@ impl Sender {
             .build();
 
         let agent: ureq::Agent = ureq::Agent::config_builder()
-            .timeout_global(Some(Duration::from_secs(3)))
+            .timeout_global(Some(Duration::from_secs(30)))
             .tls_config(tls_config)
             .build().into();
         

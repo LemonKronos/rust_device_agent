@@ -13,17 +13,27 @@ use crate::scheduler::{ScheduledTask, TaskID, TaskID::*, AgentValue};
 mod serialize_type;
 use serialize_type::*;
 use super::SCAN_SOFTWARE;
+use super::AGENT_VERSION;
+use super::DEV_TAG;
 
 pub struct PayloadMaker {
     info: Info,
     last_info_payload: InfoPayload,
+    agent_version: String,
 }
 
 impl PayloadMaker {
     pub fn new() -> Self {
+        #[cfg(debug_assertions)]
+        let version = format!("{}.{}", AGENT_VERSION, DEV_TAG);
+        
+        #[cfg(not(debug_assertions))]
+        let version = AGENT_VERSION.to_string();
+
         Self { 
             info: Info::new(),
             last_info_payload: InfoPayload::default(),
+            agent_version: version,
         }
     }
 
@@ -422,15 +432,15 @@ impl PayloadMaker {
         //: Make sure it has ID: Product Serial -> Motherboard Serial -> MAC Addresses -> Fallback
         let mut has_id = false;
 
-        if let Some(serial) = self.info.get_product_serial() {
-            let machine = info_payload.machine.get_or_insert_with(MachinePayload::default);
-            machine.serial = Some(AgentValue::Text(serial.to_string()));
-            has_id = true;
-        } else if let Some(mobo_serial) = self.info.get_motherboard_serial() {
-            let mobo = info_payload.motherboard.get_or_insert_with(MotherboardPayload::default);
-            mobo.serial = Some(AgentValue::Text(mobo_serial.to_string()));
-            has_id = true;
-        } else {
+        // if let Some(serial) = self.info.get_product_serial() {
+        //     let machine = info_payload.machine.get_or_insert_with(MachinePayload::default);
+        //     machine.serial = Some(AgentValue::Text(serial.to_string()));
+        //     has_id = true;
+        // } else if let Some(mobo_serial) = self.info.get_motherboard_serial() {
+        //     let mobo = info_payload.motherboard.get_or_insert_with(MotherboardPayload::default);
+        //     mobo.serial = Some(AgentValue::Text(mobo_serial.to_string()));
+        //     has_id = true;
+        // } else {
             let networks = self.info.get_network_list();
             for net in networks {
                 let mac = net.get_mac();
@@ -451,7 +461,7 @@ impl PayloadMaker {
                     has_id = true;
                 }
             }
-        }
+        // }
 
         if !has_id {
             let machine = info_payload.machine.get_or_insert_with(MachinePayload::default);
@@ -459,20 +469,27 @@ impl PayloadMaker {
         }
 
         //: Finalize json
+        // let payload_json = json!({
+        //     "AGENT_VERSION": self.agent_version,
+        //     "TIME_STAMP": self.info.get_timestamp(),
+        //     "IN_TEST": true,
+        //     "INFO": info_json,
+        // });
+
         let mut payload_json = match serde_json::to_value(info_payload) {
             Ok(json) => json,
             Err(e) => serde_json::to_value(e.to_string()).expect("Cannot error here"),
         };
 
         if let Some(map) = payload_json.as_object_mut() {
-            map.insert("AGENT_VERSION".into(), json!("0.3.0.scheduler_option"));
+            map.insert("AGENT_VERSION".into(), json!(self.agent_version));
             map.insert("TIME_STAMP".into(), json!(self.info.get_timestamp()));
             map.insert("IN_TEST".into(), json!(true));
         }
 
         //: Save payload debug
         if cfg!(debug_assertions) {
-            self.store_payload_md(&payload_json, "v3_scheduler_config");
+            self.store_payload_md(&payload_json, "just_send");
 
             if let Ok(last_info) = serde_json::to_value(&self.last_info_payload) {
                 self.store_payload_md(&last_info, "last_info");
