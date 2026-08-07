@@ -1,7 +1,8 @@
 [package]
 name = "gsoft_device_agent"
-version = "0.1.0"
+version = "0.3.2"
 edition = "2024"
+description = "app to gather static and dynamic information for monitoring and maintenance corporation own device"
 
 [dependencies]
 all-smi = "0.22.0"

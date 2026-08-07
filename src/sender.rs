@@ -1,7 +1,6 @@
 use std::time::Duration;
 use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
-use ureq::Error::StatusCode;
 use serde::Deserialize;
 
 const SERVER_ENDPOINT: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
@@ -57,31 +56,43 @@ impl Sender {
         }
     }
 
-    pub fn transmit(&self, payload: Json) -> Result<Vec<ServerCmd>, Box<dyn std::error::Error>> {
-        let response = self.agent.post(&self.server_endpoint)
+    pub fn transmit(&self, payload: Json) -> Vec<ServerCmd> {
+        match self.agent.post(&self.server_endpoint)
             .header("X-Agent-Key", API_KEY) 
-            .send_json(&payload)?;
+            .send_json(&payload) {
+                Ok(response) => {
+                    let reply_text = match response.into_body().read_to_string() {
+                        Ok(text) => text,
+                        Err(e) => {
+                            log::warn!("Agent failed to read repspone body: {}", e);
+                            return vec![];
+                        }
+                    };
+                    
+                    log::info!("Success! Edge server replied: {}", reply_text);
 
-        let reply_text = response.into_body().read_to_string()?;
-        log::info!("Success! Edge server replied: {}", reply_text);
+                    if reply_text.trim().is_empty() {
+                        return vec![];
+                    }
 
-        if reply_text.trim().is_empty() {
-            return Ok(vec![]);
-        }
+                    let parsed_rep: AbpResponse = serde_json::from_str(&reply_text).unwrap_or_else(|e| {
+                        log::warn!("Json parse error from server: {}", e);
+                        AbpResponse { success: false, result: None }
+                    });
 
-        let parsed_rep: AbpResponse = serde_json::from_str(&reply_text).unwrap_or_else(|e| {
-            log::warn!("Json parse error from server: {}", e);
-            AbpResponse { success: false, result: None }
-        });
+                    if let Some(rep) = &parsed_rep.result {
+                        if let Some(err) = &rep.error_desc {
+                            log::error!("Server return error description: {}", err);
+                        }
+                    }
 
-        if let Some(rep) = &parsed_rep.result {
-            if let Some(err) = &rep.error_desc {
-                log::error!("Server return error description: {}", err);
+                    parsed_rep.result.and_then(|rep| rep.cmds).unwrap_or_else(|| vec![])
+                    
+                },
+                Err(e) => {
+                    log::error!("Sender error: {}", e);
+                    vec![]
+                }
             }
-        }
-
-        let cmds = parsed_rep.result.and_then(|rep| rep.cmds).unwrap_or_else(|| vec![]);
-        
-        Ok(cmds)
     }
 }

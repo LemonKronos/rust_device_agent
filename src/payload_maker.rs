@@ -14,26 +14,17 @@ mod serialize_type;
 use serialize_type::*;
 use super::SCAN_SOFTWARE;
 use super::AGENT_VERSION;
-use super::DEV_TAG;
 
 pub struct PayloadMaker {
     info: Info,
     last_info_payload: InfoPayload,
-    agent_version: String,
 }
 
 impl PayloadMaker {
     pub fn new() -> Self {
-        #[cfg(debug_assertions)]
-        let version = format!("{}.{}", AGENT_VERSION, DEV_TAG);
-        
-        #[cfg(not(debug_assertions))]
-        let version = AGENT_VERSION.to_string();
-
         Self { 
             info: Info::new(),
             last_info_payload: InfoPayload::default(),
-            agent_version: version,
         }
     }
 
@@ -470,7 +461,7 @@ impl PayloadMaker {
 
         //: Finalize json
         // let payload_json = json!({
-        //     "AGENT_VERSION": self.agent_version,
+        //     "AGENT_VERSION": AGENT_VERSION,
         //     "TIME_STAMP": self.info.get_timestamp(),
         //     "IN_TEST": true,
         //     "INFO": info_json,
@@ -482,7 +473,7 @@ impl PayloadMaker {
         };
 
         if let Some(map) = payload_json.as_object_mut() {
-            map.insert("AGENT_VERSION".into(), json!(self.agent_version));
+            map.insert("AGENT_VERSION".into(), json!(AGENT_VERSION));
             map.insert("TIME_STAMP".into(), json!(self.info.get_timestamp()));
             map.insert("IN_TEST".into(), json!(true));
         }

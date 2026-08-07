@@ -22,10 +22,13 @@ use crate::config_handler::*;
 
 /// Allow software scanning or not
 const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
-const AGENT_VERSION: &str = "0.3.0";
 
 #[cfg(debug_assertions)]
-const DEV_TAG: &str = "handling_response";
+const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "handling_repsonse");
+
+#[cfg(not(debug_assertions))]
+const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 
 pub struct DeviceAgent {
     payload_maker: PayloadMaker,
@@ -59,34 +62,26 @@ impl DeviceAgent {
 
             let json = self.payload_maker.process_batch(&batch, full_scan);
             
-            //TODO Run sequential for now
-            match self.sender.transmit(json) {
-                Ok(cmds) => {
-                    for cmd in cmds {
-                        match cmd {
-                            ServerCmd::AskFullScan => {
-                                log::info!("Server ask for Full Scan");
-                                full_scan = true;
-                                self.scheduler.skip_sleep();
-                            },
-                            ServerCmd::UpdateConfig(new_config) => {
-                                log::info!("Server ask to update config");
-                                self.scheduler.update_wheel(new_config);
-                            },
-                            ServerCmd::UpdateAgent { version } => {
-                                log::info!("Server aske to update to agent version {} over current version {}", version, "0.3.0.dev")
-                            },
-                            ServerCmd::Unknown => {
-                                log::warn!("Agent receive an Unknown Command")
-                            }
-                        }
+            for cmd in self.sender.transmit(json) {
+                match cmd {
+                    ServerCmd::AskFullScan => {
+                        log::info!("Server ask for Full Scan");
+                        full_scan = true;
+                        self.scheduler.skip_sleep();
+                    },
+                    ServerCmd::UpdateConfig(new_config) => {
+                        log::info!("Server ask to update config");
+                        self.scheduler.update_wheel(new_config);
+                    },
+                    ServerCmd::UpdateAgent { version } => {
+                        log::info!("Server aske to update to agent version {} over current version {}", version, AGENT_VERSION)
+                    },
+                    ServerCmd::Unknown => {
+                        log::warn!("Agent receive an Unknown Command")
                     }
-                },
-                Err(e) => {
-                    log::error!("Sender error: {}", e)
-                },
+                }
             }
-
+            
             self.scheduler.reschedule_batch(batch, full_scan);
 
             full_scan = false;
