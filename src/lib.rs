@@ -23,8 +23,15 @@ use crate::config_handler::*;
 /// Allow software scanning or not
 const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
 
+/// Init with full scan
+const INIT_FULL_SCAN: bool = true;
+
+
+
 #[cfg(debug_assertions)]
 const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "handling_repsonse");
+const USE_CUSTOME_SERIAL: bool = true;
+const CUSTOME_SERIAL: &str = "TEST_MACHINE_03";
 
 #[cfg(not(debug_assertions))]
 const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -51,18 +58,31 @@ impl DeviceAgent {
 
         log::info!("Agent loop start");
 
-        let mut full_scan = true; // Init with full scan
+        let mut full_scan = INIT_FULL_SCAN;
 
         loop {
             let batch = self.scheduler.pop_due_batch();
             if batch.is_empty() {
-                log::warn!("Agent wake up but batch is empty!");
-                continue;
+                log::warn!("Agent wake up but batch is empty! Maybe full scan?");
             }
 
             let json = self.payload_maker.process_batch(&batch, full_scan);
             
-            for cmd in self.sender.transmit(json) {
+            self.scheduler.reschedule_batch(batch, full_scan);
+
+            let server_commands = tokio::select! {
+                cmds = self.sender.transmit(json, full_scan) => {
+                    cmds
+                },
+                _ = signal::ctrl_c() => {
+                    self.shutdown();
+                    break;
+                }
+            };
+
+            full_scan = false;
+
+            for cmd in server_commands {
                 match cmd {
                     ServerCmd::AskFullScan => {
                         log::info!("Server ask for Full Scan");
@@ -74,32 +94,34 @@ impl DeviceAgent {
                         self.scheduler.update_wheel(new_config);
                     },
                     ServerCmd::UpdateAgent { version } => {
-                        log::info!("Server aske to update to agent version {} over current version {}", version, AGENT_VERSION)
+                        log::info!("Server ask to update to agent version {} over current version {}", version, AGENT_VERSION)
                     },
                     ServerCmd::Unknown => {
                         log::warn!("Agent receive an Unknown Command")
+                    },
+                    _ => {
+                        log::warn!("Server ask for TODO commands")
                     }
                 }
             }
-            
-            self.scheduler.reschedule_batch(batch, full_scan);
-
-            full_scan = false;
 
             tokio::select! {
                 _ = self.scheduler.go_sleep() => {
                     // empty
                 },
                 _ = signal::ctrl_c() => {
-                    self.scheduler.save_wheel();
-                    log::info!("Normal shutdown completed");
+                    self.shutdown();
                     break;
                 }
             }
         }
 
-
         Ok(())
+    }
+
+    pub fn shutdown(&mut self) {
+        self.scheduler.save_wheel();
+        log::info!("Normal shutdown completed");
     }
 }
 

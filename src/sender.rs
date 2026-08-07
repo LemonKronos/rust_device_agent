@@ -3,7 +3,8 @@ use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
 use serde::Deserialize;
 
-const SERVER_ENDPOINT: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
+const SERVER_ENDPOINT_FULL_SCAN: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Ins";
+const SERVER_ENDPOINT_DELTA: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
 const API_KEY: &str = "72895e95e7634de2a8f554abaf10ec0e7a46fff57b114b68b74efcd65a5d3ec5";
 
 /// APB wrapper
@@ -29,12 +30,17 @@ pub enum ServerCmd {
     UpdateConfig(Json),
     UpdateAgent { version: String },
 
+    //TODO
+    AskConfig,
+    AskLog,
+    Promote,
+    ProxyConfig,
+
     #[serde(other)]
     Unknown,
 }
 
 pub struct Sender {
-    server_endpoint: String,
     agent: ureq::Agent,
 }
 
@@ -51,48 +57,70 @@ impl Sender {
             .build().into();
         
         Self {
-            server_endpoint: SERVER_ENDPOINT.to_string(),
             agent,
         }
     }
 
-    pub fn transmit(&self, payload: Json) -> Vec<ServerCmd> {
-        match self.agent.post(&self.server_endpoint)
-            .header("X-Agent-Key", API_KEY) 
-            .send_json(&payload) {
-                Ok(response) => {
-                    let reply_text = match response.into_body().read_to_string() {
-                        Ok(text) => text,
-                        Err(e) => {
-                            log::warn!("Agent failed to read repspone body: {}", e);
-                            return vec![];
-                        }
-                    };
-                    
-                    log::info!("Success! Edge server replied: {}", reply_text);
+    pub async fn transmit(&self, payload: Json, full_scan: bool) -> Vec<ServerCmd> {
+        let agent = self.agent.clone(); // it a Arc, so cheap clone
 
-                    if reply_text.trim().is_empty() {
-                        return vec![];
-                    }
+        // Different endpoint, same logic
+        let endpoint = if full_scan {
+            log::info!("Agent send to FULL SCAN endpoint");
+            SERVER_ENDPOINT_FULL_SCAN
+        } else {
+            log::info!("Agent send to DELTA endpoint");
+            SERVER_ENDPOINT_DELTA
+        };
+        
+        let join_result = tokio::task::spawn_blocking(move || {
+            agent.post(endpoint)
+                .header("X-Agent-Key", API_KEY) 
+                .send_json(&payload)
+        }).await;
 
-                    let parsed_rep: AbpResponse = serde_json::from_str(&reply_text).unwrap_or_else(|e| {
-                        log::warn!("Json parse error from server: {}", e);
-                        AbpResponse { success: false, result: None }
-                    });
-
-                    if let Some(rep) = &parsed_rep.result {
-                        if let Some(err) = &rep.error_desc {
-                            log::error!("Server return error description: {}", err);
-                        }
-                    }
-
-                    parsed_rep.result.and_then(|rep| rep.cmds).unwrap_or_else(|| vec![])
-                    
-                },
-                Err(e) => {
-                    log::error!("Sender error: {}", e);
-                    vec![]
-                }
+        let http_result = match join_result {
+            Ok(res) => res,
+            Err(join_error) => {
+                log::error!("HTTP background task cancelled: {}", join_error);
+                return Vec::new();
             }
+        };
+
+        match http_result {
+            Ok(response) => {
+                let reply_text = match response.into_body().read_to_string() {
+                    Ok(text) => text,
+                    Err(e) => {
+                        log::warn!("Agent failed to read repspone body: {}", e);
+                        return Vec::new();
+                    }
+                };
+                
+                log::info!("Success! Edge server replied: {}", reply_text);
+
+                if reply_text.trim().is_empty() {
+                    return Vec::new();
+                }
+
+                let parsed_rep: AbpResponse = serde_json::from_str(&reply_text).unwrap_or_else(|e| {
+                    log::warn!("Json parse error from server: {}", e);
+                    AbpResponse { success: false, result: None }
+                });
+
+                if let Some(rep) = &parsed_rep.result {
+                    if let Some(err) = &rep.error_desc {
+                        log::error!("Server return error description: {}", err);
+                    }
+                }
+
+                parsed_rep.result.and_then(|rep| rep.cmds).unwrap_or_else(|| Vec::new())
+                
+            },
+            Err(e) => {
+                log::error!("Sender error: {}", e);
+                Vec::new()
+            }
+        }
     }
 }

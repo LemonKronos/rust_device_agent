@@ -319,8 +319,8 @@ impl TimerWheel {
             },
             None => {
                 if cfg!(debug_assertions) {   
-                    log::warn!("Timer Wheel empty! Temporary sleep for 15 sec.");
-                    sleep_until(now + Duration::from_secs(15)).await;
+                    log::warn!("Timer Wheel empty! Temporary sleep for 30 sec.");
+                    sleep_until(now + Duration::from_secs(30)).await;
                 } else {
                     log::warn!("Timer Wheel empty! Temporary sleep for 5 min.");
                     sleep_until(now + Duration::from_mins(5)).await;
@@ -374,6 +374,10 @@ impl TimerWheel {
                 } else {
                     self.dead_tasks.push(task);
                 }
+            }
+
+            for task in &mut self.dead_tasks {
+                task.execute_at = now;
             }
 
             self.heap = BinaryHeap::from(updated);
