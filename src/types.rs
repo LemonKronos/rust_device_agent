@@ -1,6 +1,6 @@
-///
-/// Define custom types here
-/// 
+//!
+//! Define custom machine info types here
+//! 
 
 use std::time::SystemTime;
 use serde::Serialize;

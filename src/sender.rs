@@ -1,3 +1,15 @@
+//! 
+//! # Network handling
+//! 
+//! Take the payload and send it to central server, wait for response.
+//! 
+//! The core Agent - Server logic is lazy and one-way, so only Agent can actively make HTTPS connection to server.
+//! If server want to send any command to an Agent, it first have to wait for that Agent to be active, and send command(s) on the HTTPS response.
+//! After Agent receive the response, it will immediately skip next sleep and working on those commands.
+//! 
+//! Currently, the server enpoint url is hardcoded, but that is subjected to change.
+//! 
+
 use std::time::Duration;
 use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
@@ -23,19 +35,34 @@ pub struct AbpResult {
     pub cmds: Option<Vec<ServerCmd>>, 
 }
 
+/// Enum list of acceptable server commands
 #[derive(Debug, Deserialize)]
 #[serde(tag = "cmd", content = "payload", rename_all = "PascalCase")]
 pub enum ServerCmd {
+    /// Force Agent to immediately send a full scan
     AskFullScan,
+
+    /// Send in the "delta" of updated config ,which each entry as "module.component": [`<cycle_time>`, `Option<limit>`]
     UpdateConfig(Json),
+
+    /// Tell Agent to download and update to specific version
     UpdateAgent { version: String },
 
     //TODO
-    AskConfig,
-    AskLog,
-    Promote,
-    ProxyConfig,
 
+    /// Ask Agent to send the it full local config file
+    AskConfig,
+
+    /// Ask Agent to send the latest log? TODO
+    AskLog,
+
+    /// Promote Agent to `Proxy Agent`
+    Promote,
+
+    /// Send addititional config for Proxy Agent
+    ProxyConfig(Json),
+
+    /// Fallback
     #[serde(other)]
     Unknown,
 }
@@ -61,6 +88,7 @@ impl Sender {
         }
     }
 
+    /// Interuptably send the payload and wait for response
     pub async fn transmit(&self, payload: Json, full_scan: bool) -> Vec<ServerCmd> {
         let agent = self.agent.clone(); // it a Arc, so cheap clone
 

@@ -21,3 +21,4 @@
 - Disk physical partition need a file type
 - AgentValue may need bool option
 - Save the config when shut down don't seem like a good idea
+- For server command that need immediate comply from Agent, may be better to hold on the first HTTPS connection?

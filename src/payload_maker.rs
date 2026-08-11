@@ -1,6 +1,12 @@
-///
-/// Make payload by calling info_gatherer, serialize to json
-/// 
+//!
+//! # Make payload by calling info_gatherer, serialize to json
+//! 
+//! Contain the logic to process due task batch, compare with cache for valid entry to put in the payload object.
+//! 
+//! The JSON is not written out, but serialize from an `InfoPayload` object, with have been implemented with derive `serde:Serialize`, and `serde_with::skip_serializing_none` (to not include `None`(null) entry in the final json).
+//! 
+//! **TODO: Could we use the same type for the real info and payload?**
+//! 
 
 use std::fs;
 use std::path::PathBuf;
@@ -11,7 +17,7 @@ use crate::info_gatherer::Info;
 use crate::scheduler::{ScheduledTask, TaskID, TaskID::*, AgentValue};
 
 mod serialize_type;
-use serialize_type::*;
+use serialize_type::*;/// Use [`InfoPayload`] to serialize with
 
 use super::SCAN_SOFTWARE;
 use super::AGENT_VERSION;
@@ -31,7 +37,7 @@ impl PayloadMaker {
         }
     }
 
-    /// Use to save json as markdown in disk
+    /// Use to save json as markdown in disk, usefull in dev
     pub fn store_payload_md(&self, payload: &Json, name: &str) {
         let Ok(pretty_json) = serde_json::to_string_pretty(&payload) else {
             log::error!("Failed to serialize payload to JSON");
@@ -53,6 +59,17 @@ impl PayloadMaker {
         }
     }
 
+    /// The main purpose of payload maker, take ref of due tasks to output the JSON
+    /// 
+    /// **This is still in dev and need to be optimize**
+    /// 
+    /// Logic:
+    /// 1. First convert the batch to `FxHashMap`, with is a lightweight HashMap for enum. 
+    /// 2. Go through each topic, check if the batch map have it.
+    /// 3. Check if it have valid different, if so, put to the payload.
+    /// 4. Add compulsory field like machine serial, agent version, ...
+    /// 5. Return payload object.
+    /// 
     pub fn process_batch(&mut self, batch: &Vec<ScheduledTask>, full_scan: bool) -> Json {
         let task_map: FxHashMap<TaskID, ScheduledTask> = batch
             .iter()
@@ -505,7 +522,7 @@ impl PayloadMaker {
     }
 }
 
-//: Helper fn
+/// Helper to compare new scan value with the old cached value to see if it is valid to add to the payload with in thresshold limit.
 fn check_diff_update<T: CheckDiffUpdate>(new_value: T, old_value: &mut Option<AgentValue>, limit: &Option<AgentValue>) -> Option<AgentValue> {
     new_value.check_diff_update(old_value, limit)
 }

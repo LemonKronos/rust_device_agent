@@ -1,10 +1,10 @@
-///
-/// Load, store, update config.json file
-/// 
-/// Define cycle_time == 0 mean only scan at init, ex: architecture
-/// There're also info that must be include with each send, ex: agent_version
-/// Note that this is WHEN TO SCAN, not when to send. Agent only send when info change
-/// 
+//!
+//! Load, store, update config.json file
+//! 
+//! Define cycle_time == 0 mean only scan at init, ex: architecture.
+//! 
+//! Note that this is WHEN TO SCAN, not when to send. Agent only send when info change or when server asked.
+//! 
 
 use std::fs;
 use std::path::Path;
@@ -14,10 +14,11 @@ use crate::scheduler::TaskID::*;
 use crate::scheduler::{ScheduledTask,TimerWheel};
 use crate::utils::flatten_config;
 use super::SCAN_SOFTWARE;
+use super::SIMPLE_CONFIG;
 
 const CONFIG_PATH: &str = "doc/config.json";
 
-/// Try to load config, if not found generate default config
+/// Try to load config to Timer Wheel, if not found generate default config
 pub fn load_config() -> TimerWheel {
     let config_path = Path::new(CONFIG_PATH);
 
@@ -47,6 +48,7 @@ pub fn load_config() -> TimerWheel {
     init_config()
 }
 
+/// Save Timer Wheel as config file
 pub fn save_config(timer_wheel: &TimerWheel) {
     let config_path = Path::new(CONFIG_PATH);
 
@@ -603,486 +605,489 @@ pub fn init_config() -> TimerWheel {
             execute_at: now,
             limit: None,
         });
-        //_ Machine
-        default_queue.push(ScheduledTask {
-            id: MachineArchitecture,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MachineProducer,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MachineModel,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MachineType,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        //_ Motherboard
-        default_queue.push(ScheduledTask {
-            id: MotherboardName,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MotherboardSerial,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MotherboardTempe,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MotherboardCpuSlot,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MotherboardRamSlot,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: MotherboardGpuSlot,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        //_ Bios
-        default_queue.push(ScheduledTask {
-            id: BiosVersion,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: BiosVendor,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: BiosSecureBoot,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        //_ OS
-        default_queue.push(ScheduledTask {
-            id: OsDistro,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: OsName,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: OsVersion,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: OsKernel,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        //_ CPU
-        default_queue.push(ScheduledTask {
-            id: CpuName,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: CpuCore,
-            cycle_time: init,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: CpuUsage,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: CpuFreq,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: CpuTempe,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        //_ RAM
-        default_queue.push(ScheduledTask {
-            id: RamTotal,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamUsage,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-            //_Physical
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalName,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalSerial,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalType,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalConfigSpeed,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalSize,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalBank,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: RamPhysicalFormFactor,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        //_ SWAP
-        default_queue.push(ScheduledTask {
-            id: SwapTotal,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: SwapUsage,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        //_ GPU
-        default_queue.push(ScheduledTask {
-            id: GpuName,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuDriver,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuUtilization,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuTempe,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuFreq,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuVramTotal,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuVramUsage,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuMaxClock,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: GpuSerial,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        //_ Disk
-            //_ Logical
-        default_queue.push(ScheduledTask {
-            id: DiskLogicalName,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskLogicalFileName,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskLogicalMountPoint,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskLogicalRemovable,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskLogicalTotal,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskLogicalUsed,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-            //_Physical
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalDrive,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalModel,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalIndex,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalSerial,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalFirmware,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalSize,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalStatus,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalMedia,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalInterface,
-            cycle_time: 60,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalNumPartition,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: DiskPhysicalPartition,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        //_Network
-        default_queue.push(ScheduledTask {
-            id: NetworkName,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkIpv4,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkIpv6,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkMac,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkMtu,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkUpload,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkDownload,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkCard,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkConfigSpeed,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: NetworkSsid,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        //_ Process
-        default_queue.push(ScheduledTask {
-            id: ProcessCount,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: TopProcessName,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: TopProcessCpu,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: TopProcessMemory,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id : TopProcessRuntime,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        //TODO All Process
-        //_Battery
-        default_queue.push(ScheduledTask {
-            id: BatteryPercentage,
-            cycle_time: 10,
-            execute_at: now,
-            limit: None,
-        });
-        default_queue.push(ScheduledTask {
-            id: BatteryIsPluggedIn,
-            cycle_time: 30,
-            execute_at: now,
-            limit: None,
-        });
-        //_Software, skip in debug
-        if SCAN_SOFTWARE {
+
+        if !SIMPLE_CONFIG {
+            //_ Machine
             default_queue.push(ScheduledTask {
-                id: Software,
+                id: MachineArchitecture,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MachineProducer,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MachineModel,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MachineType,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            //_ Motherboard
+            default_queue.push(ScheduledTask {
+                id: MotherboardName,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MotherboardSerial,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MotherboardTempe,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MotherboardCpuSlot,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MotherboardRamSlot,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: MotherboardGpuSlot,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            //_ Bios
+            default_queue.push(ScheduledTask {
+                id: BiosVersion,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: BiosVendor,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: BiosSecureBoot,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            //_ OS
+            default_queue.push(ScheduledTask {
+                id: OsDistro,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: OsName,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: OsVersion,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: OsKernel,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            //_ CPU
+            default_queue.push(ScheduledTask {
+                id: CpuName,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: CpuCore,
+                cycle_time: init,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: CpuUsage,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: CpuFreq,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: CpuTempe,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            //_ RAM
+            default_queue.push(ScheduledTask {
+                id: RamTotal,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: RamUsage,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+                //_Physical
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalName,
                 cycle_time: 60,
                 execute_at: now,
                 limit: None,
             });
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalSerial,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalType,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalConfigSpeed,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalSize,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalBank,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: RamPhysicalFormFactor,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            //_ SWAP
+            default_queue.push(ScheduledTask {
+                id: SwapTotal,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: SwapUsage,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            //_ GPU
+            default_queue.push(ScheduledTask {
+                id: GpuName,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuDriver,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuUtilization,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuTempe,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuFreq,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuVramTotal,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuVramUsage,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuMaxClock,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: GpuSerial,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            //_ Disk
+                //_ Logical
+            default_queue.push(ScheduledTask {
+                id: DiskLogicalName,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskLogicalFileName,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskLogicalMountPoint,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskLogicalRemovable,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskLogicalTotal,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskLogicalUsed,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+                //_Physical
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalDrive,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalModel,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalIndex,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalSerial,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalFirmware,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalSize,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalStatus,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalMedia,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalInterface,
+                cycle_time: 60,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalNumPartition,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: DiskPhysicalPartition,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            //_Network
+            default_queue.push(ScheduledTask {
+                id: NetworkName,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkIpv4,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkIpv6,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkMac,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkMtu,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkUpload,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkDownload,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkCard,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkConfigSpeed,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: NetworkSsid,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            //_ Process
+            default_queue.push(ScheduledTask {
+                id: ProcessCount,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: TopProcessName,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: TopProcessCpu,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: TopProcessMemory,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id : TopProcessRuntime,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            //TODO All Process
+            //_Battery
+            default_queue.push(ScheduledTask {
+                id: BatteryPercentage,
+                cycle_time: 10,
+                execute_at: now,
+                limit: None,
+            });
+            default_queue.push(ScheduledTask {
+                id: BatteryIsPluggedIn,
+                cycle_time: 30,
+                execute_at: now,
+                limit: None,
+            });
+            //_Software, skip in debug
+            if SCAN_SOFTWARE {
+                default_queue.push(ScheduledTask {
+                    id: Software,
+                    cycle_time: 60,
+                    execute_at: now,
+                    limit: None,
+                });
+            }
         }
     }
 

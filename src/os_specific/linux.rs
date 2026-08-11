@@ -1,3 +1,11 @@
+//!
+//! # Real logic for reading these info on Linux
+//! 
+//! Some info can be read with `sysinfo::Components`, but still specific to Linux.
+//! Some info can be read with `smbioslib`.
+//! The rest need to be parsed dirrectly from the Linux file system.
+//! 
+//! **This was dev and tested only on Ubuntu 24.04.4 LTS x86_64**
 
 use std::fs;
 use std::fs::File;
@@ -47,6 +55,7 @@ struct CachedInfo {
     network_hardware: Option<HashMap<String,NetworkHardware>>,
 }
 
+/// Real Linux backend
 #[derive(Debug)]
 pub struct OsSpecificBackend {
     components: Components,

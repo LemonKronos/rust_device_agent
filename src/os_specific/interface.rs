@@ -1,3 +1,6 @@
+//!
+//! Interface for all OS specific backend to follow
+//! 
 
 use crate::types::*;
 pub trait OsSpecificInterface {

@@ -1,6 +1,6 @@
-///
-/// Utilities function
-/// 
+//!
+//! Utilities function
+//! 
 
 use std::time::{SystemTime, UNIX_EPOCH};
 

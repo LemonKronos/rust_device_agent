@@ -1,4 +1,10 @@
 
+//! # To be documented: OS Specific implementations with auto target OS plexer
+//!
+//! This module handles all the dirty work of abstracting away the differences between Windows, Linux, and macOS. 
+//! The main worker calls into this module, and this module figures out which specific OS logic to execute.
+//! 
+
 pub mod interface;
 
 use interface::OsSpecificInterface;
@@ -22,7 +28,7 @@ mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::{OsSpecificBackend};
 
-//_ OS plexers
+/// Os plexer to choose between Os backend
 #[derive(Debug)]
 pub struct OsSpecific {
     backend: OsSpecificBackend,
@@ -33,7 +39,7 @@ impl OsSpecific {
         Self { backend: OsSpecificBackend::new() }
     }
 }
-
+/// Just wrapper for interface
 impl OsSpecificInterface for OsSpecific {
     fn refresh(&mut self) {
         self.backend.refresh();
@@ -130,7 +136,7 @@ impl OsSpecificInterface for OsSpecific {
 
 
 
-//_ Helpers
+/// Decode the machine chassis code to machine type
 fn parse_chassis_type(code: &str) -> String {
     match code {
         "1" => "Special: Other".to_string(),

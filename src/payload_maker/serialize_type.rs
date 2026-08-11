@@ -1,6 +1,8 @@
-///
-/// Keep all type for json serialize formating
-/// 
+//!
+//! # Keep all type for json serialize formating
+//! 
+//! This is where we use `#[serde(rename = "_")]` to format each field
+//! 
 
 use serde::Serialize;
 use serde_with::skip_serializing_none;

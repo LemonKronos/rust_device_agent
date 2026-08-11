@@ -1,6 +1,10 @@
-///
-/// Read machine info
-/// 
+//!
+//! # Read machine info. This is the wrapper for both all OS and OS specific info
+//! 
+//! For all OS info, we use Rust crate `sysinfo` for general dynamic info; `all_smi` for GPU info, but is quite limited.
+//! 
+//! Remember to call `prepare` before each check
+//! 
 
 
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -11,7 +15,6 @@ use crate::types::*;
 use crate::os_specific::OsSpecific;
 use crate::os_specific::interface::OsSpecificInterface;
 
-//TODO impl trait Debug for this
 pub struct Info {
     sys: System,
     smi: AllSmi,

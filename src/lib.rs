@@ -1,6 +1,8 @@
-///
-/// Contain all logic for Agent
-/// 
+#![doc = include_str!("../README.md")]
+
+//!
+//! Logic wrapper for the app, contain the main loop and all module
+//! 
 
 use std::error::Error;
 use tokio::signal;
@@ -27,11 +29,16 @@ const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
 const INIT_FULL_SCAN: bool = true;
 
 
-
+// ! DEV CONFIG
 #[cfg(debug_assertions)]
-const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "handling_repsonse");
-const USE_CUSTOME_SERIAL: bool = true;
+
+/// In dev mode, will include the current in-dev feature
+const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "separate_binary");
+const USE_CUSTOME_SERIAL: bool = false;
 const CUSTOME_SERIAL: &str = "TEST_MACHINE_03";
+
+/// Make the default dev config for only the "general" topic
+const SIMPLE_CONFIG: bool = true;
 
 #[cfg(not(debug_assertions))]
 const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");

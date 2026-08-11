@@ -1,6 +1,13 @@
-///
-/// Timer wheel 
-/// 
+//!
+//! # Timer wheel where each scan task is being stored as an element in min-heap
+//! 
+//! With the lightweight and robust goal in mind, the timer wheel is designed to be init directly from the config.
+//! "The timer wheel is the config, the config is the timer wheel".
+//! Thus, we flatten the json structure, get the ID, get the scan interval, limit, next execute time to store as config.
+//! The timer wheel then get **deserialized directly** from the config.
+//! When the config change by server, the timer wheel get updated and immediately save as config.
+//! When the Agent get normally shutdown, the current timer wheel is serialize to config.
+//! 
 
 use rustc_hash::FxHashMap;
 use std::cmp::Ordering;
@@ -16,7 +23,8 @@ use serde_json::Value as Json;
 use crate::utils::FormatTime;
 use  crate::config_handler;
 
-/// AgentValue as dynamic type for last_value and limit, which could be either u64, f64 or String or bool
+//TODO Maybe this is no longer needed?
+/// AgentValue as dynamic type for limit, which could be either bool, u64, f64 or String.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AgentValue {
@@ -26,6 +34,8 @@ pub enum AgentValue {
     Bool(bool),
 }
 
+/// Flatten from JSON payload to `"<module>.<component>"`.
+/// This is all the topic-info type that Agent can get from scanning the machine.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TaskID {
     //: General
@@ -247,12 +257,21 @@ pub enum TaskID {
     Unknown,
 }
 
-/// ScheduledTask in Timer Wheel
+/// ScheduledTask in Timer Wheel.
+/// 
+/// All the `PartialEq`, `Eq`, `Ord` and `PartialOrd` are for **min** heap, since [`TimerWheel`] using `std::collections::BinaryHeap` - which is a max heap.
  #[derive(Debug, Clone)]
 pub struct ScheduledTask {
+    /// Unique ID for each task
     pub id: TaskID,
+
+    /// The configured time (in second) between 2 scans
     pub cycle_time: u64,
+
+    /// Thresshold for a valid info change. Only meaningfull for numeric type.
     pub limit: Option<AgentValue>,
+
+    /// When will the task next due
     pub execute_at: Instant,
 }
 
@@ -276,11 +295,16 @@ impl PartialOrd for ScheduledTask {
     }
 }
 
-/// Timer Wheel
+/// Timer Wheel, the main scheduler logic.
 #[derive(Debug, Default)]
 pub struct TimerWheel {
+    /// The active task queue
     pub heap: BinaryHeap<ScheduledTask>,
+
+    /// The list of one-off init task, safely stored aways
     dead_tasks: Vec<ScheduledTask>,
+
+    /// Flag to skip next sleep to work on server command(s)
     skip_sleep: bool,
 }
 
@@ -297,6 +321,7 @@ impl TimerWheel {
         self.heap.push(task);
     }
 
+    /// Sleep until next task is due
     pub async fn go_sleep(&mut self) {
         if self.skip_sleep {
             self.skip_sleep = false;
@@ -329,11 +354,13 @@ impl TimerWheel {
         }
     }
 
+    /// Skip the next sleep
     pub fn skip_sleep(&mut self) {
         log::info!("Agent skip sleep");
         self.skip_sleep = true;
     }
 
+    /// Make a batch of due or pass due tasks, ready to be processed
     pub fn pop_due_batch(&mut self) -> Vec<ScheduledTask> {
         let mut batch = Vec::new();
         let now = Instant::now();
@@ -353,6 +380,9 @@ impl TimerWheel {
         batch
     }
 
+    /// Re-added the batch to the queue base on it `cycle_time` and `Instant::now()`.
+    /// If the task is an one-off, put it to the `dead_tasks` vector.
+    /// If a full scan have just happpen, reschedule all the task (include dead ones) from `Instant::now()`.
     pub fn reschedule_batch(&mut self, batch: Vec<ScheduledTask>, full_scan: bool) {
         let now  = Instant::now();
         if full_scan { // Put all to a new timer wheel
@@ -395,7 +425,7 @@ impl TimerWheel {
         }
     }
 
-/// Apply the config change directly to the wheel, and immediately save
+    /// Apply the config change directly to the wheel, and immediately save
     pub fn update_wheel(&mut self, config: Json) {
         let mut patch_map: FxHashMap<TaskID, (u64, Option<AgentValue>)> = FxHashMap::default();
         let now = Instant::now();
@@ -484,10 +514,13 @@ impl TimerWheel {
         // 5. Rebuild Everything
         self.heap = BinaryHeap::from(new_heap);
         self.dead_tasks = new_graveyard;
+        log::info!("Timer Wheel successfully patched with server config");
 
-        log::info!("Timer Wheel successfully patched with server config!");
+        self.save_wheel();
+        log::info!("New updated config saved");
     }
 
+    /// Save current timer wheel as config file
     pub fn save_wheel(&mut self) {
         for task in self.dead_tasks.drain(..) {
             self.heap.push(task);
@@ -502,7 +535,14 @@ impl TimerWheel {
     }
 }
 
-/// RAM to DISK, format "module.component": [cycle_time, limit, timestamp]
+/// RAM to DISK: when save to config.json, format "module.component": [cycle_time, limit, next_execute]. Example:
+/// ```json
+/// {
+///     "general.host": [10, null, 1786422356],
+///     "general.boot_time": [10, null, 1786422356],
+///     "general.run_time": [10, null, 1786422356]
+/// }
+/// ```
 impl Serialize for TimerWheel {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -531,7 +571,7 @@ impl Serialize for TimerWheel {
     }
 }
 
-/// DISK to RAM
+/// DISK to RAM: when load config.json to timer wheel
 impl<'de> Deserialize<'de> for TimerWheel {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
