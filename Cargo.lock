@@ -11,6 +11,13 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 [[package]]
 name = "admin_fetcher"
 version = "0.1.0"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "shared_libs",
+ "smbios-lib",
+]
 
 [[package]]
 name = "aead"
@@ -2304,6 +2311,9 @@ dependencies = [
 [[package]]
 name = "launcher"
 version = "0.1.0"
+dependencies = [
+ "tokio",
+]
 
 [[package]]
 name = "lazy_static"
@@ -2434,7 +2444,6 @@ dependencies = [
  "serde_json",
  "serde_with",
  "shared_libs",
- "smbios-lib",
  "sysinfo",
  "tokio",
  "ureq",

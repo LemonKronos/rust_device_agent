@@ -3,11 +3,11 @@
 //! 
 
 use std::time::SystemTime;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use serde_with::skip_serializing_none;
 
 /// RAM
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Ram {
     pub name: String,
     pub serial: String,

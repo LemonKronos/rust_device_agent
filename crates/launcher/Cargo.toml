@@ -5,3 +5,4 @@ edition = "2024"
 description = "Laucher for the app, run in background, always have admin priviledge"
 
 [dependencies]
+tokio = { workspace = true }

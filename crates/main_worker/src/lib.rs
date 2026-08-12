@@ -13,6 +13,7 @@ pub mod sender;
 pub mod payload_maker;
 pub mod scheduler;
 pub mod config_handler;
+pub mod ipc;
 
 use crate::scheduler::TimerWheel;
 use crate::payload_maker::PayloadMaker;

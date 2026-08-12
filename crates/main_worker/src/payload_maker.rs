@@ -497,7 +497,7 @@ impl PayloadMaker {
 
         let mut payload_json = match serde_json::to_value(info_payload) {
             Ok(json) => json,
-            Err(e) => serde_json::to_value(e.to_string()).expect("Cannot error here"), //TODO code smell
+            Err(e) => serde_json::to_value(e.to_string()).expect("Cannot error here"), //TODO fix code smell
         };
 
         if let Some(map) = payload_json.as_object_mut() {

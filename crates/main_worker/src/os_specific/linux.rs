@@ -16,10 +16,10 @@ use std::io::{ErrorKind::{PermissionDenied, NotFound, InvalidInput},BufRead, Buf
 use std::collections::HashMap;
 
 use sysinfo::Components;
-use smbioslib::{SMBiosMemoryDevice,SMBiosPhysicalMemoryArray, SMBiosProcessorInformation, table_load_from_device};
 
 use super::interface::OsSpecificInterface;
 use super::parse_chassis_type;
+use crate::ipc;
 use shared_libs::types::*;
 
 const HARDWARE_INFO_PATH: &str = "/sys/class/dmi/id";
@@ -102,7 +102,7 @@ impl OsSpecificBackend {
     fn set_cached_info() -> CachedInfo {
         let mut info = CachedInfo::default();
 
-        info.product_serial = Self::parse_file(HARDWARE_INFO_PATH, "product_serial");
+        info.product_serial = ipc::ask_launcher("product_serial"); //: Admin priviledge
 
         info.architecture = Some(std::env::consts::ARCH.to_owned());
 
@@ -126,59 +126,21 @@ impl OsSpecificBackend {
 
         info.mobo_name = Self::parse_file(HARDWARE_INFO_PATH, "board_name");
 
-        info.mobo_serial = Self::parse_file(HARDWARE_INFO_PATH, "board_serial");
+        info.mobo_serial = ipc::ask_launcher("board_serial");  //: Admin priviledge
 
-        info.cpu_socket = Self::cache_cpu_socket();
+        info.cpu_socket = ipc::ask_launcher("cpu_socket").and_then(|s| s.trim().parse::<u64>().ok());  //: Admin priviledge
 
-        info.ram_socket = Self::cache_ram_socket();
+        info.ram_socket = ipc::ask_launcher("ram_socket").and_then(|s| s.trim().parse::<u64>().ok());  //: Admin priviledge
 
         info.gpu_socket = Self::cache_gpu_socket();
 
-        info.ram_list = Self::cache_ram_list();
+        info.ram_list = ipc::ask_launcher("ram_list").and_then(|list| serde_json::from_str(&list).ok());  //: Admin priviledge
 
         info.physical_disk_list = Self::cache_physical_disk_list();
 
         info.network_hardware = Self::cache_network_hardware();
 
         info
-    }
-
-    fn cache_cpu_socket() -> Option<u64> {
-        match table_load_from_device() {
-            Ok(data) => {
-                Some(data.defined_struct_iter::<SMBiosProcessorInformation>().count() as u64)
-            }
-            Err(e) if e.kind() == PermissionDenied => {
-                log::warn!("Required Admin to read cpu socket");
-                None
-            }
-            Err(e) => {
-                log::error!("Failded to read cpu socket: {}", e);
-                None
-            }
-        }
-    }
-
-    fn cache_ram_socket() -> Option<u64> {
-        match table_load_from_device() {
-            Ok(data) => {
-                let mut ram_socket = 0;
-                for mem_array in data.defined_struct_iter::<SMBiosPhysicalMemoryArray>() {
-                    if let Some(count) = mem_array.number_of_memory_devices() {
-                        ram_socket += count;
-                    }
-                }
-                Some(ram_socket as u64)
-            }
-            Err(e) if e.kind() == PermissionDenied => {
-                log::warn!("Required Admin to read ram socket");
-                None
-            }
-            Err(e) => {
-                log::error!("Failded to read ram socket: {}", e);
-                None
-            }
-        }
     }
 
     fn cache_gpu_socket() -> Option<u64> {
@@ -206,67 +168,6 @@ impl OsSpecificBackend {
                 None
             }
         }
-    }
-
-    fn cache_ram_list() -> Option<Vec<Ram>> {
-        let data = match table_load_from_device() {
-            Ok(d) => d,
-            Err(e) if e.kind() == PermissionDenied => {
-                log::warn!("Required Admin to read ram list");
-                 return None;
-            }
-            Err(e) => {
-                log::error!("Failded to read ram list: {}", e);
-                return None;
-            }
-        };
-
-        let mut ram_list = Vec::new();
-
-        for mem_device in data.defined_struct_iter::<SMBiosMemoryDevice>() {
-            let raw_size = format!("{:?}", mem_device.size());
-
-            if raw_size.contains("0") || raw_size.contains("Unknown") || raw_size.contains("None") {
-                continue;
-            }
-
-            let manufacturer = mem_device.manufacturer().to_string();
-            let part_number = mem_device.part_number().to_string();
-            let name = format!("{} {}", manufacturer, part_number).trim().to_string();
-
-            let serial = mem_device.serial_number().to_string();
-
-            let type_ = match mem_device.memory_type() {
-                Some(mem_type_data) => format!("{:?}", mem_type_data.value).to_uppercase(),
-                None => "Unknown".to_string(),
-            };
-
-            let bank = mem_device.bank_locator().to_string();
-
-            let form_factor = match mem_device.form_factor() {
-                Some(ff) => format!("{:?}", ff.value).to_uppercase(),
-                None => "Unknown".to_string(),
-            };
-
-            let size =  if raw_size.contains("Gigabytes") {
-                raw_size.replace("Some(Gigabytes(", "").replace("))", "")
-            } else if raw_size.contains("Megabytes") {
-                raw_size.replace("Some(Megabytes(", "").replace("))", "")
-            } else if raw_size.contains("Some(") {
-                raw_size.replace("Some(", "").replace(")", "")
-            } else {
-                raw_size
-            }.trim().parse::<u64>().unwrap_or_default();
-
-            let speed_debug = format!("{:?}", mem_device.configured_memory_speed().or_else(|| mem_device.speed()));
-            let speed = speed_debug
-                .replace("Some(MTs(", "").replace("))", "")
-                .replace("MTs(", "").replace(")", "")
-                .replace("Some(Unknown)", "Unknown");
-
-            ram_list.push(Ram::new(name, serial, type_, speed, size, bank, form_factor));
-        }
-        Some(ram_list)
     }
 
     fn cache_physical_disk_list() -> Option<Vec<PhysicalDisk>> {
@@ -590,6 +491,13 @@ impl OsSpecificInterface for OsSpecificBackend {
                     current.install_date = fs::metadata(&info_path).and_then(|meta| meta.modified()).ok();
 
                     list.push(current);
+
+                    #[cfg(debug_assertions)]
+                    //: Early exit for in dev mode, only show 5 software
+                    if list.len() >= 5 {
+                        break;
+                    }
+
                     current = Software::new();
                 }
                 continue;
