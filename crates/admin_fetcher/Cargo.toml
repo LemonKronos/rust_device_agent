@@ -2,5 +2,6 @@
 name = "admin_fetcher"
 version = "0.1.0"
 edition = "2024"
+description = "Fetch protected info for Agent"
 
 [dependencies]

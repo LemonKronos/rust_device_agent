@@ -2,7 +2,7 @@
 //! Interface for all OS specific backend to follow
 //! 
 
-use crate::types::*;
+use shared_libs::types::*;
 pub trait OsSpecificInterface {
     fn refresh(&mut self);
 

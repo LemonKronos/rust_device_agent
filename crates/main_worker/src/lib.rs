@@ -10,8 +10,6 @@ use tokio::signal;
 pub mod os_specific;
 pub mod info_gatherer;
 pub mod sender;
-pub mod types;
-pub mod utils;
 pub mod payload_maker;
 pub mod scheduler;
 pub mod config_handler;
@@ -19,7 +17,7 @@ pub mod config_handler;
 use crate::scheduler::TimerWheel;
 use crate::payload_maker::PayloadMaker;
 use crate::sender::{Sender, ServerCmd};
-use crate::utils::*;
+use shared_libs::utils::*;
 use crate::config_handler::*;
 
 /// Allow software scanning or not
@@ -34,10 +32,10 @@ const INIT_FULL_SCAN: bool = true;
 
 /// In dev mode, will include the current in-dev feature
 const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "separate_binary");
-const USE_CUSTOME_SERIAL: bool = false;
-const CUSTOME_SERIAL: &str = "TEST_MACHINE_03";
+const USE_CUSTOM_SERIAL: bool = false;
+const CUSTOM_SERIAL: &str = "TEST_MACHINE_03";
 
-/// Make the default dev config for only the "general" topic
+/// Make the default dev config for only the "general" module
 const SIMPLE_CONFIG: bool = true;
 
 #[cfg(not(debug_assertions))]

@@ -20,7 +20,7 @@ use smbioslib::{SMBiosMemoryDevice,SMBiosPhysicalMemoryArray, SMBiosProcessorInf
 
 use super::interface::OsSpecificInterface;
 use super::parse_chassis_type;
-use crate::types::*;
+use shared_libs::types::*;
 
 const HARDWARE_INFO_PATH: &str = "/sys/class/dmi/id";
 const HARD_DISK_PATH: &str = "/sys/block";
@@ -545,7 +545,7 @@ impl OsSpecificInterface for OsSpecificBackend {
             .and_then(|i| Some(i.trim().to_lowercase() != "discharging"))
     }
 
-    fn fill_network_hardware(&self, network_list: &mut Vec<crate::types::Network<'_>>) {
+    fn fill_network_hardware(&self, network_list: &mut Vec<shared_libs::types::Network<'_>>) {
         for interface in network_list {
             if let Some(hw_map) = &self.cached_info.network_hardware {
                 interface.hardware = hw_map.get(interface.get_name().as_str()).cloned();

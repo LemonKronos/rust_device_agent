@@ -8,7 +8,7 @@
 pub mod interface;
 
 use interface::OsSpecificInterface;
-use crate::types::*;
+use shared_libs::types::*;
 
 //_ Linux
 #[cfg(target_os = "linux")]
@@ -125,7 +125,7 @@ impl OsSpecificInterface for OsSpecific {
         self.backend.get_is_plugged_in()
     }
 
-    fn fill_network_hardware(&self, network_list: &mut Vec<crate::types::Network<'_>>) {
+    fn fill_network_hardware(&self, network_list: &mut Vec<shared_libs::types::Network<'_>>) {
         self.backend.fill_network_hardware(network_list);
     }
 

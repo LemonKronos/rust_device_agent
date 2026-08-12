@@ -2,5 +2,6 @@
 name = "launcher"
 version = "0.1.0"
 edition = "2024"
+description = "Laucher for the app, run in background, always have admin priviledge"
 
 [dependencies]

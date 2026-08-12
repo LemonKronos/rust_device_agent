@@ -21,8 +21,8 @@ use serialize_type::*;/// Use [`InfoPayload`] to serialize with
 
 use super::SCAN_SOFTWARE;
 use super::AGENT_VERSION;
-use super::CUSTOME_SERIAL;
-use super::USE_CUSTOME_SERIAL;
+use super::CUSTOM_SERIAL;
+use super::USE_CUSTOM_SERIAL;
 
 pub struct PayloadMaker {
     info: Info,
@@ -444,9 +444,9 @@ impl PayloadMaker {
         let mut has_id = false;
 
         #[cfg(debug_assertions)]
-        if USE_CUSTOME_SERIAL {
+        if USE_CUSTOM_SERIAL {
             let machine = info_payload.machine.get_or_insert_with(MachinePayload::default);
-            machine.serial = Some(AgentValue::Text(CUSTOME_SERIAL.to_string()));
+            machine.serial = Some(AgentValue::Text(CUSTOM_SERIAL.to_string()));
             has_id = true;
         }
 

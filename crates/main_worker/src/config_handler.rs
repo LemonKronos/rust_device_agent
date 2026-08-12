@@ -12,7 +12,7 @@ use tokio::time::Instant;
 
 use crate::scheduler::TaskID::*;
 use crate::scheduler::{ScheduledTask,TimerWheel};
-use crate::utils::flatten_config;
+use shared_libs::utils::flatten_config;
 use super::SCAN_SOFTWARE;
 use super::SIMPLE_CONFIG;
 

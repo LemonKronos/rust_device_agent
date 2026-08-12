@@ -11,7 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 use all_smi::AllSmi;
 
-use crate::types::*;
+use shared_libs::types::*;
 use crate::os_specific::OsSpecific;
 use crate::os_specific::interface::OsSpecificInterface;
 

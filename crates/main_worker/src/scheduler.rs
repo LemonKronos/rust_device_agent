@@ -20,7 +20,7 @@ use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value as Json;
 
-use crate::utils::FormatTime;
+use shared_libs::utils::FormatTime;
 use  crate::config_handler;
 
 //TODO Maybe this is no longer needed?

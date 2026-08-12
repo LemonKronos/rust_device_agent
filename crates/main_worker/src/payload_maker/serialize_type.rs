@@ -8,7 +8,7 @@ use serde::Serialize;
 use serde_with::skip_serializing_none;
 
 use crate::scheduler::AgentValue;
-use crate::types;
+use shared_libs::types;
 
 /// Main body
 #[skip_serializing_none]
