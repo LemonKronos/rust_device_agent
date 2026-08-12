@@ -2,9 +2,7 @@
 ///  main worker: handle non-root task and network
 /// 
 
-
-
-use gsoft_device_agent::DeviceAgent;
+use main_worker::DeviceAgent;
 
 #[tokio::main]
 async fn main() {

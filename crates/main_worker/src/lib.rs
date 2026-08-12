@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![doc = include_str!("../../../README.md")]
 
 //!
 //! Logic wrapper for the app, contain the main loop and all module
