@@ -15,11 +15,29 @@ pub mod scheduler;
 pub mod config_handler;
 pub mod ipc;
 
-use crate::scheduler::TimerWheel;
+// ! DEV CONFIG
+#[cfg(debug_assertions)]
+mod dev_config {
+   /// In dev mode, will include the current in-dev feature
+    pub const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "separate_binary");
+    pub const USE_CUSTOM_SERIAL: bool = false;
+    pub const CUSTOM_SERIAL: &str = "TEST_MACHINE_03";
+
+    /// Make the default dev config for only the "general" module
+    pub const SIMPLE_CONFIG: bool = true; 
+}
+
+#[cfg(not(debug_assertions))]
+const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+use crate::scheduler::Scheduler;
 use crate::payload_maker::PayloadMaker;
 use crate::sender::{Sender, ServerCmd};
-use shared_libs::utils::*;
 use crate::config_handler::*;
+use shared_libs::utils::*;
+
+#[cfg(debug_assertions)]
+use crate::dev_config::*;
 
 /// Allow software scanning or not
 const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
@@ -27,31 +45,15 @@ const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
 /// Init with full scan
 const INIT_FULL_SCAN: bool = true;
 
-
-// ! DEV CONFIG
-#[cfg(debug_assertions)]
-
-/// In dev mode, will include the current in-dev feature
-const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "separate_binary");
-const USE_CUSTOM_SERIAL: bool = false;
-const CUSTOM_SERIAL: &str = "TEST_MACHINE_03";
-
-/// Make the default dev config for only the "general" module
-const SIMPLE_CONFIG: bool = true;
-
-#[cfg(not(debug_assertions))]
-const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-
 pub struct DeviceAgent {
     payload_maker: PayloadMaker,
     sender: Sender,
-    scheduler: TimerWheel,
+    scheduler: Scheduler,
 }
 
 impl DeviceAgent {
     pub fn new() -> Self {
-        init_logger();
+        init_logger(env!("CARGO_PKG_NAME"));
 
         Self {
             payload_maker: PayloadMaker::new(),
@@ -97,10 +99,12 @@ impl DeviceAgent {
                     },
                     ServerCmd::UpdateConfig(new_config) => {
                         log::info!("Server ask to update config");
-                        self.scheduler.update_wheel(new_config);
+                        self.scheduler.update(new_config);
                     },
                     ServerCmd::UpdateAgent { version } => {
-                        log::info!("Server ask to update to agent version {} over current version {}", version, AGENT_VERSION)
+                        log::info!(
+                            "Server ask to update to agent version {} over current version {}",
+                            version, AGENT_VERSION)
                     },
                     ServerCmd::Unknown => {
                         log::warn!("Agent receive an Unknown Command")
@@ -126,7 +130,7 @@ impl DeviceAgent {
     }
 
     pub fn shutdown(&mut self) {
-        self.scheduler.save_wheel();
+        self.scheduler.save();
         log::info!("Normal shutdown completed");
     }
 }
@@ -166,10 +170,10 @@ mod tests {
         let mut agent = DeviceAgent::new();
         let start = std::time::Instant::now();
 
-        let mut full_wheel: TimerWheel = load_config();
-        let batch = full_wheel.pop_due_batch();
+        let mut sched: Scheduler = load_config();
+        let batch = sched.pop_due_batch();
         let _ = agent.payload_maker.process_batch(&batch, true);
-        full_wheel.reschedule_batch(batch, true);
+        sched.reschedule_batch(batch, true);
 
         assert!(start.elapsed().as_millis() < 500, "Fullscan took too long, over {} ms", start.elapsed().as_millis());
     }
@@ -178,8 +182,8 @@ mod tests {
     fn test_payload_has_no_empty_strings() {
         let mut agent = DeviceAgent::new();
 
-        let mut full_wheel: TimerWheel = load_config();
-        let batch = full_wheel.pop_due_batch();
+        let mut sched: Scheduler = load_config();
+        let batch = sched.pop_due_batch();
         let payload = agent.payload_maker.process_batch(&batch, true);
         assert_no_empty_strings(&payload);
     }

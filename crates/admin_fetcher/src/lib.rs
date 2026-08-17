@@ -5,7 +5,7 @@
 //! 
 
 use std::env;
-// use shared_libs::utils::*;
+use shared_libs::utils::*;
 
 //: Os plexer
 #[cfg(target_os = "linux")]
@@ -20,7 +20,7 @@ pub use windows::get;
 
 
 pub fn asked_to_scan() {
-    //TODO attach log correctly
+    init_logger(env!("CARGO_PKG_NAME"));
 
     let args: Vec<String> = env::args().collect();
 
@@ -32,7 +32,7 @@ pub fn asked_to_scan() {
     let key = &args[1];
 
     if let Some(value) = get(key) {
-        println!("{}", value); 
+        print!("{}", value); 
         std::process::exit(0);
     } else {
         log::error!("Key '{}' not found or access denied.", key);

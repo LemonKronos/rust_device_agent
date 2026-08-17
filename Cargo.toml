@@ -10,10 +10,15 @@ edition = "2024"
 
 [profile.release]
 opt-level = 'z'     # Optimize for size
-lto = true          # Link-time optimization (makes a huge difference)
+lto = true          # Link-time optimization
 codegen-units = 1   # Slower compile time, smaller binary
 strip = true        # Strip symbols from the binary
 panic = 'abort'     # Removes panic unwinding overhead
+
+[profile.profiling]
+inherits = "release"
+debug = true        # Enable debug symbols for flamegraph
+strip = false       # Keep symbols in the binary
 
 [workspace.dependencies]
 all-smi = "0.22.0"

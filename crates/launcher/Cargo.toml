@@ -5,4 +5,6 @@ edition = "2024"
 description = "Laucher for the app, run in background, always have admin priviledge"
 
 [dependencies]
+shared_libs = { path = "../shared_libs" }
 tokio = { workspace = true }
+log = { workspace = true }

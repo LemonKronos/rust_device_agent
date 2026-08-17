@@ -3,3 +3,5 @@
 doc/logs
 doc/sample
 doc/config.json
+perf.data
+perf.data.old

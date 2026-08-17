@@ -21,8 +21,9 @@ use serialize_type::*;/// Use [`InfoPayload`] to serialize with
 
 use super::SCAN_SOFTWARE;
 use super::AGENT_VERSION;
-use super::CUSTOM_SERIAL;
-use super::USE_CUSTOM_SERIAL;
+
+#[cfg(debug_assertions)]
+use super::{CUSTOM_SERIAL,USE_CUSTOM_SERIAL};
 
 pub struct PayloadMaker {
     info: Info,

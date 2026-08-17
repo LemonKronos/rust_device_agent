@@ -102,7 +102,7 @@ impl OsSpecificBackend {
     fn set_cached_info() -> CachedInfo {
         let mut info = CachedInfo::default();
 
-        info.product_serial = ipc::ask_launcher("product_serial"); //: Admin priviledge
+        info.product_serial = ipc::ask_admin("product_serial"); //: Admin priviledge
 
         info.architecture = Some(std::env::consts::ARCH.to_owned());
 
@@ -126,15 +126,15 @@ impl OsSpecificBackend {
 
         info.mobo_name = Self::parse_file(HARDWARE_INFO_PATH, "board_name");
 
-        info.mobo_serial = ipc::ask_launcher("board_serial");  //: Admin priviledge
+        info.mobo_serial = ipc::ask_admin("board_serial");  //: Admin priviledge
 
-        info.cpu_socket = ipc::ask_launcher("cpu_socket").and_then(|s| s.trim().parse::<u64>().ok());  //: Admin priviledge
+        info.cpu_socket = ipc::ask_admin("cpu_socket").and_then(|s| s.trim().parse::<u64>().ok());  //: Admin priviledge
 
-        info.ram_socket = ipc::ask_launcher("ram_socket").and_then(|s| s.trim().parse::<u64>().ok());  //: Admin priviledge
+        info.ram_socket = ipc::ask_admin("ram_socket").and_then(|s| s.trim().parse::<u64>().ok());  //: Admin priviledge
 
         info.gpu_socket = Self::cache_gpu_socket();
 
-        info.ram_list = ipc::ask_launcher("ram_list").and_then(|list| serde_json::from_str(&list).ok());  //: Admin priviledge
+        info.ram_list = ipc::ask_admin("ram_list").and_then(|list| serde_json::from_str(&list).ok());  //: Admin priviledge
 
         info.physical_disk_list = Self::cache_physical_disk_list();
 

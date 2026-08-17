@@ -1,12 +1,12 @@
 //!
-//! # Timer wheel where each scan task is being stored as an element in min-heap
+//! # Scheduler where each scan task is being stored as an element in min-heap
 //! 
-//! With the lightweight and robust goal in mind, the timer wheel is designed to be init directly from the config.
-//! "The timer wheel is the config, the config is the timer wheel".
+//! With the lightweight and robust goal in mind, the scheduler is designed to be init directly from the config.
+//! "The scheduler is the config, the config is the scheduler".
 //! Thus, we flatten the json structure, get the ID, get the scan interval, limit, next execute time to store as config.
-//! The timer wheel then get **deserialized directly** from the config.
-//! When the config change by server, the timer wheel get updated and immediately save as config.
-//! When the Agent get normally shutdown, the current timer wheel is serialize to config.
+//! The scheduler then get **deserialized directly** from the config.
+//! When the config change by server, the scheduler get updated and immediately save as config.
+//! When the Agent get normally shutdown, the current scheduler is serialize to config.
 //! 
 
 use rustc_hash::FxHashMap;
@@ -257,9 +257,9 @@ pub enum TaskID {
     Unknown,
 }
 
-/// ScheduledTask in Timer Wheel.
+/// ScheduledTask.
 /// 
-/// All the `PartialEq`, `Eq`, `Ord` and `PartialOrd` are for **min** heap, since [`TimerWheel`] using `std::collections::BinaryHeap` - which is a max heap.
+/// All the `PartialEq`, `Eq`, `Ord` and `PartialOrd` are for **min** heap, since [`Scheduler`] using `std::collections::BinaryHeap` - which is a max heap.
  #[derive(Debug, Clone)]
 pub struct ScheduledTask {
     /// Unique ID for each task
@@ -295,9 +295,8 @@ impl PartialOrd for ScheduledTask {
     }
 }
 
-/// Timer Wheel, the main scheduler logic.
 #[derive(Debug, Default)]
-pub struct TimerWheel {
+pub struct Scheduler {
     /// The active task queue
     pub heap: BinaryHeap<ScheduledTask>,
 
@@ -308,7 +307,7 @@ pub struct TimerWheel {
     skip_sleep: bool,
 }
 
-impl TimerWheel {
+impl Scheduler {
     pub fn new() -> Self {
         Self {
             heap: BinaryHeap::new(),
@@ -344,10 +343,10 @@ impl TimerWheel {
             },
             None => {
                 if cfg!(debug_assertions) {   
-                    log::warn!("Timer Wheel empty! Temporary sleep for 30 sec.");
+                    log::warn!("Scheduler empty! Temporary sleep for 30 sec.");
                     sleep_until(now + Duration::from_secs(30)).await;
                 } else {
-                    log::warn!("Timer Wheel empty! Temporary sleep for 5 min.");
+                    log::warn!("Scheduler empty! Temporary sleep for 5 min.");
                     sleep_until(now + Duration::from_mins(5)).await;
                 }
             },
@@ -385,7 +384,7 @@ impl TimerWheel {
     /// If a full scan have just happpen, reschedule all the task (include dead ones) from `Instant::now()`.
     pub fn reschedule_batch(&mut self, batch: Vec<ScheduledTask>, full_scan: bool) {
         let now  = Instant::now();
-        if full_scan { // Put all to a new timer wheel
+        if full_scan { // Put all to a new heap
             let mut updated = Vec::new();
 
             for mut task in batch {
@@ -425,8 +424,8 @@ impl TimerWheel {
         }
     }
 
-    /// Apply the config change directly to the wheel, and immediately save
-    pub fn update_wheel(&mut self, config: Json) {
+    /// Apply the config change directly to the scheduler, and immediately save
+    pub fn update(&mut self, config: Json) {
         let mut patch_map: FxHashMap<TaskID, (u64, Option<AgentValue>)> = FxHashMap::default();
         let now = Instant::now();
 
@@ -514,23 +513,23 @@ impl TimerWheel {
         // 5. Rebuild Everything
         self.heap = BinaryHeap::from(new_heap);
         self.dead_tasks = new_graveyard;
-        log::info!("Timer Wheel successfully patched with server config");
+        log::info!("Scheduler successfully patched with server config");
 
-        self.save_wheel();
+        self.save();
         log::info!("New updated config saved");
     }
 
-    /// Save current timer wheel as config file
-    pub fn save_wheel(&mut self) {
+    /// Save current Scheduler as config file
+    pub fn save(&mut self) {
         for task in self.dead_tasks.drain(..) {
             self.heap.push(task);
         }
 
         if !self.heap.is_empty() {
-            log::info!("Save timer wheel as config");
+            log::info!("Save Scheduler as config");
             config_handler::save_config(&self);
         } else {
-            log::warn!("Timer wheel emptry, no config save");
+            log::warn!("Scheduler emptry, no config save");
         }
     }
 }
@@ -543,7 +542,7 @@ impl TimerWheel {
 ///     "general.run_time": [10, null, 1786422356]
 /// }
 /// ```
-impl Serialize for TimerWheel {
+impl Serialize for Scheduler {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -571,8 +570,8 @@ impl Serialize for TimerWheel {
     }
 }
 
-/// DISK to RAM: when load config.json to timer wheel
-impl<'de> Deserialize<'de> for TimerWheel {
+/// DISK to RAM: when load config.json to Scheduler
+impl<'de> Deserialize<'de> for Scheduler {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -580,7 +579,7 @@ impl<'de> Deserialize<'de> for TimerWheel {
         struct QueueVisitor;
 
         impl<'de> Visitor<'de> for QueueVisitor {
-            type Value = TimerWheel;
+            type Value = Scheduler;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("a map of string keys to [u64, u64] arrays")
@@ -622,7 +621,7 @@ impl<'de> Deserialize<'de> for TimerWheel {
                     });
                 }
 
-                Ok(TimerWheel {
+                Ok(Scheduler {
                     heap: BinaryHeap::from(tasks),
                     dead_tasks: Vec::new(),
                     skip_sleep: false,
@@ -634,3 +633,46 @@ impl<'de> Deserialize<'de> for TimerWheel {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use TaskID::*;
+
+    #[test]
+    fn test_min_heap_ordering() {
+        let mut sched = Scheduler::new();
+        let now = Instant::now();
+
+        sched.push(ScheduledTask { id: GeneralHost, cycle_time: 0, execute_at: now + Duration::from_secs(3), limit: None });
+        sched.push(ScheduledTask { id: GeneralBootTime, cycle_time: 0, execute_at: now + Duration::from_secs(1), limit: None });
+        sched.push(ScheduledTask { id: GeneralRunTime, cycle_time: 0, execute_at: now + Duration::from_secs(2), limit: None });
+
+        assert!(!sched.heap.is_empty(), "Heap screams: Completely empty after pushes!");
+
+        let t1 = sched.heap.pop().expect("Heap screams: Expected 1st task, found None!");
+        assert_eq!(t1.id, GeneralBootTime, "Min-heap policy failed on 1st pop");
+
+        let t2 = sched.heap.pop().expect("Heap screams: Expected 2nd task, found None!");
+        assert_eq!(t2.id, GeneralRunTime, "Min-heap policy failed on 2nd pop");
+
+        let t3 = sched.heap.pop().expect("Heap screams: Expected 3rd task, found None!");
+        assert_eq!(t3.id, GeneralHost, "Min-heap policy failed on 3rd pop");
+
+        assert!(sched.heap.is_empty(), "Heap screams: Items remaining after all pops!");
+    }
+
+    #[test]
+    fn test_pop_batch() {
+        let mut sched = Scheduler::new();
+        let now = Instant::now();
+
+        sched.push(ScheduledTask { id: GeneralRunTime, cycle_time: 0, execute_at: now + Duration::from_secs(2), limit: None });
+        sched.push(ScheduledTask { id: GeneralBootTime, cycle_time: 0, execute_at: now, limit: None });
+
+        let dues = sched.pop_due_batch();
+
+        assert!(!dues.is_empty(), "Due task batch is empty!");
+        assert_eq!(dues.len(), 1, "Over-pop batch!");
+        assert_eq!(dues.first().unwrap().id, GeneralBootTime, "Batching incorrect task!");
+    }
+}

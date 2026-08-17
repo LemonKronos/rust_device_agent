@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 
 const PIPE_NAME: &str = r"\\.\pipe\gsoft_agent_pipe";
 
-pub fn ask_launcher(key: &str) -> Option<String> {
+pub fn ask_admin(key: &str) -> Option<String> {
     // 1. Open the pipe blocking
     let mut client = OpenOptions::new()
         .read(true)

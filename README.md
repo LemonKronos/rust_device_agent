@@ -22,17 +22,17 @@ The Agent is "lazy and smart." It only scans when explicitly asked by the server
 
 The heartbeat signal is designated as `general:run_time` since that value continuously changes as the machine runs. Therefore, the heartbeat cycle is simply tied to whatever the `general:run_time` scan cycle is set to.
 
-The scheduler is adaptive and lightweight (using a min-heap) and is implemented as a timer wheel, allowing the scan cycle to scale from a single second to extremely long intervals. The scheduler is the config, and the config is the scheduler.
+The scheduler is adaptive and lightweight (using a min-heap), allowing the scan cycle to scale from a single second to extremely long intervals. The scheduler is the config, and the config is the scheduler.
 
 # Design Architecture
 - For Web view:
-![Gsoft Agent Architecture](../../../doc/figure/Structure.png)
+![Gsoft Agent Architecture](../../../doc/figure/design_architecture.png)
 - For Markdown view: 
-![Gsoft Agent Architecture](doc/figure/Structure.png)
+![Gsoft Agent Architecture](doc/figure/design_architecture.png)
 # Agent Life Cycle
 
 - **Start-up**
-    - The Agent initializes and loads its local config as a timer wheel.
+    - The Agent initializes and loads its local config as a scheduler.
     - Performs a full scan (configurable by devs, but should generally be left as `true`).
     - Sends information to the server and handles any server response commands.
     - Sleeps until the next scheduled task (interruptible).
@@ -44,5 +44,5 @@ The scheduler is adaptive and lightweight (using a min-heap) and is implemented 
     - Sleeps until the next scheduled task (interruptible).
 - **Normal Shutdown Interrupt**
     - Sends a shutdown heartbeat to the server.
-    - Saves the current timer wheel state as the config.
+    - Saves the current scheduler state as the config.
 ___

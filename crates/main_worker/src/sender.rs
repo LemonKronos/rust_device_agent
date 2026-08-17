@@ -92,7 +92,6 @@ impl Sender {
     pub async fn transmit(&self, payload: Json, full_scan: bool) -> Vec<ServerCmd> {
         let agent = self.agent.clone(); // it a Arc, so cheap clone
 
-        // Different endpoint, same logic
         let endpoint = if full_scan {
             log::info!("Agent send to FULL SCAN endpoint");
             SERVER_ENDPOINT_FULL_SCAN
