@@ -1,5 +1,6 @@
 {
-  "general.host": [10, null, 1786698041],
-  "general.boot_time": [10, null, 1786698041],
-  "general.run_time": [10, null, 1786698041]
+  "general.host": [10, null, 1786953627],
+  "general.boot_time": [10, null, 1786953627],
+  "general.run_time": [10, null, 1786953627],
+  "machine.serial": [10, null, 1786953627]
 }

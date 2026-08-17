@@ -8,3 +8,7 @@ description = "Laucher for the app, run in background, always have admin privile
 shared_libs = { path = "../shared_libs" }
 tokio = { workspace = true }
 log = { workspace = true }
+
+[features]
+default = ["profiling"] #! Comment out when build for deploy
+profiling = []
