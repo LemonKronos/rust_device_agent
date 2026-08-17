@@ -236,7 +236,6 @@ impl OsSpecificBackend {
                     };
 
                     let mut part_list = Vec::new();
-                    let mut part_index = 0;
                     if let Ok(sub_entries) = fs::read_dir(entry.path()) {
                         for sub_entry in sub_entries.flatten() {
                             let sub_name = sub_entry.file_name().to_string_lossy().into_owned();
@@ -253,10 +252,9 @@ impl OsSpecificBackend {
                                 let rounded_size = (p_size_gb * 100.0).round() / 100.0;
 
                                 part_list.push(Partition {
-                                    name: part_index.to_string(), // ! Should change this to real partition name
+                                    name: sub_name,
                                     size: rounded_size,
                                 });
-                                part_index += 1;
                             }
                         }
                     }

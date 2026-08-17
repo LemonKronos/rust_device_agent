@@ -167,7 +167,9 @@ impl PayloadMaker {
                     let last_group = self.last_info_payload.$group.get_or_insert_with($group_type::default);
                     let last_items = last_group.$list_field.get_or_insert_with(Vec::new);
 
+                    let mut num_item_changed = false;
                     if items.len() != last_items.len() {
+                        num_item_changed = true;
                         last_items.clear();
                         last_items.resize_with(items.len(), $item_type::default);
                     }
@@ -180,7 +182,7 @@ impl PayloadMaker {
                         let mut has_diff = false;
 
                         $(
-                            let should_run = full_scan || task_map.contains_key(&$task_id);
+                            let should_run = full_scan || num_item_changed || task_map.contains_key(&$task_id);
                             if should_run {
                                 let limit = if full_scan { None } else { task_map.get(&$task_id).and_then(|t| t.limit.clone()) };
                                 if let Some(updated) = check_diff_update($getter_expr, &mut last_item.$field, &limit) {
@@ -224,12 +226,15 @@ impl PayloadMaker {
                 item_type: $item_type:ident,
                 item_ident: $item:ident,
                 identity: $id_field:ident = $id_expr:expr,
+                no_cache: $no_cache:ident,
                 fields: [ $( ($task_id:ident, $field:ident, $getter_expr:expr) ),* $(,)? ]
             ) => {
                 if let Some(items) = $list {
                     let last_items = self.last_info_payload.$payload_list.get_or_insert_with(Vec::new);
 
+                    let mut num_item_changed = false;
                     if items.len() != last_items.len() {
+                        num_item_changed = true;
                         last_items.clear();
                         last_items.resize_with(items.len(), $item_type::default);
                     }
@@ -239,10 +244,10 @@ impl PayloadMaker {
                     for (i, $item) in items.iter().enumerate() {
                         let last_item = &mut last_items[i];
                         let mut diff = $item_type::default();
-                        let mut has_diff = false;
+                        let mut has_diff = false || $no_cache;
 
                         $(
-                            let should_run = full_scan || task_map.contains_key(&$task_id);
+                            let should_run = full_scan || num_item_changed || task_map.contains_key(&$task_id);
                             if should_run {
                                 let limit = if full_scan { None } else { task_map.get(&$task_id).and_then(|t| t.limit.clone()) };
                                 if let Some(updated) = check_diff_update($getter_expr, &mut last_item.$field, &limit) {
@@ -374,6 +379,7 @@ impl PayloadMaker {
             item_type: GpuPayload,
             item_ident: g,
             identity: name = g.get_name(),
+            no_cache: false,
             fields: [
                 (GpuDriver, driver, g.get_driver_version()),
                 (GpuFreq, frequency, g.get_freq()),
@@ -394,6 +400,7 @@ impl PayloadMaker {
             item_type: NetworkPayload,
             item_ident: n,
             identity: name = n.get_name(),
+            no_cache: false,
             fields: [
                 (NetworkCard, card, n.get_card()),
                 (NetworkConfigSpeed, config_speed, n.get_config_speed()),
@@ -415,6 +422,7 @@ impl PayloadMaker {
             item_type: ProcessPayload,
             item_ident: p,
             identity: name = p.get_name(),
+            no_cache: true,
             fields: [
                 (TopProcessCpu, cpu, p.get_cpu_usage()),
                 (TopProcessMemory, memory, p.get_memory()),

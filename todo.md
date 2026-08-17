@@ -1,27 +1,27 @@
 - [ ] To compile for Win or Mac, consider using cloud compilation, as in push to git, then compile on their server with real Win and Mac dictionary
-- [ ] The running processes show the agent itself, don't let it show
-- [ ] Create ctrlc to check for normal shutdown
+- [x] The running processes show the agent itself, don't let it show. NO, it not that bad, and it should show itself.
+- [x] Create ctrlc to check for normal shutdown
 - [ ] Use direct buff file read instead of calling command: Speed
-- [ ] Check for the "Unknown" return, may need to differentiate it with valid "Unknown" thing!
-- [ ] For Linux have to be care full with cmd to avoid bare bone server
-- [ ] Don't send info that is "Unknown" or invalid
-- [ ] <mark style="background: #CFB461;">maybe wrap all in Option</mark> 
-- [ ] Maybe not read and sending network `lo`?
-- [ ] Should use Path type for all
+- [x] Check for the "Unknown" return, may need to differentiate it with valid "Unknown" thing!
+- [x] For Linux have to be care full with cmd to avoid bare bone server
+- [x] Don't send info that is "Unknown" or invalid
+- [x] <mark style="background: #CFB461;">maybe wrap all in Option</mark> 
+- [x] Maybe not read and sending network `lo`? No, send all
+- [ ] Should use Path type for all. Maybe not, just for idiomatic Rust
 - [ ] Please note on Window 10, Window 8 and Window XP
-- [ ] For Linux, change struct to keep string on for "static" OS info? Use `Option<String>`
 - [ ] Should bring all the error output to a json return to server as debug
-- [ ] Should agent just send only when info change??? Why keep sending when server just discard?
-- [ ] The option choose logic of if choose item in list must include name is on server side
-- [ ] Stuff like disk info, need check if new disk added, give all info
-- [ ] <mark style="background: #CF8861;">If send when there are changes, why to we need time option at all, just send full at init and update through out with heartbeat</mark>: What the option really mean is when to send, but that is when to scan. That let user config Agent resource, only scan cycle that user need, Agent do scan cycle, but only send when info change
-- [ ] TODO: Which mean info_gatherer need a cache, so it check everytime a field is called
+- [x] Should agent just send only when info change??? Why keep sending when server just discard?
+- [x] The option choose logic of if choose item in list must include name is on server side
+- [x] Stuff like disk info, need check if new disk added, give all info. DONE.
+- [ ] But maybe better to do a socket listener for USB stick and such!
+- [x] <mark style="background: #CF8861;">If send when there are changes, why to we need time option at all, just send full at init and update through out with heartbeat</mark>: What the option really mean is when to send, but that is when to scan. That let user config Agent resource, only scan cycle that user need, Agent do scan cycle, but only send when info change
+- [x] TODO: Which mean info_gatherer need a cache, so it check everytime a field is called
 - [ ] So there should be also a case when usage < total, so should also check total, cause maybe it just also change. There could be other upward propagate case
-- [ ] <mark style="background: #FF0000;">The cache logic need to change, since it just read all. The refesh need to be specific!</mark>. This is currently skip for mockup solution!
-- [ ] Disk physical partition need a file type
-- [ ] AgentValue may need bool option
-- [ ] Save the config when shut down don't seem like a good idea
+- [x] <mark style="background: #FF0000;">The cache logic need to change, since it just read all. The refesh need to be specific!</mark>. This is currently skip for mockup solution! Zero cache at scan, just cache as packaging
+- [x] Disk physical partition need a file type. That is in logical already
+- [x] AgentValue may need bool option
+- [x] Save the config when shut down don't seem like a good idea. It have to be, otherwise show to remember scan state?
 - [ ] For server command that need immediate comply from Agent, may be better to hold on the first HTTPS connection?
-- [ ] Scope the debug assertion correctly
-- Path sercurity to avoid binary hijacking!
-- Min-Heap vs TimerWheel (array slot) vs Delta queue, which one is better?
+- [x] Scope the debug assertion correctly
+- [ ] Path sercurity to avoid binary hijacking!
+- [ ] Min-Heap vs TimerWheel (array slot) vs Delta queue, which one is better?
