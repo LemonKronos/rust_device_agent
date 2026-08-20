@@ -53,7 +53,7 @@ pub struct DeviceAgent {
 
 impl DeviceAgent {
     pub fn new() -> Self {
-        init_logger(env!("CARGO_PKG_NAME"));
+        init_logger("main_worker");
 
         Self {
             payload_maker: PayloadMaker::new(),

@@ -1,20 +1,29 @@
-use tokio::net::UnixListener;
+//!
+//! IPC implementation for Linux: 
+//! Using UNIX socket with user group privilegde
+//! 
+
+
+use tokio::net::{UnixListener, UnixStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use std::process::Command;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 
-use shared_libs::utils::*;
+const RUN_PATH: &str = "/run/gsoft-agent";
+const SOCKET_PATH: &str = "/run/gsoft-agent/ipc.sock";
 
-const SOCKET_PATH: &str = "/tmp/gsoft_agent.sock";
-
-#[cfg(feature = "profiling")]
+#[cfg(all(debug_assertions, feature = "local_workspace"))]
+const ADMIN_FETCHER_PATH: &str = "./target/debug/admin_fetcher";
+#[cfg(all(not(debug_assertions), feature = "local_workspace"))]
 const ADMIN_FETCHER_PATH: &str = "./target/release/admin_fetcher";
-#[cfg(not(feature = "profiling"))]
-const ADMIN_FETCHER_PATH: &str = "/opt/gsoft/bin/admin_fetcher";
+#[cfg(all(not(debug_assertions), not(feature = "local_workspace")))]
+const ADMIN_FETCHER_PATH: &str = "/opt/gsoft_device_agent/bin/admin_fetcher";
 
 pub async fn start_ipc_server() {
-    init_logger(env!("CARGO_PKG_NAME"));
+    if let Err(e) = fs::create_dir_all(RUN_PATH) {
+        log::error!("Failed to create run directory: {}", e);
+        return;
+    }
 
     let _ = fs::remove_file(SOCKET_PATH);
     
@@ -26,48 +35,63 @@ pub async fn start_ipc_server() {
         }
     };
     
-    if let Err(e) = fs::set_permissions(SOCKET_PATH, fs::Permissions::from_mode(0o666)) {
+    if let Err(e) = fs::set_permissions(SOCKET_PATH, fs::Permissions::from_mode(0o660)) {
         log::error!("Failed to set socket permissions: {}", e);
         return;
     }
     
-    log::info!("Listening on {} (Permissions set to 666)", SOCKET_PATH);
+    if let Err(e) = std::process::Command::new("chgrp").arg("gsoft-agent").arg(SOCKET_PATH).output() {
+        log::error!("Failed to change socket group ownership: {}", e);
+        return;
+    }
+
+    log::info!("Listening on {}", SOCKET_PATH);
 
     loop {
-        if let Ok((mut stream, _)) = listener.accept().await {
-            tokio::spawn(async move {
-                let mut buf = [0; 1024];
-                match stream.read(&mut buf).await {
-                    Ok(n) if n > 0 => {
-                        let key = String::from_utf8_lossy(&buf[..n]).trim().to_string();
-                        log::info!("Received request for key: '{}'", key);
-                        
-                        let output = Command::new(ADMIN_FETCHER_PATH).arg(&key).output();
-
-                        let response = match output {
-                            Ok(out) if out.status.success() => {
-                                let val = String::from_utf8_lossy(&out.stdout).to_string();
-                                log::info!("admin_fetcher success. Sending back: '{}'", val);
-                                val
-                            },
-                            Ok(out) => {
-                                log::error!("admin_fetcher failed with status. stderr: {}", String::from_utf8_lossy(&out.stderr));
-                                "ERROR_FETCHING".to_string()
-                            },
-                            Err(e) => {
-                                log::error!("Failed to execute admin_fetcher: {}", e);
-                                "ERROR_FETCHING".to_string()
-                            }
-                        };
-
-                        if let Err(e) = stream.write_all(response.as_bytes()).await {
-                            log::error!("Failed to send response back to worker: {}", e);
-                        }
-                    },
-                    Ok(_) => log::error!("Connection closed before sending data."),
-                    Err(e) => log::error!("Failed to read from socket: {}", e),
-                }
-            });
+        if let Ok((stream, _)) = listener.accept().await {
+            tokio::spawn(handle_connection(stream));
         }
+    }
+}
+
+async fn handle_connection(mut stream: UnixStream) {
+    let mut buf = [0; 1024];
+
+    let n = match stream.read(&mut buf).await {
+        Ok(n) if n > 0 => n,
+        Ok(_) => {
+            log::error!("Connection close before sending data.");
+            return;
+        },
+        Err(e) => {
+            log::error!("Failed to read data from socket: {}", e);
+            return;
+        }
+    };
+
+    let key = String::from_utf8_lossy(&buf[..n]).trim().to_string();
+    log::info!("Received request for key '{}'", key);
+
+    let output = std::process::Command::new(ADMIN_FETCHER_PATH).arg(&key).output();
+
+    let reponse = match output {
+        Ok(out) if out.status.success() => {
+            let val = String::from_utf8_lossy(&out.stdout).to_string();
+            log::info!("Admin fetch info success, sending back '{}'", val);
+            val
+        },
+        Ok(out) => {
+            let err_msg = String::from_utf8_lossy(&out.stderr);
+            log::error!("'admin_fetcher failed with status stderr:{}", err_msg);
+            "".to_string()
+        },
+        Err(e) => {
+            log::error!("Failed to execute 'admin_fetcher': {}", e);
+            "".to_string()
+        }
+    };
+
+    if let Err(e) = stream.write_all(reponse.as_bytes()).await {
+        log::error!("Failed to send response back to worker: {}", e);
     }
 }

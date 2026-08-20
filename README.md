@@ -46,3 +46,8 @@ The scheduler is adaptive and lightweight (using a min-heap), allowing the scan 
     - Sends a shutdown heartbeat to the server.
     - Saves the current scheduler state as the config.
 ___
+# Build
+- Remember to omit feature "local_workspace" when build for deploy.
+```shell
+cargo build --release --no-default-features
+```

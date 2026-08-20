@@ -3,6 +3,10 @@ name = "shared_libs"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["local_workspace"] #! Use local workspace path for debug instead of deploy OS system path
+local_workspace = []
+
 [dependencies]
 all-smi = { workspace = true }
 chrono = { workspace = true }

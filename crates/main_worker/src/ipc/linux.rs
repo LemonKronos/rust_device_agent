@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
-const SOCKET_PATH: &str = "/tmp/gsoft_agent.sock";
+const SOCKET_PATH: &str = "/run/gsoft-agent/ipc.sock";
 
 pub fn ask_admin(key: &str) -> Option<String> {
     
@@ -29,7 +29,7 @@ pub fn ask_admin(key: &str) -> Option<String> {
         return None;
     }
     
-    if buf == "ERROR_FETCHING" || buf.is_empty() {
+    if buf.trim().is_empty() {
         log::error!("Launcher failed to fetch the data.");
         None
     } else {

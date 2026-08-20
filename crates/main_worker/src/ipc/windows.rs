@@ -1,7 +1,7 @@
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 
-const PIPE_NAME: &str = r"\\.\pipe\gsoft_agent_pipe";
+const PIPE_NAME: &str = r"\\.\pipe\gsoft_device_agent_pipe";
 
 pub fn ask_admin(key: &str) -> Option<String> {
     // 1. Open the pipe blocking

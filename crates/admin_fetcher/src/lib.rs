@@ -20,7 +20,7 @@ pub use windows::get;
 
 
 pub fn asked_to_scan() {
-    init_logger(env!("CARGO_PKG_NAME"));
+    init_logger("admin_fetcher");
 
     let args: Vec<String> = env::args().collect();
 

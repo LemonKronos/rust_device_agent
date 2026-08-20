@@ -108,7 +108,10 @@ pub fn init_logger(binary_name: &str) {
         return eprintln!("Invalid RUST_LOG environment variable. Running without logs.");
     };
 
+    #[cfg(feature = "local_workspace")]
     let log_dir = format!("./doc/logs/{}", binary_name);
+    #[cfg(not(feature = "local_workspace"))]
+    let log_dir = format!("/var/log/gsoft_device_agent/{}", binary_name);
 
     // 1. The Continuous Logger (Appends & Rotates)
     let history_writer = match FileLogWriter::builder(
@@ -152,7 +155,7 @@ pub fn init_logger(binary_name: &str) {
 
     // Start the logger with our custom dual writer
     if let Err(e) = logger.log_to_writer(dual_writer).start() {
-        eprintln!("Failed to start logger. Running silently. Error: {}", e);
+        eprintln!("Failed to start logger at '{}' for '{}'. Running silently. Error: {}", log_dir, binary_name, e);
     }
 }
 

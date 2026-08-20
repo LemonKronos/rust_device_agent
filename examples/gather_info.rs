@@ -161,7 +161,7 @@ fn main() -> Result<()> {
 
     // 1. Package the data
     let payload = json!({
-        "agent_id": "uuid-gsoft-device-agent-test",
+        "agent_id": "uuid-gsoft-agent-test",
         "os": "Macaroni",
         "cpu_usage": 15.4,
         "ram_mb": 16384,

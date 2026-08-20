@@ -3,6 +3,7 @@ name = "launcher"
 version = "0.1.0"
 edition = "2024"
 description = "Laucher for the app, run in background, always have admin priviledge"
+license = "UNLICENSED"
 
 [dependencies]
 shared_libs = { path = "../shared_libs" }
@@ -10,5 +11,17 @@ tokio = { workspace = true }
 log = { workspace = true }
 
 [features]
-default = ["profiling"] #! Comment out when build for deploy
-profiling = []
+default = ["local_workspace"] #! Use local workspace path for debug instead of deploy OS system path
+local_workspace = []
+
+[package.metadata.deb]
+name = "Gsoft_Device_Agent-launcher"
+depends = "$auto"
+section = "utility"
+maintainer-scripts = "debian/"
+assets = [
+    # [Source path, Target path in OS, Permissions]
+    ["target/release/launcher", "opt/gsoft-agent/launcher", "755"],
+    ["target/release/main_worker", "opt/gsoft-agent/main_worker", "755"],
+    ["gsoft-agent.service", "lib/systemd/system/gsoft-agent.service", "644"],
+]

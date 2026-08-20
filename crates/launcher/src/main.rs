@@ -1,9 +1,8 @@
 
-
-
-mod ipc;
+use launcher::Launcher;
 
 #[tokio::main]
-async fn main() { 
-    ipc::start_ipc_server().await; 
+async fn main() {
+    let app = Launcher::new();
+    app.run().await;
 }

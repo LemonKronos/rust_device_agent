@@ -2,10 +2,10 @@ use tokio::net::windows::named_pipe::ServerOptions;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::process::Command;
 
-const PIPE_NAME: &str = r"\\.\pipe\gsoft_agent_pipe";
+const PIPE_NAME: &str = r"\\.\pipe\gsoft_device_agent_pipe";
 
 pub async fn start_ipc_server() {
-    println!("Launcher listening on {}", PIPE_NAME);
+    log::info!("Launcher listening on {}", PIPE_NAME);
 
     loop {
         // Windows pipes require a new instance for every connection

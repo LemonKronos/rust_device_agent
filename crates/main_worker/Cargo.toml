@@ -26,3 +26,7 @@ ureq = { workspace = true }
 wmi = { workspace = true }
 winreg = { workspace = true }
 windows-sys = { workspace = true }
+
+[features]
+default = ["local_workspace"] #! Use local workspace path for debug instead of deploy OS system path
+local_workspace = []

@@ -1,7 +1,17 @@
+# Build target
 /target
+
+# Whatever random Rust run
 /examples/others
+
+# Some dev info
 doc/logs
 doc/sample
 doc/config.json
+
+# Flamegraph intermediate output
 perf.data
 perf.data.old
+
+# Rust sratch pad
+scratch_pad.rs

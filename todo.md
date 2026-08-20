@@ -25,3 +25,5 @@
 - [x] Scope the debug assertion correctly
 - [ ] Path sercurity to avoid binary hijacking!
 - [ ] Min-Heap vs TimerWheel (array slot) vs Delta queue, which one is better?
+- [ ] Make launcher create and give the correct right to all the log
+- [ ] Might have to change all the binary name

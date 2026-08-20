@@ -1,0 +1,21 @@
+[Unit]
+Description=Gsoft Endpoint Agent
+# Wait for the network stack to be up before starting
+After=network.target
+
+[Service]
+# The entry point for the background process
+ExecStart=/opt/gsoft-agent/launcher
+
+# Always restart the launcher if it crashes or is killed
+Restart=always
+# Wait 5 seconds before attempting a restart
+RestartSec=5
+
+# Security/Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+# This ensures the service starts automatically when the system boots
+WantedBy=multi-user.target
