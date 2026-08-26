@@ -75,7 +75,6 @@ impl DeviceAgent {
             Ok(s) => s,
             Err(e) => {
                 log::error!("FATAL: Failed to bind SIGTERM OS signal: {}, exit now.", e);
-                self.scheduler.save();
                 return Err(Box::new(e));
             }
         };
@@ -84,7 +83,6 @@ impl DeviceAgent {
             Ok(s) => s,
             Err(e) => {
                 log::error!("FATAL: Failed to bind SIGINT OS signal: {}, exit now.", e);
-                self.scheduler.save();
                 return Err(Box::new(e));
             }
         };
@@ -99,14 +97,14 @@ impl DeviceAgent {
 
                 // Task 2: sigterm
                 _ = sigterm.recv() => {
-                    log::info!("Caught SIGTERM, exit now");
+                    log::info!("Caught SIGTERM, start shutdown sequence");
                     self.shutdown();
                     break;
                 },
 
                 // Task 3: sigint
                 _ = sigint.recv() => {
-                    log::info!("Caught SIGINT, exit now");
+                    log::info!("Caught SIGINT, start shutdown sequence");
                     self.shutdown();
                     break;
                 },
@@ -114,7 +112,7 @@ impl DeviceAgent {
                 // Task 4: dropped pipe
                 res = stdin.read(&mut buf) => {
                     match res {
-                        Ok(0) => log::info!("Launcher ask to shutdown, exit now"),
+                        Ok(0) => log::info!("Launcher ask to shutdown, start shutdown sequence"),
                         Err(e) => log::error!("Stdin error: {}", e),
                         _ => {
                             log::warn!("Receive unexpected data on stdin, ignoring");

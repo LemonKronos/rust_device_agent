@@ -4,11 +4,13 @@
 
 use std::process::{Command, Stdio};
 use tokio::signal::unix::{signal, SignalKind};
+use tokio::sync::mpsc::Receiver;
 use shared_libs::path::AgentPath;
 use super::graceful_shutdown;
+use crate::versioning::handle_update;
 
 /// Calling 'main_worker' and watching it
-pub async fn run_watchdog() {
+pub async fn run_watchdog(mut rx: Receiver<String>) {
     log::info!("Starting Watchdog...");
 
     if !is_root() {
@@ -88,6 +90,16 @@ pub async fn run_watchdog() {
             _ = sigint.recv() => {
                 graceful_shutdown(child_process, child_stdin, "SIGINT").await;
                 return;
+            }
+
+            // Update call
+            Some(update_msg) = rx.recv() => {
+                log::info!("Watchdog called for update");
+
+                graceful_shutdown(child_process, child_stdin, "UDPATE").await;
+                handle_update(&update_msg);
+
+                continue; // Loop back to respawn main_worker
             }
         }
     }

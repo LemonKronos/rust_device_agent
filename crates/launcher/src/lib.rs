@@ -5,6 +5,8 @@
 //! Run as background task, called at start-up by sub-system.
 //! 
 
+use tokio::sync::mpsc;
+
 use shared_libs::utils::*;
 
 pub mod ipc;
@@ -31,11 +33,13 @@ impl Launcher {
             return;
         }
 
+        let (tx, rx) = mpsc::channel::<String>(5);
+
         tokio::select! {
-            _ = ipc::start_ipc_server() => {
+            _ = ipc::start_ipc_server(tx) => {
                 log::error!("IPC server crashed unexpectedly.");
             }
-            _ = watchdog::run_watchdog() => {
+            _ = watchdog::run_watchdog(rx) => {
                 log::error!("Watchdog loop exited unexpectedly.");
             }
         }

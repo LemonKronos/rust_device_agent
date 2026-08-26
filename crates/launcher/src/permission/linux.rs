@@ -98,3 +98,34 @@ pub fn ensure_file_permission() -> bool {
     log::info!("All file permissions and ownerships successfully verified.");
     true
 }
+
+pub fn secure_staging_binary(staging_path: &str) -> bool {
+    let path = Path::new(staging_path);
+
+    // 1. Set executable permissions (755)
+    if let Err(e) = fs::set_permissions(path, fs::Permissions::from_mode(0o755)) {
+        log::error!("Failed to set permissions on staging binary: {}", e);
+        return false;
+    }
+
+    // 2. Lock ownership to root:root
+    let output = Command::new("chown")
+        .arg("root:root")
+        .arg(staging_path)
+        .output();
+
+    match output {
+        Ok(out) if !out.status.success() => {
+            log::error!("Failed to chown staging binary: {}", String::from_utf8_lossy(&out.stderr));
+            false
+        }
+        Err(e) => {
+            log::error!("Failed to execute chown on staging binary: {}", e);
+            false
+        }
+        _ => {
+            log::info!("Staging binary successfully secured as root:root");
+            true
+        }
+    }
+}

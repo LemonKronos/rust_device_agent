@@ -6,11 +6,12 @@
 
 use tokio::net::{UnixListener, UnixStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::mpsc::Sender;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use shared_libs::path::AgentPath;
 
-pub async fn start_ipc_server() {
+pub async fn start_ipc_server(tx: Sender<String>) {
     if let Err(e) = fs::create_dir_all(AgentPath::RUN_PATH) {
         log::error!("Failed to create run directory: {}", e);
         return;
@@ -40,12 +41,12 @@ pub async fn start_ipc_server() {
 
     loop {
         if let Ok((stream, _)) = listener.accept().await {
-            tokio::spawn(handle_connection(stream));
+            tokio::spawn(handle_connection(stream, tx.clone()));
         }
     }
 }
 
-async fn handle_connection(mut stream: UnixStream) {
+async fn handle_connection(mut stream: UnixStream, tx: Sender<String>) {
     let mut buf = [0; 1024];
 
     let n = match stream.read(&mut buf).await {
@@ -61,6 +62,17 @@ async fn handle_connection(mut stream: UnixStream) {
     };
 
     let key = String::from_utf8_lossy(&buf[..n]).trim().to_string();
+
+    // Asked for update
+    if key.starts_with("UPDATE|") {
+        log::info!("Received request for update, handoff to watchdog");
+        if let Err(e) = tx.send(key).await {
+            log::error!("Failed to handoff to watchdog: {}", e);
+        }
+        return;
+    }
+
+    // Asked for admin_fetcher
     log::info!("Received request for key '{}'", key);
 
     let output = std::process::Command::new(AgentPath::ADMIN_FETCHER_EXE).arg(&key).output();
