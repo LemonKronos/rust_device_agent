@@ -2,16 +2,6 @@
 set -e
 
 if [ "$1" = "configure" ]; then
-    # Create the restricted 'gsoft-agent' user and group
-    if ! id "gsoft-agent" >/dev/null 2>&1; then
-    if ! id "gsoft-agent" >/dev/null 2>&1; then
-        useradd --system --no-create-home --shell /usr/sbin/nologin gsoft-agent
-    fi
-
-    # Create the log directory and grant ownership
-    mkdir -p /var/log/gsoft-agent
-    chown -R gsoft-agent:gsoft-agent /var/log/gsoft-agent
-
     systemctl daemon-reload
     systemctl enable gsoft-agent.service
     systemctl start gsoft-agent.service

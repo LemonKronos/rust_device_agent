@@ -2,15 +2,10 @@
 //! Watch dog implementation for Linux
 //! 
 
-use std::process::Command;
+use std::process::{Command, Stdio};
 use tokio::signal::unix::{signal, SignalKind};
-
-#[cfg(all(debug_assertions, feature = "local_workspace"))]
-const MAIN_WORKER_PATH: &str = "./target/debug/main_worker";
-#[cfg(all(not(debug_assertions), feature = "local_workspace"))]
-const MAIN_WORKER_PATH: &str = "./target/release/main_worker";
-#[cfg(all(not(debug_assertions), not(feature = "local_workspace")))]
-const MAIN_WORKER_PATH: &str = "/opt/gsoft-agent/main_worker";
+use shared_libs::path::AgentPath;
+use super::graceful_shutdown;
 
 /// Calling 'main_worker' and watching it
 pub async fn run_watchdog() {
@@ -18,7 +13,6 @@ pub async fn run_watchdog() {
 
     if !is_root() {
         log::error!("FATAL: Launcher do not have admin priviledge, exit now.");
-        println!("FATAL: Launcher do not have admin priviledge, exit now.");
         return;
     }
 
@@ -26,7 +20,6 @@ pub async fn run_watchdog() {
         Some(ids) => ids,
         None => {
             log::error!("FATAL: Unable to resolve group 'gsoft-agent', exit now.");
-            println!("FATAL: Unable to resolve group 'gsoft-agent', exit now.");
             return;
         }
     };
@@ -35,7 +28,6 @@ pub async fn run_watchdog() {
         Ok(s) => s,
         Err(e) => {
             log::error!("FATAL: Failed to bind SIGTERM OS signal: {}, exit now.", e);
-            println!("FATAL: Failed to bind SIGTERM OS signal: {}, exit now.", e);
             return;
         }
     };
@@ -44,24 +36,32 @@ pub async fn run_watchdog() {
         Ok(s) => s,
         Err(e) => {
             log::error!("FATAL: Failed to bind SIGINT OS signal: {}, exit now.", e);
-            println!("FATAL: Failed to bind SIGINT OS signal: {}, exit now.", e);
             return;
         }
     };
 
     loop {
         log::info!("Spawning main_worker (UID: {}, GID: {})", uid, gid);
-        println!("Spawning main_worker (UID: {}, GID: {})", uid, gid);
 
-        let mut child_process = match tokio::process::Command::new(MAIN_WORKER_PATH)
+        let mut child_process = match tokio::process::Command::new(AgentPath::MAIN_WORKER_EXE)
+            .stdin(Stdio::piped())
             .uid(uid)
             .gid(gid)
             .spawn()
         {
             Ok(c) => c,
             Err(e) => {
-                log::error!("Failed to spawn main_worker: {}", e);
-                println!("Failed to spawn main_worker: {}", e);
+                log::error!("Failed to spawn main_worker: {}. Retry after 5s...", e);
+                tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+                continue;
+            }
+        };
+
+        let child_stdin = match child_process.stdin.take() {
+            Some(stdin) => stdin,
+            None => {
+                log::error!("Failed to take main_worker stdin pipe. Kill process and retry after 5s...");
+                let _ = child_process.kill().await;
                 tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
                 continue;
             }
@@ -75,23 +75,18 @@ pub async fn run_watchdog() {
                     Err(e) => log::error!("main_worker process error: {}", e),
                 }
                 log::info!("Restarting main_worker in 5 seconds...");
-                println!("Restarting main_worker in 5 seconds...");
                 tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
             }
             
             // Systemctl sent a SIGTERM
             _ = sigterm.recv() => {
-                log::info!("Caught SIGTERM. Terminating main_worker and exiting Watchdog.");
-                println!("Caught SIGTERM. Terminating main_worker and exiting Watchdog.");
-                let _ = child_process.kill().await;
-                return; 
+                graceful_shutdown(child_process, child_stdin, "SIGTERM").await;
+                return;
             }
             
             // User hit Ctrl+C in terminal
             _ = sigint.recv() => {
-                log::info!("Caught SIGINT. Terminating main_worker and exiting Watchdog.");
-                println!("Caught SIGINT. Terminating main_worker and exiting Watchdog.");
-                let _ = child_process.kill().await;
+                graceful_shutdown(child_process, child_stdin, "SIGINT").await;
                 return;
             }
         }

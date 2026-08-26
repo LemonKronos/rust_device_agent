@@ -10,8 +10,10 @@ use shared_libs::utils::*;
 pub mod ipc;
 pub mod versioning;
 pub mod watchdog;
+pub mod permission;
 
 pub struct Launcher {
+    // Empty
 }
 
 impl Launcher {
@@ -23,6 +25,11 @@ impl Launcher {
         init_logger("launcher");
 
         log::info!("Gsoft Launcher starting up.");
+
+        if !permission::ensure_file_permission() {
+            log::error!("FATAL: Failed to ensure file permisson, exit now.");
+            return;
+        }
 
         tokio::select! {
             _ = ipc::start_ipc_server() => {

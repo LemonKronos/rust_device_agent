@@ -3,6 +3,7 @@
 //! 
 
 use std::time::{SystemTime, UNIX_EPOCH};
+use crate::path::AgentPath;
 
 // : TIME Conversion
 pub trait FormatTime { 
@@ -108,10 +109,7 @@ pub fn init_logger(binary_name: &str) {
         return eprintln!("Invalid RUST_LOG environment variable. Running without logs.");
     };
 
-    #[cfg(feature = "local_workspace")]
-    let log_dir = format!("./doc/logs/{}", binary_name);
-    #[cfg(not(feature = "local_workspace"))]
-    let log_dir = format!("/var/log/gsoft_device_agent/{}", binary_name);
+    let log_dir = format!("{}/{}", AgentPath::LOG_PATH, binary_name);
 
     // 1. The Continuous Logger (Appends & Rotates)
     let history_writer = match FileLogWriter::builder(

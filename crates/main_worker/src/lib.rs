@@ -5,7 +5,8 @@
 //! 
 
 use std::error::Error;
-use tokio::signal;
+use tokio::signal::unix::{signal, SignalKind};
+use tokio::io::{AsyncReadExt, stdin};
 
 pub mod os_specific;
 pub mod info_gatherer;
@@ -49,6 +50,8 @@ pub struct DeviceAgent {
     payload_maker: PayloadMaker,
     sender: Sender,
     scheduler: Scheduler,
+
+    full_scan: bool,
 }
 
 impl DeviceAgent {
@@ -59,6 +62,8 @@ impl DeviceAgent {
             payload_maker: PayloadMaker::new(),
             sender: Sender::new(),
             scheduler: load_config(),
+
+            full_scan: INIT_FULL_SCAN,
         }
     }
 
@@ -66,60 +71,56 @@ impl DeviceAgent {
 
         log::info!("Agent loop start");
 
-        let mut full_scan = INIT_FULL_SCAN;
+        let mut sigterm = match signal(SignalKind::terminate()) {
+            Ok(s) => s,
+            Err(e) => {
+                log::error!("FATAL: Failed to bind SIGTERM OS signal: {}, exit now.", e);
+                self.scheduler.save();
+                return Err(Box::new(e));
+            }
+        };
+
+        let mut sigint = match signal(SignalKind::interrupt()) {
+            Ok(s) => s,
+            Err(e) => {
+                log::error!("FATAL: Failed to bind SIGINT OS signal: {}, exit now.", e);
+                self.scheduler.save();
+                return Err(Box::new(e));
+            }
+        };
+
+        let mut stdin = stdin();
+        let mut buf = [0; 1];
 
         loop {
-            let batch = self.scheduler.pop_due_batch();
-            if batch.is_empty() {
-                log::warn!("Agent wake up but batch is empty! Maybe full scan?");
-            }
+            tokio::select! {
+                // Task 1: normal work cycle
+                _ = self.process_cycle() => {},
 
-            let json = self.payload_maker.process_batch(&batch, full_scan);
-            
-            self.scheduler.reschedule_batch(batch, full_scan);
-
-            let server_commands = tokio::select! {
-                cmds = self.sender.transmit(json, full_scan) => {
-                    cmds
-                },
-                _ = signal::ctrl_c() => {
+                // Task 2: sigterm
+                _ = sigterm.recv() => {
+                    log::info!("Caught SIGTERM, exit now");
                     self.shutdown();
                     break;
-                }
-            };
-
-            full_scan = false;
-
-            for cmd in server_commands {
-                match cmd {
-                    ServerCmd::AskFullScan => {
-                        log::info!("Server ask for Full Scan");
-                        full_scan = true;
-                        self.scheduler.skip_sleep();
-                    },
-                    ServerCmd::UpdateConfig(new_config) => {
-                        log::info!("Server ask to update config");
-                        self.scheduler.update(new_config);
-                    },
-                    ServerCmd::UpdateAgent { version } => {
-                        log::info!(
-                            "Server ask to update to agent version {} over current version {}",
-                            version, AGENT_VERSION)
-                    },
-                    ServerCmd::Unknown => {
-                        log::warn!("Agent receive an Unknown Command")
-                    },
-                    _ => {
-                        log::warn!("Server ask for TODO commands")
-                    }
-                }
-            }
-
-            tokio::select! {
-                _ = self.scheduler.go_sleep() => {
-                    // empty
                 },
-                _ = signal::ctrl_c() => {
+
+                // Task 3: sigint
+                _ = sigint.recv() => {
+                    log::info!("Caught SIGINT, exit now");
+                    self.shutdown();
+                    break;
+                },
+
+                // Task 4: dropped pipe
+                res = stdin.read(&mut buf) => {
+                    match res {
+                        Ok(0) => log::info!("Launcher ask to shutdown, exit now"),
+                        Err(e) => log::error!("Stdin error: {}", e),
+                        _ => {
+                            log::warn!("Receive unexpected data on stdin, ignoring");
+                            continue;
+                        }
+                    }
                     self.shutdown();
                     break;
                 }
@@ -129,7 +130,51 @@ impl DeviceAgent {
         Ok(())
     }
 
-    pub fn shutdown(&mut self) {
+    /// A single iteration of the normal agent work cycle
+    async fn process_cycle(&mut self) {
+        let batch = self.scheduler.pop_due_batch();
+        if batch.is_empty() && !self.full_scan {
+            log::warn!("Agent wake up but batch is empty and not full scan!");
+        }
+
+        let json = self.payload_maker.process_batch(&batch, self.full_scan);
+        
+        self.scheduler.reschedule_batch(batch, self.full_scan);
+
+        let server_commands = self.sender.transmit(json, self.full_scan).await;
+
+        self.full_scan = false;
+
+        for cmd in server_commands {
+            match cmd {
+                ServerCmd::AskFullScan => {
+                    log::info!("Server ask for Full Scan");
+                    self.full_scan = true;
+                    self.scheduler.skip_sleep();
+                },
+                ServerCmd::UpdateConfig(new_config) => {
+                    log::info!("Server ask to update config");
+                    self.scheduler.update(new_config);
+                },
+                ServerCmd::UpdateAgent { version } => {
+                    log::info!(
+                        "Server ask to update to agent version {} over current version {}",
+                        version, AGENT_VERSION)
+                },
+                ServerCmd::Unknown => {
+                    log::warn!("Agent receive an Unknown Command")
+                },
+                _ => {
+                    log::warn!("Server ask for TODO commands")
+                }
+            }
+        }
+
+        self.scheduler.go_sleep().await;
+    }
+
+    /// Save config to disk
+    fn shutdown(&mut self) {
         self.scheduler.save();
         log::info!("Normal shutdown completed");
     }

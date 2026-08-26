@@ -8,13 +8,19 @@
 //! **TODO: Could we use the same type for the real info and payload?**
 //! 
 
+#[cfg(debug_assertions)]
 use std::fs;
+#[cfg(debug_assertions)]
 use std::path::PathBuf;
+
 use serde_json::{json, Value as Json};
 use rustc_hash::FxHashMap;
 
 use crate::info_gatherer::Info;
 use crate::scheduler::{ScheduledTask, TaskID, TaskID::*, AgentValue};
+
+#[cfg(debug_assertions)]
+use shared_libs::path::AgentPath;
 
 mod serialize_type;
 use serialize_type::*;/// Use [`InfoPayload`] to serialize with
@@ -27,18 +33,19 @@ use super::{CUSTOM_SERIAL,USE_CUSTOM_SERIAL};
 
 pub struct PayloadMaker {
     info: Info,
-    last_info_payload: InfoPayload,
+    cache_info_payload: InfoPayload,
 }
 
 impl PayloadMaker {
     pub fn new() -> Self {
         Self { 
             info: Info::new(),
-            last_info_payload: InfoPayload::default(),
+            cache_info_payload: InfoPayload::default(),
         }
     }
 
-    /// Use to save json as markdown in disk, usefull in dev
+    /// Use to save json as markdown in disk, only in dev mode
+    #[cfg(debug_assertions)]
     pub fn store_payload_md(&self, payload: &Json, name: &str) {
         let Ok(pretty_json) = serde_json::to_string_pretty(&payload) else {
             log::error!("Failed to serialize payload to JSON");
@@ -47,12 +54,12 @@ impl PayloadMaker {
 
         let md_content = format!("```json\n{}\n```", pretty_json);
 
-        if let Err(e) = fs::create_dir_all("doc/sample/") {
-            log::error!("Failed to create directory 'doc/sample/': {}", e);
+        if let Err(e) = fs::create_dir_all(AgentPath::SAMPLE_PATH) {
+            log::error!("Failed to create directory '{}': {}", AgentPath::SAMPLE_PATH, e);
             return;
         }
 
-        let path = PathBuf::from(format!("doc/sample/{}.md", name));
+        let path = PathBuf::from(format!("{}/{}.md", AgentPath::SAMPLE_PATH, name));
         if let Err(e) = fs::write(path, md_content) {
             log::error!("Failed to write file '{}.md': {}", name, e);
         } else {
@@ -78,7 +85,7 @@ impl PayloadMaker {
             .collect();
 
         if full_scan {
-            self.last_info_payload = InfoPayload::default();
+            self.cache_info_payload = InfoPayload::default();
         }
 
         //: Refresh
@@ -91,8 +98,8 @@ impl PayloadMaker {
                 let should_run = full_scan || task_map.contains_key(&$task_id);
                 if should_run {
                     let limit = if full_scan { None } else { task_map.get(&$task_id).and_then(|t| t.limit.clone()) };
-                    let last = self.last_info_payload.$group.get_or_insert_with($group_type::default);
-                    if let Some(updated) = check_diff_update($getter, &mut last.$field, &limit) {
+                    let cache = self.cache_info_payload.$group.get_or_insert_with($group_type::default);
+                    if let Some(updated) = check_diff_update($getter, &mut cache.$field, &limit) {
                         let current = info_payload.$group.get_or_insert_with($group_type::default);
                         current.$field = Some(updated);
                     }
@@ -161,23 +168,23 @@ impl PayloadMaker {
                 item_ident: $item:ident,
                 identity: $id_field:ident = $id_expr:expr,
                 fields: [ $( ($task_id:ident, $field:ident, $getter_expr:expr) ),* $(,)? ]
-                $(, extra: ($last_ident:ident, $diff_ident:ident, $has_diff_ident:ident) => $extra_block:block )?
+                $(, extra: ($cache_ident:ident, $diff_ident:ident, $has_diff_ident:ident) => $extra_block:block )?
             ) => {
                 if let Some(items) = $list {
-                    let last_group = self.last_info_payload.$group.get_or_insert_with($group_type::default);
-                    let last_items = last_group.$list_field.get_or_insert_with(Vec::new);
+                    let cache_group = self.cache_info_payload.$group.get_or_insert_with($group_type::default);
+                    let cache_items = cache_group.$list_field.get_or_insert_with(Vec::new);
 
                     let mut num_item_changed = false;
-                    if items.len() != last_items.len() {
+                    if items.len() != cache_items.len() {
                         num_item_changed = true;
-                        last_items.clear();
-                        last_items.resize_with(items.len(), $item_type::default);
+                        cache_items.clear();
+                        cache_items.resize_with(items.len(), $item_type::default);
                     }
 
                     let mut diff_payloads = Vec::new();
 
                     for (i, $item) in items.iter().enumerate() {
-                        let last_item = &mut last_items[i];
+                        let cache_item = &mut cache_items[i];
                         let mut diff = $item_type::default();
                         let mut has_diff = false;
 
@@ -185,7 +192,7 @@ impl PayloadMaker {
                             let should_run = full_scan || num_item_changed || task_map.contains_key(&$task_id);
                             if should_run {
                                 let limit = if full_scan { None } else { task_map.get(&$task_id).and_then(|t| t.limit.clone()) };
-                                if let Some(updated) = check_diff_update($getter_expr, &mut last_item.$field, &limit) {
+                                if let Some(updated) = check_diff_update($getter_expr, &mut cache_item.$field, &limit) {
                                     diff.$field = Some(updated);
                                     has_diff = true;
                                 }
@@ -195,7 +202,7 @@ impl PayloadMaker {
                         // Inject extra block hygenically 
                         $(
                             {
-                                let $last_ident = &mut *last_item;
+                                let $cache_ident = &mut *cache_item;
                                 let $diff_ident = &mut diff;
                                 let $has_diff_ident = &mut has_diff;
                                 $extra_block
@@ -230,19 +237,19 @@ impl PayloadMaker {
                 fields: [ $( ($task_id:ident, $field:ident, $getter_expr:expr) ),* $(,)? ]
             ) => {
                 if let Some(items) = $list {
-                    let last_items = self.last_info_payload.$payload_list.get_or_insert_with(Vec::new);
+                    let cache_items = self.cache_info_payload.$payload_list.get_or_insert_with(Vec::new);
 
                     let mut num_item_changed = false;
-                    if items.len() != last_items.len() {
+                    if items.len() != cache_items.len() {
                         num_item_changed = true;
-                        last_items.clear();
-                        last_items.resize_with(items.len(), $item_type::default);
+                        cache_items.clear();
+                        cache_items.resize_with(items.len(), $item_type::default);
                     }
 
                     let mut diff_payloads = Vec::new();
 
                     for (i, $item) in items.iter().enumerate() {
-                        let last_item = &mut last_items[i];
+                        let cache_item = &mut cache_items[i];
                         let mut diff = $item_type::default();
                         let mut has_diff = false || $no_cache;
 
@@ -250,7 +257,7 @@ impl PayloadMaker {
                             let should_run = full_scan || num_item_changed || task_map.contains_key(&$task_id);
                             if should_run {
                                 let limit = if full_scan { None } else { task_map.get(&$task_id).and_then(|t| t.limit.clone()) };
-                                if let Some(updated) = check_diff_update($getter_expr, &mut last_item.$field, &limit) {
+                                if let Some(updated) = check_diff_update($getter_expr, &mut cache_item.$field, &limit) {
                                     diff.$field = Some(updated);
                                     has_diff = true;
                                 }
@@ -331,29 +338,29 @@ impl PayloadMaker {
                 (DiskPhysicalStatus, status, d.get_status()),
                 (DiskPhysicalNumPartition, num_part, d.get_partition_number())
             ],
-            extra: (last_disk, diff, has_diff) => {
+            extra: (cache_disk, diff, has_diff) => {
                 let should_run = full_scan || task_map.contains_key(&DiskPhysicalPartition);
                 if should_run {
                     let limit = if full_scan { None } else { task_map.get(&DiskPhysicalPartition).and_then(|t| t.limit.clone()) };
-                    let last_part_vec = last_disk.partition.get_or_insert_with(Vec::new);
+                    let cache_part_vec = cache_disk.partition.get_or_insert_with(Vec::new);
                     let mut part_vec = Vec::new();
 
                     if let Some(parts) = d.get_partition() {
-                        if parts.len() != last_part_vec.len() {
-                            last_part_vec.clear();
-                            last_part_vec.resize_with(parts.len(), PartitionPayload::default);
+                        if parts.len() != cache_part_vec.len() {
+                            cache_part_vec.clear();
+                            cache_part_vec.resize_with(parts.len(), PartitionPayload::default);
                         }
 
                         for (j, part) in parts.iter().enumerate() {
-                            let last_part = &mut last_part_vec[j];
+                            let cache_part = &mut cache_part_vec[j];
                             let mut diff_part = PartitionPayload::default();
                             let mut has_diff_part = false;
 
-                            if let Some(up) = check_diff_update(part.get_name(), &mut last_part.name, &limit) {
+                            if let Some(up) = check_diff_update(part.get_name(), &mut cache_part.name, &limit) {
                                 diff_part.name = Some(up);
                                 has_diff_part = true;
                             }
-                            if let Some(up) = check_diff_update(part.get_size(), &mut last_part.size, &limit) {
+                            if let Some(up) = check_diff_update(part.get_size(), &mut cache_part.size, &limit) {
                                 diff_part.size = Some(up);
                                 has_diff_part = true;
                             }
@@ -437,7 +444,7 @@ impl PayloadMaker {
             let limit = if full_scan { None } else { task_map.get(&ProcessCount).and_then(|t| t.limit.clone()) };
             info_payload.process_count = check_diff_update(
                 self.info.get_process_count(), 
-                &mut self.last_info_payload.process_count, 
+                &mut self.cache_info_payload.process_count, 
                 &limit
             );
         }
@@ -516,13 +523,14 @@ impl PayloadMaker {
         }
 
         //: Save payload debug
-        if cfg!(debug_assertions) {
+        #[cfg(debug_assertions)]
+        {
             self.store_payload_md(&payload_json, "just_send");
 
-            if let Ok(last_info) = serde_json::to_value(&self.last_info_payload) {
-                self.store_payload_md(&last_info, "last_info");
+            if let Ok(cache_info) = serde_json::to_value(&self.cache_info_payload) {
+                self.store_payload_md(&cache_info, "cache_info");
             } else {
-                log::debug!("Cannot save last info!");
+                log::debug!("Cannot save cache info!");
             }
             log::debug!("Save payload debug");
         }
