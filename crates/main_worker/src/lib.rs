@@ -20,7 +20,7 @@ pub mod ipc;
 #[cfg(debug_assertions)]
 mod dev_config {
    /// In dev mode, will include the current in-dev feature
-    pub const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "separate_binary");
+    pub const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "versioning");
     pub const USE_CUSTOM_SERIAL: bool = false;
     pub const CUSTOM_SERIAL: &str = "TEST_MACHINE_03";
 
@@ -160,6 +160,12 @@ impl DeviceAgent {
                         "Server ask to update to agent binary '{}' to version '{}' over current version '{}'",
                         binary, version, AGENT_VERSION
                     );
+
+                    if !self.sender.download_file(&binary, &version) {
+                        //TODO send distress to server
+                        continue;
+                    }
+
                     self.scheduler.save();
                     if !ask_update(&binary, &signature) {
                         log::error!("Can not update binary '{}'", binary);

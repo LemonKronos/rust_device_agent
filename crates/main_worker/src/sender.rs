@@ -61,12 +61,16 @@
 //! ```
 
 use std::time::Duration;
+use std::fs::File;
+use std::io::copy;
 use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
 use serde::Deserialize;
+use shared_libs::{path::AgentPath};
 
 const SERVER_ENDPOINT_FULL_SCAN: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Ins";
 const SERVER_ENDPOINT_DELTA: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
+const SERVER_ENDPOINT_DOWNLOAD: &str = "https://172.20.0.98:44301/api/Agent/Download?";
 const API_KEY: &str = "72895e95e7634de2a8f554abaf10ec0e7a46fff57b114b68b74efcd65a5d3ec5";
 
 /// APB wrapper
@@ -197,6 +201,55 @@ impl Sender {
             Err(e) => {
                 log::error!("Sender error: {}", e);
                 Vec::new()
+            }
+        }
+    }
+
+    /// Get file from a secure repository
+    pub fn download_file(&self, binary: &str, version: &str) -> bool {
+        // Construct the download URL
+        let download_url = format!("{}binary={}&version={}", SERVER_ENDPOINT_DOWNLOAD, binary, version);
+        log::info!("Attempting to download update for {} v{} from server", binary, version);
+
+        // 1. Initiate the GET request
+        let response = match self.agent.get(&download_url)
+            .header("X-Agent-Key", API_KEY)
+            .call() 
+        {
+            Ok(res) => res,
+            Err(e) => {
+                log::error!("Network error while requesting binary download: {}", e);
+                return false;
+            }
+        };
+
+        if response.status() != 200 {
+            log::error!("Download failed. Server returned HTTP Status: {}", response.status());
+            return false;
+        }
+
+        // 2. Open the temporary file for writing
+        let temp_path = AgentPath::TEMP_DOWNLOADED_PATH;
+        let mut dest_file = match File::create(temp_path) {
+            Ok(f) => f,
+            Err(e) => {
+                log::error!("Failed to create temporary file at {}: {}", temp_path, e);
+                return false;
+            }
+        };
+
+        // 3. Stream the body directly to disk (Memory-safe)
+        let mut reader = response.into_body().into_reader();
+        match copy(&mut reader, &mut dest_file) {
+            Ok(bytes_written) => {
+                log::info!("Successfully downloaded {} bytes to {}", bytes_written, temp_path);
+                true
+            }
+            Err(e) => {
+                log::error!("Failed to write network stream to disk: {}", e);
+                // Clean up the corrupted/half-written file
+                let _ = std::fs::remove_file(temp_path);
+                false
             }
         }
     }

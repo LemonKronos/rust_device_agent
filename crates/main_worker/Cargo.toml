@@ -1,6 +1,6 @@
 [package]
 name = "main_worker"
-version = "0.3.3"
+version = "0.3.4"
 edition = "2024"
 description = "Device Agent main logic"
 
