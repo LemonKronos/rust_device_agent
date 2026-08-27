@@ -34,6 +34,7 @@ const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use crate::scheduler::Scheduler;
 use crate::payload_maker::PayloadMaker;
 use crate::sender::{Sender, ServerCmd};
+use crate::ipc::ask_update;
 use crate::config_handler::*;
 use shared_libs::utils::*;
 
@@ -154,10 +155,16 @@ impl DeviceAgent {
                     log::info!("Server ask to update config");
                     self.scheduler.update(new_config);
                 },
-                ServerCmd::UpdateAgent { version } => {
+                ServerCmd::UpdateAgent { binary, version, signature } => {
                     log::info!(
-                        "Server ask to update to agent version {} over current version {}",
-                        version, AGENT_VERSION)
+                        "Server ask to update to agent binary '{}' to version '{}' over current version '{}'",
+                        binary, version, AGENT_VERSION
+                    );
+                    self.scheduler.save();
+                    if !ask_update(&binary, &signature) {
+                        log::error!("Can not update binary '{}'", binary);
+                        //TODO send distress to server
+                    }
                 },
                 ServerCmd::Unknown => {
                     log::warn!("Agent receive an Unknown Command")

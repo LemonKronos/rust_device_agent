@@ -5,11 +5,12 @@ use std::time::Duration;
 const SOCKET_PATH: &str = "/run/gsoft-agent/ipc.sock";
 
 pub fn ask_admin(key: &str) -> Option<String> {
+    log::info!("Asking Admin Fetcher for '{}'", key);
     
     let mut stream = match UnixStream::connect(SOCKET_PATH) {
         Ok(s) => s,
         Err(e) => {
-            log::error!(" Failed to connect IPC to Launcher: {}", e);
+            log::error!("Failed to connect IPC to Launcher: {}", e);
             return None;
         }
     };
@@ -35,4 +36,28 @@ pub fn ask_admin(key: &str) -> Option<String> {
     } else {
         Some(buf)
     }
+}
+
+pub fn ask_update(binary: &str, signature: &str) -> bool {
+    log::info!("Asking Laucher to update binary '{}'", binary);
+
+    let mut stream = match UnixStream::connect(SOCKET_PATH) {
+        Ok(s) => s,
+        Err(e) => {
+            log::error!("Failed to connect IPC to Launcher: {}", e);
+            return false;
+        }
+    };
+
+    let timeout = Duration::from_secs(1);
+    let _ = stream.set_write_timeout(Some(timeout));
+    let _ = stream.set_read_timeout(Some(timeout));
+
+    let payload = format!("UPDATE|{}|{}", binary, signature);
+    if let Err(e) = stream.write_all(payload.as_bytes()) {
+        log::error!("Failed to write to socket: {}", e);
+        return false;
+    }
+
+    true
 }

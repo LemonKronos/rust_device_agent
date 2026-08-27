@@ -28,7 +28,7 @@ const SERVER_PUB_KEY: [u8; 32] = [
 
 /// Verify update binary and do the file swapping\
 /// Expected update_msg: "UPDATE|<target_binary>|<signature_base64>"\
-/// Ex: "UPDATE|main_worker|/tmp/gsoft_agent/main_worker|<signature_base64>"
+/// Ex: "UPDATE|main_worker|<signature_base64>"
 pub fn handle_update(update_msg: &str) {
     let parts: Vec<&str> = update_msg.split('|').collect();
     if parts.len() != 3 {

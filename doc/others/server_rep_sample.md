@@ -24,7 +24,9 @@
       {
         "cmd": "UpdateAgent",
         "payload": {
+          "binary": "main_worker",
           "version": "1.0.0",
+          "signature": "NjWz797ntYSLFwg7nKYYdn+On3cCMj4zKz059wadVVlBHxyxe4JrSZxgekwb9AYR5xFxuVE9dTnDSo+gCaW/CQ==",
         }
       },
       {
