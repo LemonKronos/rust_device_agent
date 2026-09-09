@@ -3,6 +3,6 @@ set -e
 
 if [ "$1" = "configure" ]; then
     systemctl daemon-reload
-    systemctl enable gsoft-agent.service
-    systemctl start gsoft-agent.service
+    systemctl enable rust-agent.service
+    systemctl start rust-agent.service
 fi

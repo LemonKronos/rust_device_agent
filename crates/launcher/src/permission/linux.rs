@@ -22,7 +22,7 @@ pub fn ensure_file_permission() -> bool {
         return false;
     }
 
-    // 2. Identify the directories that need to be owned by gsoft-agent
+    // 2. Identify the directories that need to be owned by rust-agent
     // We safely extract the parent directory of the config file.
     let config_dir = Path::new(AgentPath::CONFIG_FILE)
         .parent()
@@ -49,7 +49,7 @@ pub fn ensure_file_permission() -> bool {
             return false;
         }
 
-        // Change ownership to gsoft-agent so main_worker can write here
+        // Change ownership to rust-agent so main_worker can write here
         let output = Command::new("chown")
             .arg("-R")
             .arg(&user_group)

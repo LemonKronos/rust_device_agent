@@ -16,7 +16,7 @@
 - [ ] May need an alternative solution for save the config when shut down, as that is the easiest time to get corrupted file.
 - [ ] Sender logic: For server command that need immediate comply from Agent, may be better to keep on holding the first HTTPS connection rather than keep re initializing.
 - [ ] Scheduler design: Min-Heap (currently) vs TimerWheel (array slot) vs Delta queue, which one is better?
-- [ ] Might have to change all the binary name to `gsoft-...`?
+- [ ] Might have to change all the binary name to `rust-...`?
 - [ ] Make `main_worker` able to known other binary version
 - [ ] Sender: The hardcoded URLs should be a build-time secret injection rather than a literals.
 

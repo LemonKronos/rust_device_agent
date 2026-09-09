@@ -5,7 +5,7 @@ resolver = "3"
 [workspace.package]
 version = "0.1.0"
 authors = ["NgTrDat <trongdat4work@gmail.com>"]
-description = "Gsoft Device Agent: multi-binary app to gather static and dynamic information for monitoring and maintenance corporation own device"
+description = "Rust Device Agent: multi-binary app to gather static and dynamic information for monitoring and maintenance corporation own device"
 edition = "2024"
 
 [profile.release]

@@ -12,7 +12,7 @@
 //! The platform-specific watchdog implementation:
 //!
 //! - starts `main_worker`
-//! - runs it under the restricted `gsoft-agent` account where supported
+//! - runs it under the restricted `rust-agent` account where supported
 //! - detects worker termination
 //! - restarts the worker after an unexpected exit
 //! - responds to launcher shutdown signals

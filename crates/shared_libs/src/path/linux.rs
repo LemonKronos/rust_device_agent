@@ -6,11 +6,11 @@
 pub struct AgentPath;
 
 impl AgentPath {
-    pub const AGENT_USER_GROUP: &str = "gsoft-agent";
+    pub const AGENT_USER_GROUP: &str = "rust-agent";
 
-    pub const RUN_PATH: &str = "/run/gsoft-agent";
-    pub const SOCKET_FILE: &str = "/run/gsoft-agent/ipc.sock";
-    pub const TEMP_DOWNLOADED_PATH: &str = "/tmp/gsoft-agent";
+    pub const RUN_PATH: &str = "/run/rust-agent";
+    pub const SOCKET_FILE: &str = "/run/rust-agent/ipc.sock";
+    pub const TEMP_DOWNLOADED_PATH: &str = "/tmp/rust-agent";
 
     #[cfg(debug_assertions)]
     pub const SAMPLE_PATH: &str = "./doc/sample";
@@ -44,12 +44,12 @@ impl AgentPath {
 
 #[cfg(not(feature = "local_workspace"))]
 impl AgentPath {
-    pub const CONFIG_FILE: &str     = "/var/lib/gsoft-agent/config";
-    pub const LOG_PATH: &str        = "/var/log/gsoft-agent";
-    pub const ADMIN_FETCHER_EXE: &str   = "/opt/gsoft-agent/bin/admin_fetcher";
-    pub const MAIN_WORKER_EXE: &str     = "/opt/gsoft-agent/bin/main_worker";
-    pub const PROXY_SCANNER: &str       = "/opt/gsoft-agent/bin/proxy_scanner";
-    pub const LAUNCHER: &str            = "/opt/gsoft-agent/bin/launcher";
+    pub const CONFIG_FILE: &str     = "/var/lib/rust-agent/config";
+    pub const LOG_PATH: &str        = "/var/log/rust-agent";
+    pub const ADMIN_FETCHER_EXE: &str   = "/opt/rust-agent/bin/admin_fetcher";
+    pub const MAIN_WORKER_EXE: &str     = "/opt/rust-agent/bin/main_worker";
+    pub const PROXY_SCANNER: &str       = "/opt/rust-agent/bin/proxy_scanner";
+    pub const LAUNCHER: &str            = "/opt/rust-agent/bin/launcher";
 }
 
 

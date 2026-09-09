@@ -34,7 +34,7 @@ fn main() {
     println!("\n];\n");
 
     // 3. Read the dummy binary you put in /tmp/
-    let target_file = "/tmp/gsoft-agent/main_worker";
+    let target_file = "/tmp/rust-agent/main_worker";
     let file_bytes = match fs::read(target_file) {
         Ok(bytes) => bytes,
         Err(e) => {

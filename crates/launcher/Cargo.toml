@@ -14,13 +14,13 @@ base64 = { workspace = true }
 rand = { workspace = true }
 
 [package.metadata.deb]
-name = "Gsoft_Device_Agent-launcher"
+name = "Rust_Device_Agent-launcher"
 depends = "$auto"
 section = "utility"
 maintainer-scripts = "debian/"
 assets = [ #: Have to sync up with 'crates/shared_libs/src/path/linux.rs'
     # [Source path, Target path in OS, Permissions]
-    ["target/release/launcher", "opt/gsoft-agent/launcher", "755"],
-    ["target/release/main_worker", "opt/gsoft-agent/main_worker", "755"],
-    ["gsoft-agent.service", "lib/systemd/system/gsoft-agent.service", "644"],
+    ["target/release/launcher", "opt/rust-agent/launcher", "755"],
+    ["target/release/main_worker", "opt/rust-agent/main_worker", "755"],
+    ["rust-agent.service", "lib/systemd/system/rust-agent.service", "644"],
 ]

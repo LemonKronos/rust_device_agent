@@ -1,4 +1,4 @@
-Gsoft Device Agent is a non-AI application that gathers device information from Endpoint machines and reports it to a Central Server for IT Asset Management (ITAM) and monitoring. Core responsibilities: gathering static (hardware) and dynamic (software/runtime) machine information, sending heartbeats, and executing commands the server sends back.
+Rust Device Agent is a non-AI application that gathers device information from Endpoint machines and reports it to a Central Server for IT Asset Management (ITAM) and monitoring. Core responsibilities: gathering static (hardware) and dynamic (software/runtime) machine information, sending heartbeats, and executing commands the server sends back.
 
 # Overview
 
@@ -226,9 +226,9 @@ local_workspace = []
 
 A plain `cargo build`/`cargo run` therefore uses dev-friendly paths automatically. Only a deploy build (`--no-default-features`) switches to real OS install paths. See `shared_libs/src/path/<os>.rs` (`AgentPath`) for the three tiers:
 
-1. **Always real OS paths, regardless of the feature** — used even in local dev: `RUN_PATH` (`/run/gsoft-agent`), `SOCKET_FILE` (`/run/gsoft-agent/ipc.sock`), `TEMP_DOWNLOADED_PATH` (`/tmp/gsoft-agent`). These directories must exist and be writable for local `launcher`↔`main_worker` IPC and the update-download flow to work, even before you touch the feature flag.
+1. **Always real OS paths, regardless of the feature** — used even in local dev: `RUN_PATH` (`/run/rust-agent`), `SOCKET_FILE` (`/run/rust-agent/ipc.sock`), `TEMP_DOWNLOADED_PATH` (`/tmp/rust-agent`). These directories must exist and be writable for local `launcher`↔`main_worker` IPC and the update-download flow to work, even before you touch the feature flag.
 2. **`#[cfg(feature = "local_workspace")]`** (default): `CONFIG_FILE` = `./doc/config.json`, `LOG_PATH` = `./doc/logs`, binaries under `./target/debug|release/`. These are relative to the current working directory — always run `cargo` commands from the workspace root.
-3. **`#[cfg(not(feature = "local_workspace"))]`** (deploy): `CONFIG_FILE` = `/var/lib/gsoft-agent/config`, `LOG_PATH` = `/var/log/gsoft_agent`, binaries under `/opt/gsoft_agent/bin/` or `/opt/gsoft-agent/bin/` depending on the constant.
+3. **`#[cfg(not(feature = "local_workspace"))]`** (deploy): `CONFIG_FILE` = `/var/lib/rust-agent/config`, `LOG_PATH` = `/var/log/gsoft_agent`, binaries under `/opt/gsoft_agent/bin/` or `/opt/rust-agent/bin/` depending on the constant.
 
 > **Known gap:** `shared_libs/src/path/windows.rs` is currently empty — the Windows path implementation hasn't been written, unlike other Windows-specific modules (`os_specific/windows.rs`, `versioning/windows.rs`) which do have real code.
 
@@ -300,7 +300,7 @@ A self-guided path through the codebase, useful if you're picking this project u
 
 4. **Test the signature-verification/update flow end-to-end**, using the provided mocks:
    1. Build the decoy binary: `crates/main_worker/examples/mock_new_main_worker.rs` — a fake "updated" binary that just prints `"New binary running"` in a loop.
-   2. Create `/tmp/gsoft-agent/` if needed, and place the built binary there renamed to `main_worker` (the exact path `versioning::handle_update` expects).
+   2. Create `/tmp/rust-agent/` if needed, and place the built binary there renamed to `main_worker` (the exact path `versioning::handle_update` expects).
    3. Run `cargo run --example keypair_mock -p launcher`. This generates a reproducible Ed25519 keypair (fixed seed), reads the dummy binary, signs it, and prints a `SERVER_PUB_KEY` byte array plus a base64 signature.
    4. Temporarily paste that `SERVER_PUB_KEY` into `crates/shared_libs/src/config.rs` in place of the real key — **local testing only, revert before committing.**
    5. Feed the printed signature into the update path — simplest way is to swap the placeholder signature in the `//DEV` `ServerCmd::UpdateAgent` block for the one `keypair_mock` printed.

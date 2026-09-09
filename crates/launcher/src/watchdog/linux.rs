@@ -21,7 +21,7 @@ pub async fn run_watchdog(mut rx: Receiver<String>) {
     let (uid, gid) = match ensure_agent_user() {
         Some(ids) => ids,
         None => {
-            log::error!("FATAL: Unable to resolve group 'gsoft-agent', exit now.");
+            log::error!("FATAL: Unable to resolve group 'rust-agent', exit now.");
             return;
         }
     };
@@ -118,8 +118,8 @@ fn is_root() -> bool {
 
 /// Helper to fetch the numerical UID and GID of the restricted user
 fn get_agent_ids() -> Option<(u32, u32)> {
-    let uid_out = Command::new("id").arg("-u").arg("gsoft-agent").output().ok()?;
-    let gid_out = Command::new("id").arg("-g").arg("gsoft-agent").output().ok()?;
+    let uid_out = Command::new("id").arg("-u").arg("rust-agent").output().ok()?;
+    let gid_out = Command::new("id").arg("-g").arg("rust-agent").output().ok()?;
 
     let uid = String::from_utf8_lossy(&uid_out.stdout).trim().parse::<u32>().ok()?;
     let gid = String::from_utf8_lossy(&gid_out.stdout).trim().parse::<u32>().ok()?;
@@ -133,19 +133,19 @@ fn ensure_agent_user() -> Option<(u32, u32)> {
         return Some(ids); // User already exist
     }
 
-    log::warn!("User group 'gsoft-agent' does not exist, attemp to create one.");
+    log::warn!("User group 'rust-agent' does not exist, attemp to create one.");
 
     let output = Command::new("useradd")
         .arg("--system")
         .arg("--no-create-home")
         .arg("--shell")
         .arg("/user/bin/nologin")
-        .arg("gsoft-agent")
+        .arg("rust-agent")
         .output();
 
     match output {
         Ok(out) if out.status.success() => {
-            log::info!("Successfully create user group 'gsoft-agent'");
+            log::info!("Successfully create user group 'rust-agent'");
             get_agent_ids()
         },
         Ok(out) => {

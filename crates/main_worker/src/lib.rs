@@ -3,11 +3,11 @@
 //! # Main Worker
 //!
 //! `main_worker` is the unprivileged worker process responsible for the normal
-//! operation of the Gsoft agent.
+//! operation of the Rust agent.
 //!
 //! The worker runs the agent's main execution loop. On each cycle it checks
 //! the scheduler for tasks that are due, collects the information required by
-//! those tasks, builds the payload, and sends the result to the Gsoft server.
+//! those tasks, builds the payload, and sends the result to the Rust server.
 //!
 //! The high-level data flow is:
 //!
@@ -23,7 +23,7 @@
 //! Sender
 //!     |
 //!     V
-//! Gsoft Server
+//! Rust Server
 //! ```
 //!
 //! `DeviceAgent` coordinates these components and also handles commands

@@ -2,6 +2,6 @@
 set -e
 
 if [ "$1" = "remove" ] || [ "$1" = "upgrade" ]; then
-    systemctl stop gsoft-agent.service || true
-    systemctl disable gsoft-agent.service || true
+    systemctl stop rust-agent.service || true
+    systemctl disable rust-agent.service || true
 fi

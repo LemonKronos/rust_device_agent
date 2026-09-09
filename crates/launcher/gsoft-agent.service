@@ -1,11 +1,11 @@
 [Unit]
-Description=Gsoft Endpoint Agent
+Description=Rust Endpoint Agent
 # Wait for the network stack to be up before starting
 After=network.target
 
 [Service]
 # The entry point for the background process
-ExecStart=/opt/gsoft-agent/launcher
+ExecStart=/opt/rust-agent/launcher
 
 # Always restart the launcher if it crashes or is killed
 Restart=always

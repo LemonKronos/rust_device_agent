@@ -8,7 +8,7 @@
 //! module so the launcher can call the same API on every supported platform.
 //!
 //! On Linux, permission setup also establishes the ownership boundary between
-//! the privileged `launcher` and the restricted `gsoft-agent` user.
+//! the privileged `launcher` and the restricted `rust-agent` user.
 //!
 //! This module is called during launcher startup, before the IPC server and
 //! worker watchdog are started.

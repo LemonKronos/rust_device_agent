@@ -28,7 +28,7 @@ impl Launcher {
     pub async fn run(&self) {
         init_logger("launcher");
 
-        log::info!("Gsoft Launcher starting up.");
+        log::info!("Rust Launcher starting up.");
 
         if !permission::ensure_file_permission() {
             log::error!("FATAL: Failed to ensure file permisson, exit now.");

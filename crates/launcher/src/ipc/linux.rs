@@ -32,7 +32,7 @@ pub async fn start_ipc_server(tx: Sender<String>) {
         return;
     }
     
-    if let Err(e) = std::process::Command::new("chgrp").arg("gsoft-agent").arg(AgentPath::SOCKET_FILE).output() {
+    if let Err(e) = std::process::Command::new("chgrp").arg("rust-agent").arg(AgentPath::SOCKET_FILE).output() {
         log::error!("Failed to change socket group ownership: {}", e);
         return;
     }
