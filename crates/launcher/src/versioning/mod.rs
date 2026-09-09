@@ -44,7 +44,7 @@ pub fn handle_update(update_msg: &str) {
         "main_worker" => AgentPath::MAIN_WORKER_EXE,
         "admin_fetcher" => AgentPath::ADMIN_FETCHER_EXE,
         "proxy_scanner" => AgentPath::PROXY_SCANNER,
-        // "launcher" => AgentPath::LAUNCHER, // Complicated
+        // "launcher" => AgentPath::LAUNCHER, // Complicated (suicide then resurrected by OS process)
         s => {
             log::error!("Invalid target binary: {}", s);
             return;
@@ -73,8 +73,8 @@ fn validate_crytography(file_path: &str, sign_base64: &str) -> bool {
         }
     };
 
-    // //: DEV local verify test
-    // let sig_bytes = BASE64.decode("q3riEUwA7ckm6kCzIN+b1EG7XhVNtXTj0BOksXtsR0TnabVpPEYszC2VQ25WONIyKHWkHcDJq3JCAU03tCAzDw==").unwrap();
+    // //DEV local verify test
+    // let sig_bytes = BASE64.decode("WZTxRClivkG0ObKfKM4cALjembHovFrF+KhJLJZHSjgi7R0qLyxBwwVtwGfQqAxbyLX48LQoLKgQXgA/QCN/Cw==").unwrap();
     // let signature = ed25519_dalek::Signature::from_slice(&sig_bytes).unwrap();
 
     // Load the mathematical public key

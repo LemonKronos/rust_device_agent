@@ -26,10 +26,9 @@ use shared_libs::utils::*;
 #[cfg(debug_assertions)]
 use shared_libs::config::dev_config::*;
 
-#[cfg(not(debug_assertions))]
-use shared_libs::config::AGENT_VERSION;
-
 use shared_libs::config::{SCAN_SOFTWARE, INIT_FULL_SCAN};
+
+pub const MAIN_WORKER_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct DeviceAgent {
     payload_maker: PayloadMaker,
@@ -126,6 +125,20 @@ impl DeviceAgent {
 
         let server_commands = self.sender.transmit(json, self.full_scan).await;
 
+        //DEV mock server cmds
+        let server_commands = vec![
+            ServerCmd::UpdateConfig(serde_json::json!({
+                "machine.model": [0, "test"],
+                "cpu.temperature": [30, 1]
+            })),
+
+            ServerCmd::UpdateAgent {
+                binary: "main_worker".to_string(),
+                version: "1.0.1".to_string(),
+                signature: "WZTxRClivkG0ObKfKM4cALjembHovFrF+KhJLJZHSjgi7R0qLyxBwwVtwGfQqAxbyLX48LQoLKgQXgA/QCN/Cw==".to_string(),
+            }
+        ];
+
         self.full_scan = false;
 
         for cmd in server_commands {
@@ -139,14 +152,25 @@ impl DeviceAgent {
                     log::info!("Server ask to update config");
                     self.scheduler.update(new_config);
                 },
-                ServerCmd::UpdateAgent { binary, version, signature } => {
-                    log::info!(
-                        "Server ask to update to agent binary '{}' to version '{}' over current version '{}'",
-                        binary, version, AGENT_VERSION
-                    );
+                ServerCmd::UpdateAgent { binary, version, signature } => { //TODO handle multiple binary update in one server response
+                    let current_version = mock_get_binary_version(&binary);
 
+                    if version == current_version {
+                        log::info!(
+                            "Server ask to update to agent binary '{}' to version '{}' over current version '{}', ignored",
+                            binary, version, current_version
+                        );
+                    } else {
+                        log::info!(
+                            "Server ask to update to agent binary '{}' to version '{}' over current version '{}'",
+                            binary, version, current_version
+                        );
+                    }
+
+                    // //DEV Temporarily pre-place the target binary in downloaded destination for easy demostration
                     // if !self.sender.download_file(&binary, &version) {
                     //     //TODO send distress to server to avoid spamming respawn of main_worker
+                    //     log::error!("Can not download binary '{}'", binary);
                     //     continue;
                     // }
 
@@ -156,11 +180,8 @@ impl DeviceAgent {
                         //TODO send distress to server
                     }
                 },
-                ServerCmd::Unknown => {
-                    log::warn!("Agent receive an Unknown Command")
-                },
                 _ => {
-                    log::warn!("Server ask for TODO commands")
+                    log::warn!("Agent receive an Unknown Command")
                 }
             }
         }
@@ -175,7 +196,20 @@ impl DeviceAgent {
     }
 }
 
+//TODO handling individual binary version
+// Below are all mock up
+const LAUNCHER_VERSION: &str = "0.1.0";
+const ADMIN_FETCHER_VERSION: &str = "0.1.0";
 
+/// Mock up to get binary version
+fn mock_get_binary_version(binary_name: &str) -> &str {
+    match binary_name {
+        "main_worker" => MAIN_WORKER_VERSION,
+        "launcher" => LAUNCHER_VERSION,
+        "admin_fetcher" => ADMIN_FETCHER_VERSION,
+        _ => "unknown",
+    }
+}
 
 #[cfg(test)]
 mod tests {

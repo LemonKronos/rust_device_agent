@@ -1,3 +1,6 @@
+
+//! This use to mock a keypair and a valid signature from binary in temp downloaded directory
+
 use ed25519_dalek::{Signer, SigningKey};
 use rand::{Rng, SeedableRng}; // Swapped Rng for RngCore
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};

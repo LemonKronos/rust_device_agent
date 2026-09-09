@@ -18,6 +18,7 @@ pub mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::get;
 
+pub const ADMIN_FETCHER_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn asked_to_scan() {
     init_logger("admin_fetcher");

@@ -9,7 +9,9 @@
 //! 
 //! Currently, the server enpoint url is hardcoded, but that is subjected to change.
 //! 
-//! The payload sample:
+//! Logically, sending partial scan of full scan is the same, but the URLs are different due to server side technicality (TODO: ask server side to only use a single URL for scan).
+//! 
+//! The server response payload sample:
 //! ```json
 //! {
 //!   "result": {

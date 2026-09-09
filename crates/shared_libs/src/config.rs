@@ -8,8 +8,6 @@ use std::time::Duration;
 #[cfg(debug_assertions)]
 pub mod dev_config {
     /// In dev mode, will include the current in-dev feature
-    // pub const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "versioning");
-    pub const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
     pub const USE_CUSTOM_SERIAL: bool = false;
     pub const CUSTOM_SERIAL: &str = "TEST_MACHINE_03";
 
@@ -17,13 +15,10 @@ pub mod dev_config {
     pub const SIMPLE_CONFIG: bool = true; 
 }
 
-#[cfg(not(debug_assertions))]
-pub const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 /// Allow software scanning or not
 pub const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
 
-/// Init with full scan
+/// First scan is full scan
 pub const INIT_FULL_SCAN: bool = true;
 
 //: Versioning

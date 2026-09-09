@@ -14,6 +14,8 @@ pub mod versioning;
 pub mod watchdog;
 pub mod permission;
 
+pub const LAUNCHER_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub struct Launcher {
     // Empty
 }

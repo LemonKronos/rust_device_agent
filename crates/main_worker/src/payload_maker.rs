@@ -26,7 +26,7 @@ mod serialize_type;
 use serialize_type::*;/// Use [`InfoPayload`] to serialize with
 
 use super::SCAN_SOFTWARE;
-use super::AGENT_VERSION;
+use super::MAIN_WORKER_VERSION;
 
 #[cfg(debug_assertions)]
 use super::{CUSTOM_SERIAL,USE_CUSTOM_SERIAL};
@@ -251,7 +251,7 @@ impl PayloadMaker {
                     for (i, $item) in items.iter().enumerate() {
                         let cache_item = &mut cache_items[i];
                         let mut diff = $item_type::default();
-                        let mut has_diff = false || $no_cache;
+                        let mut has_diff = false;
 
                         $(
                             let should_run = full_scan || num_item_changed || task_map.contains_key(&$task_id);
@@ -264,7 +264,7 @@ impl PayloadMaker {
                             }
                         )*
 
-                        if has_diff {
+                        if should_run && (has_diff || $no_cache) {
                             if diff.$id_field.is_none() {
                                 diff.$id_field = Some(AgentValue::Text($id_expr));
                             }
@@ -504,8 +504,10 @@ impl PayloadMaker {
 
 
         //: Finalize json
+
+        //? This is for when we change the payload to have an info field wrapper
         // let payload_json = json!({
-        //     "AGENT_VERSION": AGENT_VERSION,
+        //     "MAIN_WORKER_VERSION": MAIN_WORKER_VERSION,
         //     "TIME_STAMP": self.info.get_timestamp(),
         //     "IN_TEST": true,
         //     "INFO": info_json,
@@ -517,7 +519,7 @@ impl PayloadMaker {
         };
 
         if let Some(map) = payload_json.as_object_mut() {
-            map.insert("AGENT_VERSION".into(), json!(AGENT_VERSION));
+            map.insert("MAIN_WORKER_VERSION".into(), json!(MAIN_WORKER_VERSION));
             map.insert("TIME_STAMP".into(), json!(self.info.get_timestamp()));
             map.insert("IN_TEST".into(), json!(true));
         }

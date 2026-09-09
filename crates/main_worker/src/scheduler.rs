@@ -240,7 +240,7 @@ pub enum TaskID {
     #[serde(rename = "software")]
     Software,
 
-    //TODO coming soon
+    //TODO feature
     // #[serde(rename = "software.name")]
     // SoftwareName,
     // #[serde(rename = "software.version")]
@@ -466,15 +466,13 @@ impl Scheduler {
                     
                     task.execute_at = last_fired + Duration::from_secs(new_cycle);
                 } 
-                // If cycle_time was 0, it means it hasn't fired its boot-scan yet, 
-                // so we don't touch execute_at (it will just fire normally)
+                // If cycle_time was 0, it means it hasn't fired its boot-scan yet, so we don't touch execute_at (it will just fire normally)
 
                 task.cycle_time = new_cycle;
                 task.limit = new_limit;
             }
             
-            // Regardless of update, anything in the heap currently HAS NOT fired yet, 
-            // so we keep it in the active heap to fire
+            // Regardless of update, anything in the heap currently HAS NOT fired yet, so we keep it in the active heap to fire
             new_heap.push(task);
         }
 

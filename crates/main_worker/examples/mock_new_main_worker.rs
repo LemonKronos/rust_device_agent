@@ -4,10 +4,7 @@
 // use shared_libs::utils::*;
 
 #[tokio::main]
-async fn main() {
-    // fs::create_dir_all("./doc/logs/scratch").expect("Make dir failed");
-    // init_logger("scratch");
-    
+async fn main() {    
     println!("If this show up, the binary have been udpated");
 
     loop {

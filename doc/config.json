@@ -1,5 +1,7 @@
 {
-  "general.host": [10, null, 1787813403],
-  "general.boot_time": [10, null, 1787813403],
-  "general.run_time": [10, null, 1787813403]
+  "machine.model": [0, "test", 1788928082],
+  "general.run_time": [10, null, 1788928089],
+  "general.boot_time": [10, null, 1788928089],
+  "cpu.temperature": [30, 1, 1788928112],
+  "general.host": [10, null, 1788928089]
 }
