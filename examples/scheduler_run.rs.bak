@@ -4,9 +4,9 @@ use std::time::Duration;
 use tokio::time::{sleep_until, Instant};
 use tokio::signal;
 
-use gsoft_device_agent::info_gatherer::Info;
-use gsoft_device_agent::config_handler::*;
-use gsoft_device_agent::scheduler::*;
+use rust_device_agent::info_gatherer::Info;
+use rust_device_agent::config_handler::*;
+use rust_device_agent::scheduler::*;
 
 pub async fn run_agent_loop(mut queue: TimerWheel) {
     println!("Agent running. Timer wheel engaged.");

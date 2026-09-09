@@ -96,7 +96,7 @@ The cycle, in `main_worker::scheduler::Scheduler`:
 
 On boot, the persisted config is deserialized straight back into the heap — a task whose stored timestamp is already in the past runs immediately (catch-up for machines that were off/asleep).
 
-> **Open design question** (see `todo.md`): whether the min-heap is the right structure long-term vs. a timer-wheel or delta-queue is still being evaluated — a slot-based timer wheel was the original design (see `GSOFT_design.md`), and the current min-heap implementation is what's actually shipped.
+> **Open design question** (see `todo.md`): whether the min-heap is the right structure long-term vs. a timer-wheel or delta-queue is still being evaluated — a slot-based timer wheel was the original design, and the current min-heap implementation is what's actually shipped.
 
 ## 3. Agent Update
 
@@ -228,7 +228,7 @@ A plain `cargo build`/`cargo run` therefore uses dev-friendly paths automaticall
 
 1. **Always real OS paths, regardless of the feature** — used even in local dev: `RUN_PATH` (`/run/rust-agent`), `SOCKET_FILE` (`/run/rust-agent/ipc.sock`), `TEMP_DOWNLOADED_PATH` (`/tmp/rust-agent`). These directories must exist and be writable for local `launcher`↔`main_worker` IPC and the update-download flow to work, even before you touch the feature flag.
 2. **`#[cfg(feature = "local_workspace")]`** (default): `CONFIG_FILE` = `./doc/config.json`, `LOG_PATH` = `./doc/logs`, binaries under `./target/debug|release/`. These are relative to the current working directory — always run `cargo` commands from the workspace root.
-3. **`#[cfg(not(feature = "local_workspace"))]`** (deploy): `CONFIG_FILE` = `/var/lib/rust-agent/config`, `LOG_PATH` = `/var/log/gsoft_agent`, binaries under `/opt/gsoft_agent/bin/` or `/opt/rust-agent/bin/` depending on the constant.
+3. **`#[cfg(not(feature = "local_workspace"))]`** (deploy): `CONFIG_FILE` = `/var/lib/rust-agent/config`, `LOG_PATH` = `/var/log/rust_agent`, binaries under `/opt/rust_agent/bin/` or `/opt/rust-agent/bin/` depending on the constant.
 
 > **Known gap:** `shared_libs/src/path/windows.rs` is currently empty — the Windows path implementation hasn't been written, unlike other Windows-specific modules (`os_specific/windows.rs`, `versioning/windows.rs`) which do have real code.
 

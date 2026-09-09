@@ -2,7 +2,7 @@ use tokio::net::windows::named_pipe::ServerOptions;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::process::Command;
 
-const PIPE_NAME: &str = r"\\.\pipe\gsoft_device_agent_pipe";
+const PIPE_NAME: &str = r"\\.\pipe\rust_device_agent_pipe";
 
 pub async fn start_ipc_server() {
     log::info!("Launcher listening on {}", PIPE_NAME);
