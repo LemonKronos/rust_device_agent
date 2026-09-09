@@ -1,13 +1,17 @@
+//!
+//! Linux IPC
+//! 
+
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
+use shared_libs::path::AgentPath;
 
-const SOCKET_PATH: &str = "/run/gsoft-agent/ipc.sock";
-
+/// Use Linux Unix socket to ask for protected info
 pub fn ask_admin(key: &str) -> Option<String> {
     log::info!("Asking Admin Fetcher for '{}'", key);
     
-    let mut stream = match UnixStream::connect(SOCKET_PATH) {
+    let mut stream = match UnixStream::connect(AgentPath::SOCKET_FILE) {
         Ok(s) => s,
         Err(e) => {
             log::error!("Failed to connect IPC to Launcher: {}", e);
@@ -41,7 +45,7 @@ pub fn ask_admin(key: &str) -> Option<String> {
 pub fn ask_update(binary: &str, signature: &str) -> bool {
     log::info!("Asking Laucher to update binary '{}'", binary);
 
-    let mut stream = match UnixStream::connect(SOCKET_PATH) {
+    let mut stream = match UnixStream::connect(AgentPath::SOCKET_FILE) {
         Ok(s) => s,
         Err(e) => {
             log::error!("Failed to connect IPC to Launcher: {}", e);

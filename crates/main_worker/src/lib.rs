@@ -16,21 +16,6 @@ pub mod scheduler;
 pub mod config_handler;
 pub mod ipc;
 
-// ! DEV CONFIG
-#[cfg(debug_assertions)]
-mod dev_config {
-   /// In dev mode, will include the current in-dev feature
-    pub const AGENT_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), ".", "versioning");
-    pub const USE_CUSTOM_SERIAL: bool = false;
-    pub const CUSTOM_SERIAL: &str = "TEST_MACHINE_03";
-
-    /// Make the default dev config for only the "general" module
-    pub const SIMPLE_CONFIG: bool = true; 
-}
-
-#[cfg(not(debug_assertions))]
-const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 use crate::scheduler::Scheduler;
 use crate::payload_maker::PayloadMaker;
 use crate::sender::{Sender, ServerCmd};
@@ -39,13 +24,12 @@ use crate::config_handler::*;
 use shared_libs::utils::*;
 
 #[cfg(debug_assertions)]
-use crate::dev_config::*;
+use shared_libs::config::dev_config::*;
 
-/// Allow software scanning or not
-const SCAN_SOFTWARE: bool = !cfg!(debug_assertions) || false;
+#[cfg(not(debug_assertions))]
+use shared_libs::config::AGENT_VERSION;
 
-/// Init with full scan
-const INIT_FULL_SCAN: bool = true;
+use shared_libs::config::{SCAN_SOFTWARE, INIT_FULL_SCAN};
 
 pub struct DeviceAgent {
     payload_maker: PayloadMaker,
@@ -161,10 +145,10 @@ impl DeviceAgent {
                         binary, version, AGENT_VERSION
                     );
 
-                    if !self.sender.download_file(&binary, &version) {
-                        //TODO send distress to server
-                        continue;
-                    }
+                    // if !self.sender.download_file(&binary, &version) {
+                    //     //TODO send distress to server to avoid spamming respawn of main_worker
+                    //     continue;
+                    // }
 
                     self.scheduler.save();
                     if !ask_update(&binary, &signature) {

@@ -5,7 +5,7 @@
 use std::fs;
 use ed25519_dalek::{VerifyingKey, Signature, Verifier};
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use shared_libs::path::AgentPath;
+use shared_libs::{path::AgentPath, config::SERVER_PUB_KEY};
 
 #[cfg(target_os = "linux")]
 pub mod linux;
@@ -16,14 +16,6 @@ pub use linux::*;
 pub mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::*;
-
-/// Hardcoded Public Key 
-const SERVER_PUB_KEY: [u8; 32] = [
-    0xd2, 0x6c, 0x4e, 0x8e, 0x15, 0x33, 0x45, 0xff, 
-    0x60, 0xf8, 0x6c, 0x03, 0xc6, 0x73, 0xb8, 0x4d, 
-    0x15, 0x2b, 0x2d, 0x13, 0xee, 0x24, 0x13, 0x41, 
-    0x0f, 0xb9, 0x12, 0xf1, 0x42, 0x67, 0xc7, 0xea, 
-];
 
 /// Verify update binary and do the file swapping\
 /// Expected update_msg: "UPDATE|<target_binary>|<signature_base64>"\
@@ -80,6 +72,10 @@ fn validate_crytography(file_path: &str, sign_base64: &str) -> bool {
             return false;
         }
     };
+
+    // //: DEV local verify test
+    // let sig_bytes = BASE64.decode("q3riEUwA7ckm6kCzIN+b1EG7XhVNtXTj0BOksXtsR0TnabVpPEYszC2VQ25WONIyKHWkHcDJq3JCAU03tCAzDw==").unwrap();
+    // let signature = ed25519_dalek::Signature::from_slice(&sig_bytes).unwrap();
 
     // Load the mathematical public key
     let verifying_key = match VerifyingKey::from_bytes(&SERVER_PUB_KEY) {

@@ -13,19 +13,18 @@ use tokio::time::Instant;
 use crate::scheduler::TaskID::*;
 use crate::scheduler::{ScheduledTask,Scheduler};
 use shared_libs::utils::flatten_config;
+use shared_libs::path::AgentPath;
 use super::SCAN_SOFTWARE;
 
 #[cfg(debug_assertions)]
 use super::SIMPLE_CONFIG;
 
-const CONFIG_PATH: &str = "doc/config.json";
-
 /// Try to load config to Scheduler, if not found generate default config
 pub fn load_config() -> Scheduler {
-    let config_path = Path::new(CONFIG_PATH);
+    let config_path = Path::new(AgentPath::CONFIG_FILE);
 
     if !config_path.exists() {
-        log::warn!("Config file not found at {}. Initializing defaults.", CONFIG_PATH);
+        log::warn!("Config file not found at {}. Initializing defaults.", AgentPath::CONFIG_FILE);
     } else {
         match fs::read_to_string(config_path) {
             Err(e) => log::error!("Failed to read config file from disk: {}. Rebuilding defaults.", e),
@@ -38,7 +37,7 @@ pub fn load_config() -> Scheduler {
                     log::warn!("Config parsed successfully, but contained zero valid tasks! Rebuilding defaults.");
                 }
                 Ok(queue) => {
-                    log::info!("Successfully loaded config from {}", CONFIG_PATH);
+                    log::info!("Successfully loaded config from {}", AgentPath::CONFIG_FILE);
                     return queue;
                 }
             }
@@ -52,7 +51,7 @@ pub fn load_config() -> Scheduler {
 
 /// Save Scheduler as config file
 pub fn save_config(sched: &Scheduler) {
-    let config_path = Path::new(CONFIG_PATH);
+    let config_path = Path::new(AgentPath::CONFIG_FILE);
 
     match serde_json::to_string_pretty(sched) {
         Ok(json) => {
@@ -61,7 +60,7 @@ pub fn save_config(sched: &Scheduler) {
             if let Err(e) = fs::write(config_path, flat_json) {
                 log::error!("Failed to write config to disk: {}",  e);
             } else {
-                log::info!("Config saved to {}", CONFIG_PATH);
+                log::info!("Config saved to {}", AgentPath::CONFIG_FILE);
             }
         },
         Err(e) => log::error!("Failed to serialize config: {}", e),
@@ -70,7 +69,7 @@ pub fn save_config(sched: &Scheduler) {
 
 /// Make default config, load to Scheduler and store it
 pub fn init_config() -> Scheduler {
-    let config_path = Path::new(CONFIG_PATH);
+    let config_path = Path::new(AgentPath::CONFIG_FILE);
 
     let mut default_queue = Scheduler::new();
     

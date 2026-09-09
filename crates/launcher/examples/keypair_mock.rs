@@ -21,7 +21,7 @@ fn main() {
     // 2. Format the Public Key exactly how you need it for versioning/mod.rs
     let pub_bytes = verifying_key.to_bytes();
     println!("1. Copy this into your launcher's versioning code:");
-    print!("const SERVER_PUB_KEY: [u8; 32] = [\n    ");
+    print!("pub const SERVER_PUB_KEY: [u8; 32] = [\n    ");
     for (i, b) in pub_bytes.iter().enumerate() {
         print!("0x{:02x}, ", b);
         if (i + 1) % 8 == 0 && i != 31 {
@@ -31,7 +31,7 @@ fn main() {
     println!("\n];\n");
 
     // 3. Read the dummy binary you put in /tmp/
-    let target_file = "/tmp/gsoft-agent";
+    let target_file = "/tmp/gsoft-agent/main_worker";
     let file_bytes = match fs::read(target_file) {
         Ok(bytes) => bytes,
         Err(e) => {

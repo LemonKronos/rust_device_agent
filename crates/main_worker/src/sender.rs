@@ -66,12 +66,13 @@ use std::io::copy;
 use serde_json::Value as Json;
 use ureq::tls::TlsConfig;
 use serde::Deserialize;
-use shared_libs::{path::AgentPath};
-
-const SERVER_ENDPOINT_FULL_SCAN: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Ins";
-const SERVER_ENDPOINT_DELTA: &str = "https://172.20.0.98:44301/api/AssIT/ASS_IT_COMPUTER_Delta";
-const SERVER_ENDPOINT_DOWNLOAD: &str = "https://172.20.0.98:44301/api/Agent/Download?";
-const API_KEY: &str = "72895e95e7634de2a8f554abaf10ec0e7a46fff57b114b68b74efcd65a5d3ec5";
+use shared_libs::path::AgentPath;
+use shared_libs::config::{
+    SERVER_ENDPOINT_DELTA,
+    SERVER_ENDPOINT_FULL_SCAN,
+    SERVER_ENDPOINT_DOWNLOAD,
+    API_KEY
+};
 
 /// APB wrapper
 #[derive(Debug, Deserialize)]

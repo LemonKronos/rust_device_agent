@@ -2,10 +2,7 @@
 //! Watch dog for Agent life time
 //! 
 
-use std::time::Duration;
-
-/// Time out for `main_worker` shut down wait
-pub const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(10);
+use shared_libs::config::SHUTDOWN_TIMEOUT;
 
 #[cfg(target_os = "linux")]
 pub mod linux;
