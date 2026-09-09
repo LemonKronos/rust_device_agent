@@ -1,7 +1,58 @@
 #![doc = include_str!("../../../README.md")]
 
+//! # Main Worker
 //!
-//! Logic wrapper for the app, contain the main loop and all module
+//! `main_worker` is the unprivileged worker process responsible for the normal
+//! operation of the Gsoft agent.
+//!
+//! The worker runs the agent's main execution loop. On each cycle it checks
+//! the scheduler for tasks that are due, collects the information required by
+//! those tasks, builds the payload, and sends the result to the Gsoft server.
+//!
+//! The high-level data flow is:
+//!
+//! ```text
+//! Scheduler
+//!     |
+//!     | due tasks
+//!     V
+//! PayloadMaker
+//!     |
+//!     | payload
+//!     V
+//! Sender
+//!     |
+//!     V
+//! Gsoft Server
+//! ```
+//!
+//! `DeviceAgent` coordinates these components and also handles commands
+//! received from the server, such as configuration changes, full scans, and
+//! agent updates.
+//!
+//! The worker also communicates with the privileged `launcher` process through
+//! the platform-specific IPC layer when an operation requires launcher
+//! privileges, such as updating an agent binary.
+//!
+//! ## Main Responsibilities
+//!
+//! - Run the normal agent scheduling and collection loop.
+//! - Collect system/device information required by scheduled tasks.
+//! - Generate incremental payloads through [`PayloadMaker`].
+//! - Send payloads and process server responses.
+//! - Handle configuration updates and full-scan requests.
+//! - Coordinate agent update requests with the privileged launcher.
+//! - Perform a graceful shutdown when requested by the launcher or operating
+//!   system.
+//!
+//! The worker is intentionally kept separate from the privileged `launcher`.
+//! `main_worker` performs the normal agent workload without requiring elevated
+//! privileges, while operations that cross the privilege boundary are handled
+//! by the launcher through IPC.
+//!
+//! For the detailed behavior of individual subsystems, see the module
+//! documentation for [`scheduler`], [`payload_maker`], [`ipc`], and
+//! [`os_specific`].
 //! 
 
 use std::error::Error;
@@ -28,6 +79,7 @@ use shared_libs::config::dev_config::*;
 
 use shared_libs::config::{SCAN_SOFTWARE, INIT_FULL_SCAN};
 
+/// `main_worker` binary version, read from `cargo.toml`
 pub const MAIN_WORKER_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct DeviceAgent {
@@ -125,19 +177,19 @@ impl DeviceAgent {
 
         let server_commands = self.sender.transmit(json, self.full_scan).await;
 
-        //DEV mock server cmds
-        let server_commands = vec![
-            ServerCmd::UpdateConfig(serde_json::json!({
-                "machine.model": [0, "test"],
-                "cpu.temperature": [30, 1]
-            })),
+        // //DEV mock server cmds
+        // let server_commands = vec![
+        //     ServerCmd::UpdateConfig(serde_json::json!({
+        //         "machine.model": [0, "test"],
+        //         "cpu.temperature": [30, 1]
+        //     })),
 
-            ServerCmd::UpdateAgent {
-                binary: "main_worker".to_string(),
-                version: "1.0.1".to_string(),
-                signature: "WZTxRClivkG0ObKfKM4cALjembHovFrF+KhJLJZHSjgi7R0qLyxBwwVtwGfQqAxbyLX48LQoLKgQXgA/QCN/Cw==".to_string(),
-            }
-        ];
+        //     ServerCmd::UpdateAgent {
+        //         binary: "main_worker".to_string(),
+        //         version: "1.0.1".to_string(),
+        //         signature: "WZTxRClivkG0ObKfKM4cALjembHovFrF+KhJLJZHSjgi7R0qLyxBwwVtwGfQqAxbyLX48LQoLKgQXgA/QCN/Cw==".to_string(),
+        //     }
+        // ];
 
         self.full_scan = false;
 
@@ -197,8 +249,10 @@ impl DeviceAgent {
 }
 
 //TODO handling individual binary version
-// Below are all mock up
+/// Mock up launcher version
 const LAUNCHER_VERSION: &str = "0.1.0";
+
+/// Mock up admin_fetcher version
 const ADMIN_FETCHER_VERSION: &str = "0.1.0";
 
 /// Mock up to get binary version

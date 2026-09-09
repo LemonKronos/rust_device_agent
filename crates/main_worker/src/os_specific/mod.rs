@@ -1,9 +1,39 @@
 
-//! # To be documented: OS Specific implementations with auto target OS plexer
+//! # OS-specific hardware abstraction
 //!
-//! This module handles all the dirty work of abstracting away the differences between Windows, Linux, and macOS. 
-//! The main worker calls into this module, and this module figures out which specific OS logic to execute.
-//! 
+//! This module provides a single, platform-independent interface for collecting
+//! device information while keeping OS-specific implementation details isolated.
+//!
+//! `main_worker` should interact with [`OsSpecific`] rather than directly
+//! accessing Linux, Windows, or macOS APIs.
+//!
+//! ## Architecture
+//!
+//! [`OsSpecific`] is a thin wrapper around an [`OsSpecificBackend`]. The concrete
+//! backend is selected at compile time using `cfg(target_os = ...)`:
+//!
+//! - Linux -> [`linux::OsSpecificBackend`]
+//! - Windows -> [`windows::OsSpecificBackend`]
+//! - macOS -> [`macos::OsSpecificBackend`]
+//!
+//! The platform backends implement [`OsSpecificInterface`], allowing the rest of
+//! the agent to use the same API regardless of the host operating system.
+//!
+//! ## Why this module exists
+//!
+//! Hardware and system information cannot be collected uniformly across
+//! operating systems. For example, Windows uses WMI for much of its hardware
+//! inventory, while Linux and macOS use different OS facilities.
+//!
+//! Keeping those differences behind this module prevents platform-specific
+//! code from leaking into the main worker's business logic.
+//!
+//! ## Adding support for another OS
+//!
+//! A new platform should provide an implementation of [`OsSpecificInterface`]
+//! and be selected here with an appropriate `cfg(target_os = ...)` block.
+//!
+//! The public API exposed to the rest of `main_worker` should remain unchanged.
 
 pub mod interface;
 
@@ -28,7 +58,8 @@ mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::{OsSpecificBackend};
 
-/// Os plexer to choose between Os backend
+/// Platform-independent system information provider.
+/// This type delegates all operations to the OS-specific backend selected at compile time.
 #[derive(Debug)]
 pub struct OsSpecific {
     backend: OsSpecificBackend,
@@ -136,7 +167,8 @@ impl OsSpecificInterface for OsSpecific {
 
 
 
-/// Decode the machine chassis code to machine type
+/// Decode the SMBIOS/DMI chassis type code into a human-readable category.
+/// This is primarily used by platform implementations that obtain the numerical chassis type from firmware or WMI.
 fn parse_chassis_type(code: &str) -> String {
     match code {
         "1" => "Special: Other".to_string(),

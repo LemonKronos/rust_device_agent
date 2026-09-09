@@ -1,6 +1,54 @@
+
+//! # Main worker watchdog
 //!
-//! Watch dog for Agent life time
-//! 
+//! The watchdog owns the lifecycle of the unprivileged `main_worker` process.
+//!
+//! `launcher` runs with elevated privileges, while `main_worker` performs the
+//! normal agent workload with restricted privileges. The watchdog is the
+//! boundary between those two processes.
+//!
+//! ## Responsibilities
+//!
+//! The platform-specific watchdog implementation:
+//!
+//! - starts `main_worker`
+//! - runs it under the restricted `gsoft-agent` account where supported
+//! - detects worker termination
+//! - restarts the worker after an unexpected exit
+//! - responds to launcher shutdown signals
+//! - coordinates binary updates
+//!
+//! ## Shutdown mechanism
+//!
+//! `main_worker` receives a shutdown request by having its stdin pipe closed.
+//! This allows the worker to perform its own cleanup before termination.
+//!
+//! [`graceful_shutdown`] waits for [`SHUTDOWN_TIMEOUT`] before forcefully
+//! killing the process. This prevents a stuck worker from preventing launcher
+//! shutdown indefinitely.
+//!
+//! ## Update lifecycle
+//!
+//! An update follows this general sequence:
+//!
+//! ```text
+//! update request
+//!       |
+//!       v
+//! watchdog
+//!       |
+//!       v
+//! graceful_shutdown(main_worker)
+//!       |
+//!       v
+//! versioning::handle_update()
+//!       |
+//!       v
+//! spawn updated main_worker
+//! ```
+//!
+//! The watchdog therefore acts as the process-lifecycle coordinator rather
+//! than implementing update logic itself.
 
 use shared_libs::config::SHUTDOWN_TIMEOUT;
 

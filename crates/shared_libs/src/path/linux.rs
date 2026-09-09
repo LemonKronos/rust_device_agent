@@ -45,8 +45,8 @@ impl AgentPath {
 #[cfg(not(feature = "local_workspace"))]
 impl AgentPath {
     pub const CONFIG_FILE: &str     = "/var/lib/gsoft-agent/config";
-    pub const LOG_PATH: &str        = "/var/log/gsoft_agent";
-    pub const ADMIN_FETCHER_EXE: &str   = "/opt/gsoft_agent/bin/admin_fetcher";
+    pub const LOG_PATH: &str        = "/var/log/gsoft-agent";
+    pub const ADMIN_FETCHER_EXE: &str   = "/opt/gsoft-agent/bin/admin_fetcher";
     pub const MAIN_WORKER_EXE: &str     = "/opt/gsoft-agent/bin/main_worker";
     pub const PROXY_SCANNER: &str       = "/opt/gsoft-agent/bin/proxy_scanner";
     pub const LAUNCHER: &str            = "/opt/gsoft-agent/bin/launcher";

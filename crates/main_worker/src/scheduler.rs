@@ -1,13 +1,55 @@
+//! The scheduler is the config, and the config is the scheduler.
 //!
-//! # Scheduler where each scan task is being stored as an element in min-heap
-//! 
-//! With the lightweight and robust goal in mind, the scheduler is designed to be init directly from the config.
-//! "The scheduler is the config, the config is the scheduler".
-//! Thus, we flatten the json structure, get the ID, get the scan interval, limit, next execute time to store as config.
-//! The scheduler then get **deserialized directly** from the config.
-//! When the config change by server, the scheduler get updated and immediately save as config.
-//! When the Agent get normally shutdown, the current scheduler is serialize to config.
-//! 
+//! The scheduler is not just a runtime timer/queue. Its state is directly
+//! represented by the agent configuration, allowing scheduled tasks and their
+//! next execution times to survive agent restarts.
+//!
+//! Each `ScheduledTask` contains:
+//! - `cycle_time`: how often the task should execute.
+//! - `execute_at`: the next time the task is due.
+//! - `limit`: task-specific limits used when generating the payload.
+//!
+//! Tasks are stored in a `BinaryHeap`. Rust's `BinaryHeap` is normally a
+//! max-heap, so the ordering is intentionally reversed to make it behave as a
+//! min-heap: the task with the earliest `execute_at` is always at the top.
+//!
+//! The normal execution flow is:
+//!
+//! 1. `pop_due_batch()` removes all tasks whose `execute_at` has been reached.
+//! 2. The returned tasks are processed by the agent and used to determine
+//!    what information needs to be collected.
+//! 3. `reschedule_batch()` advances those tasks by their `cycle_time` and
+//!    places them back into the heap.
+//!
+//! Because the scheduler is part of the configuration, changes to the
+//! scheduling state must eventually be persisted back to the config. This is
+//! important when modifying the scheduler: do not treat the heap as the only
+//! source of truth.
+//!
+//! In short:
+//! ```text
+//!     config.json
+//!          │
+//!          ▼
+//!      Scheduler
+//!          │
+//!      BinaryHeap
+//!          │
+//!     pop due tasks
+//!          │
+//!          ▼
+//!      process tasks
+//!          │
+//!          ▼
+//!     reschedule tasks
+//!          │
+//!          ▼
+//!      persist config
+//! ```
+//!
+//! The slightly unusual design is intentional: the scheduler is both the
+//! runtime scheduling mechanism and the in-memory representation of the
+//! persisted scheduling configuration.
 
 use rustc_hash::FxHashMap;
 use std::cmp::Ordering;

@@ -1,33 +1,28 @@
-- [ ] To compile for Win or Mac, consider using cloud compilation, as in push to git, then compile on their server with real Win and Mac dictionary
-- [x] The running processes show the agent itself, don't let it show. NO, it not that bad, and it should show itself.
-- [x] Create ctrlc to check for normal shutdown
-- [ ] Use direct buff file read instead of calling command: Speed
-- [x] Check for the "Unknown" return, may need to differentiate it with valid "Unknown" thing!
-- [x] For Linux have to be care full with cmd to avoid bare bone server
-- [x] Don't send info that is "Unknown" or invalid
-- [x] <mark style="background: #CFB461;">maybe wrap all in Option</mark> 
-- [x] Maybe not read and sending network `lo`? No, send all
-- [ ] Should use Path type for all. Maybe not, just for idiomatic Rust
-- [ ] Please note on Window 10, Window 8 and Window XP
-- [ ] Should bring all the error output to a json return to server as debug
-- [x] Should agent just send only when info change??? Why keep sending when server just discard?
-- [x] The option choose logic of if choose item in list must include name is on server side
-- [x] Stuff like disk info, need check if new disk added, give all info. DONE.
-- [ ] But maybe better to do a socket listener for USB stick and such!
-- [x] <mark style="background: #CF8861;">If send when there are changes, why to we need time option at all, just send full at init and update through out with heartbeat</mark>: What the option really mean is when to send, but that is when to scan. That let user config Agent resource, only scan cycle that user need, Agent do scan cycle, but only send when info change
-- [x] TODO: Which mean info_gatherer need a cache, so it check everytime a field is called
-- [ ] So there should be also a case when usage < total, so should also check total, cause maybe it just also change. There could be other upward propagate case
-- [x] <mark style="background: #FF0000;">The cache logic need to change, since it just read all. The refesh need to be specific!</mark>. This is currently skip for mockup solution! Zero cache at scan, just cache as packaging
-- [x] Disk physical partition need a file type. That is in logical already
-- [x] AgentValue may need bool option
-- [x] Save the config when shut down don't seem like a good idea. It have to be, otherwise show to remember scan state?
-- [ ] For server command that need immediate comply from Agent, may be better to hold on the first HTTPS connection?
-- [x] Scope the debug assertion correctly
-- [ ] Path sercurity to avoid binary hijacking!
-- [ ] Min-Heap vs TimerWheel (array slot) vs Delta queue, which one is better?
-- [ ] Make launcher create and give the correct right to all the log
-- [ ] Might have to change all the binary name?
 
-# HERE 
-- [ ] Make all binary know it version
-- [ ] Agent see update cmd, it first check if it is outdated to continues, if not do nothing
+> In addition to this, search for `//TODO` in the source.
+
+# Fixes
+
+- [ ] Bug: Laucher watchdog currently don't know to restart `main_worker` if `main_worker` was killed.
+
+# Optimizing
+- [ ] The so called "Linux" OS should actually be called "Ubuntu".
+- [ ] In gathering info: Use direct buff file read instead of calling command for faster speed.
+- [ ] For Linux have to be care full with cmd to avoid bare bone server.
+- [ ] Please note on Window 10, Window 8 and Window XP as corporation may still use those version.
+- [ ] If agent have a fatal error, it should try to send distress signal to server.
+- [ ] For USB (in `disk` topic) and other peripheral, may need socket listener to catch them.
+- [ ] Core OS specific info gathering: <span style="color:rgb(255, 0, 0)">The cache logic need to change, currently it just read all. The refesh need to be specific each time</span>. This is currently skip for mockup solution! It should be zero cache at scan, just cache at payload making.
+- [ ] May need an alternative solution for save the config when shut down, as that is the easiest time to get corrupted file.
+- [ ] Sender logic: For server command that need immediate comply from Agent, may be better to keep on holding the first HTTPS connection rather than keep re initializing.
+- [ ] Scheduler design: Min-Heap (currently) vs TimerWheel (array slot) vs Delta queue, which one is better?
+- [ ] Might have to change all the binary name to `gsoft-...`?
+- [ ] Make `main_worker` able to known other binary version
+- [ ] Sender: The hardcoded URLs should be a build-time secret injection rather than a literals.
+
+# New feature
+
+- [ ] Update upstream for Windows (parallel with Linux)
+- [ ] Update upstream for MacOS?
+- [ ] Proxy scanner binary
+- [ ] Promotion Agent to Proxy scanner logic

@@ -1,11 +1,73 @@
+//! PayloadMaker is responsible for turning the information requested by
+//! scheduled tasks into the payload sent to the server.
 //!
-//! # Make payload by calling info_gatherer, serialize to json
+//! It does NOT simply collect everything and serialize it.
+//!
+//! The important part of this module is that payload generation is
+//! incremental. PayloadMaker keeps a cached `InfoPayload` representing the
+//! information from the previous collection. When a task is due, it determines
+//! which information is required, collects the current values, compares them
+//! against the cached values, and only includes the relevant changes in the
+//! outgoing payload.
+//!
+//! The normal flow is:
+//!
+//! 1. Receive the batch of `ScheduledTask`s that are currently due.
+//! 2. Determine which information those tasks require.
+//! 3. Collect the corresponding information through `Info`.
+//! 4. Compare the newly collected information against the cached
+//!    `InfoPayload`.
+//! 5. Keep the values that need to be reported.
+//! 6. Apply task-specific limits where applicable.
+//! 7. Produce the `InfoPayload` and serialize it for transmission.
+//!
+//! This means the internal `InfoPayload` cache is NOT just a temporary
+//! serialization buffer. It is state used to determine what should be sent
+//! during future cycles.
+//!
+//! This distinction is important when modifying this module:
+//! ```text
+//!     Scheduled tasks
+//!            │
+//!            ▼
+//!     determine required info
+//!            │
+//!            ▼
+//!       collect current info
+//!            │
+//!            ▼
+//!     compare with cached payload
+//!          /       \
+//!     unchanged    changed
+//!        │            │
+//!        │            ▼
+//!        │       include value
+//!        │            │
+//!        └──────┬─────┘
+//!               ▼
+//!        apply task limits
+//!               │
+//!               ▼
+//!          InfoPayload
+//!               │
+//!               ▼
+//!             JSON
+//! ```
 //! 
-//! Contain the logic to process due task batch, compare with cache for valid entry to put in the payload object.
+//! A full scan is intentionally different from the normal incremental path.
+//! It forces a complete collection and resets the cached state so that
+//! subsequent normal cycles start from the new full-scan snapshot.
+//!
+//! Because of this caching/delta behavior, changes to how information is
+//! collected, compared, or cached can change what the server receives even
+//! when the underlying system information itself has not changed.
+//!
+//! If you are modifying this module, pay particular attention to the
+//! relationship between scheduled tasks, the cached `InfoPayload`, and
+//! `full_scan`. They are part of the payload generation strategy rather than
+//! independent pieces of state.
 //! 
-//! The JSON is not written out, but serialize from an `InfoPayload` object, with have been implemented with derive `serde:Serialize`, and `serde_with::skip_serializing_none` (to not include `None`(null) entry in the final json).
-//! 
-//! **TODO: Could we use the same type for the real info and payload?**
+//! **//TODO: Could we use the same data type for both the real info and payload?**
 //! 
 
 #[cfg(debug_assertions)]

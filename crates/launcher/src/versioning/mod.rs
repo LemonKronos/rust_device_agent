@@ -1,6 +1,65 @@
+
+//! # Agent binary versioning and updates
 //!
-//! Binary management: update, rollback, promote.
-//! 
+//! This module manages replacement of agent binaries during an update.
+//!
+//! The update flow is intentionally split into two stages:
+//!
+//! 1. [`handle_update`] validates the update request and cryptographically
+//!    verifies the downloaded binary.
+//! 2. The platform-specific backend performs the actual filesystem replacement.
+//!
+//! ## Update flow
+//!
+//! ```text
+//! main_worker
+//!      |
+//!      | UPDATE|<binary>|<signature>
+//!      v
+//! launcher IPC
+//!      |
+//!      v
+//! watchdog
+//!      |
+//!      | stop main_worker
+//!      v
+//! handle_update()
+//!      |
+//!      +--> validate Ed25519 signature
+//!      |        |
+//!      |        +--> invalid -> delete downloaded file
+//!      |
+//!      +--> resolve target binary path
+//!      |
+//!      v
+//! platform-specific replace_binary()
+//!      |
+//!      +--> stage binary
+//!      +--> secure staged file
+//!      +--> backup current binary
+//!      +--> atomically replace current binary
+//!      +--> rollback on replacement failure
+//! ```
+//!
+//! ## Security model
+//!
+//! Update binaries are not trusted merely because they were downloaded.
+//! [`handle_update`] verifies the raw binary bytes against the embedded server
+//! Ed25519 public key before allowing the replacement operation to proceed.
+//!
+//! The platform backend is responsible for the filesystem-level replacement,
+//! while this module is responsible for deciding whether an update is trusted.
+//!
+//! ## Supported targets
+//!
+//! Currently update requests may target:
+//!
+//! - `main_worker`
+//! - `admin_fetcher`
+//! - `proxy_scanner`
+//!
+//! The launcher itself is intentionally excluded because replacing a running
+//! launcher requires a different lifecycle strategy.
 
 use std::fs;
 use ed25519_dalek::{VerifyingKey, Signature, Verifier};
