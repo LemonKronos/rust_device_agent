@@ -176,6 +176,8 @@ The update path already has a named slot for it (`AgentPath::PROXY_SCANNER`), bu
 
 # Build
 
+> Again the Windows build is not fully implemented, thus trying to run a Windows build right now will only result in errors. To test the current working build, do it in a Ubuntu (recommended Ubuntu 24.04) development environment.
+
 - Remember to omit feature `local_workspace` when building for deploy.
 ```shell
 cargo build --release --no-default-features
@@ -212,6 +214,8 @@ cargo doc --no-deps --document-private-items --open
 - `--document-private-items` include non-public items (such as private functions, structs, fields, and modules) in the generated documentation.
 - `--open` builds and immediately opens it in your browser; drop it if you just want the files under `target/doc/`.
 - To regenerate for a single crate only: `cargo doc --no-deps --document-private-items -p main_worker --open` (swap in `launcher`, `admin_fetcher`, or `shared_libs` as needed).
+
+> **Note:** `cargo doc` will be unable to catch the changes when a non-Rust file (e.g, a README.md) is edited. In that case, run `cargo clean --doc` and re-run to `cargo doc`.
 
 ## `local_workspace` feature and path resolution
 
@@ -286,6 +290,64 @@ The same approach is used in several places in the workspace, including:
 * `shared_libs::path`
 
 When adding or changing platform support, check both the common `mod.rs` and the corresponding platform-specific implementation.
+
+## Running in Development
+
+The agent normally runs as a background service and produces little or no terminal output. When testing the agent directly from a development build, use the launcher rather than starting `main_worker` manually. The launcher is responsible for starting and supervising the other agent processes.
+
+### Start the Agent
+
+After building the project, run the launcher from the workspace root.
+
+On Linux:
+
+```bash
+sudo ./target/debug/launcher
+```
+
+For a release build:
+
+```bash
+sudo ./target/release/launcher
+```
+
+The launcher will start the required agent processes and handle their lifecycle.
+
+> **Note:** The launcher may appear to produce little output in the terminal. This is expected. Use the development files under `doc/` to inspect what the agent is doing.
+
+### Inspecting Agent Activity
+
+When testing in development, the following files are useful for checking the agent's current state and behavior:
+
+| File                                           | Purpose                                                                                                                      |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `doc/logs/launcher/launcher_current.log`       | Launcher activity, including process supervision and launcher-side operations.                                               |
+| `doc/logs/main_worker/main_worker_current.log` | Main worker activity, including scheduled tasks, collection, and processing.                                                 |
+| `doc/sample/just_send.md`                      | The most recent payload the agent attempted to send.                                                                         |
+| `doc/config.json`                              | Current agent configuration. Useful for checking whether configuration changes were applied and persisted correctly.         |
+| `doc/sample/cache_info.md`                     | Current cached information used by the payload generation process. Useful when debugging incremental/delta payload behavior. |
+
+When debugging a behavior, check the relevant files rather than relying on terminal output. In particular, `just_send.md`, `config.json`, and `cache_info.md` can be used together to determine **what the agent collected, what it attempted to send, and what state it retained for the next cycle**.
+
+## Debian Package
+
+The `launcher` crate has a working [`cargo-deb`](https://github.com/kornelski/cargo-deb) configuration.
+
+A Debian package can be built from the `launcher` crate and the resulting `.deb` package has been tested successfully and is installable on Ubuntu.
+
+From the workspace root:
+
+```bash
+cargo deb -p launcher
+```
+
+The generated package can then be installed with:
+
+```bash
+sudo apt install ./target/debian/<package-name>.deb
+```
+
+> **Note:** Debian packaging for the `launcher` crate is currently functional. This is separate from the Windows build, which is not fully implemented yet.
 
 
 # Getting Familiar With the Code (Walkthrough)
